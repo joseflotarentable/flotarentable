@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
-import { euros, eurosKm, pct, fmtDate, calcConsumoHistorico, precioGasoilDe, calcKmBetween } from "../lib/helpers.js";
+import { euros, eurosKm, pct, fmtDate, calcConsumoHistorico, precioGasoilDe, calcKmRutaCamion } from "../lib/helpers.js";
 import { CityInput, ConfirmModal, Toast } from "../components/ui.jsx";
 
 export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesTodos,setViajesTodos}) {
@@ -18,8 +18,16 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
   const getAutoSemi=tid=>{const t=tractoras.find(x=>x.id===tid);return t?.conjunto_fijo&&t?.semi_habitual_id?t.semi_habitual_id:"";};
   const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||"")};
 
-  const handleO=(val,coords)=>{setOCoords(coords);if(coords&&dCoords){setModal(f=>({...f,origen:val,km:String(calcKmBetween(coords.lat,coords.lon,dCoords.lat,dCoords.lon))}));}else setModal(f=>({...f,origen:val}));};
-  const handleD=(val,coords)=>{setDCoords(coords);if(coords&&oCoords){setModal(f=>({...f,destino:val,km:String(calcKmBetween(oCoords.lat,oCoords.lon,coords.lat,coords.lon))}));}else setModal(f=>({...f,destino:val}));};
+  const[calculandoKm,setCalculandoKm]=useState(false);
+  const aplicarRuta=async(o,d)=>{
+    if(!o||!d)return;
+    setCalculandoKm(true);
+    const km=await calcKmRutaCamion(o.lat,o.lon,d.lat,d.lon);
+    setCalculandoKm(false);
+    setModal(f=>({...f,km:String(km)}));
+  };
+  const handleO=(val,coords)=>{setOCoords(coords);setModal(f=>({...f,origen:val}));if(coords&&dCoords)aplicarRuta(coords,dCoords);};
+  const handleD=(val,coords)=>{setDCoords(coords);setModal(f=>({...f,destino:val}));if(coords&&oCoords)aplicarRuta(oCoords,coords);};
 
   const calcIVA=()=>{const p=parseFloat(modal.precio)||0;const t=(parseFloat(modal.tipo_iva)||21)/100;const base=p/(1+t);return{base:base.toFixed(2),iva:(p-base).toFixed(2)};};
 
@@ -126,8 +134,8 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
           </div>
           <div className="fld"><label className="lbl">Origen <span style={{color:"var(--red)"}}>*</span></label><CityInput value={modal.origen} onChange={v=>setModal(f=>({...f,origen:v}))} onSelect={s=>handleO(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo"/></div>
           <div className="fld"><label className="lbl">Destino <span style={{color:"var(--red)"}}>*</span></label><CityInput value={modal.destino} onChange={v=>setModal(f=>({...f,destino:v}))} onSelect={s=>handleD(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo"/></div>
-          <div className="fld"><label className="lbl">Km de ida <span style={{color:"var(--red)"}}>*</span> {oCoords&&dCoords?<span style={{color:"var(--green)",fontSize:"0.68rem"}}>· aprox. calculado</span>:""}</label><input className="inp" type="number" placeholder="0" value={modal.km} onChange={e=>setModal({...modal,km:e.target.value})}/>
-            {oCoords&&dCoords&&<div style={{fontSize:"0.68rem",color:"var(--muted)"}}>Estimación por carretera (línea recta × 1,25). Ajusta el valor si conoces el km exacto.</div>}
+          <div className="fld"><label className="lbl">Km de ida <span style={{color:"var(--red)"}}>*</span> {calculandoKm?<span style={{color:"var(--a2)",fontSize:"0.68rem"}}>· calculando ruta...</span>:oCoords&&dCoords?<span style={{color:"var(--green)",fontSize:"0.68rem"}}>· ruta calculada</span>:""}</label><input className="inp" type="number" placeholder="0" value={modal.km} onChange={e=>setModal({...modal,km:e.target.value})}/>
+            {oCoords&&dCoords&&!calculandoKm&&<div style={{fontSize:"0.68rem",color:"var(--muted)"}}>Estimación de ruta para camión (carreteras aptas para vehículos pesados). Ajusta el valor si conoces el km exacto.</div>}
           </div>
           <div className="toggle-row"><span className="toggle-lbl">↩️ Vuelta sin carga</span><button className={`toggle ${vuelta?"on":""}`} onClick={()=>setVuelta(!vuelta)}/></div>
           {vuelta&&<div className="fld"><label className="lbl">Km de vuelta</label><input className="inp" type="number" placeholder={modal.km||"0"} value={modal.km_vuelta} onChange={e=>setModal({...modal,km_vuelta:e.target.value})}/></div>}

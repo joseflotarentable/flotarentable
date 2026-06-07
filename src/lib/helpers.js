@@ -76,10 +76,41 @@ export function calcPrecioMedioGasoil(gastos, truckId) {
   return repos.reduce((s,g)=>s+(parseFloat(g.precio_litro)||0),0)/repos.length;
 }
 
+// Cálculo en línea recta × 1.25 — se usa como respaldo si la API de rutas falla o no hay clave configurada.
 export function calcKmBetween(lat1,lon1,lat2,lon2) {
   const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
   const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
   return Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))*1.25);
+}
+
+// Clave de OpenRouteService (gratuita, hasta 2.000 peticiones/día).
+// Consíguela en https://openrouteservice.org/dev/#/signup y pégala aquí o en una variable de entorno VITE_ORS_KEY.
+const ORS_KEY = (typeof import.meta!=="undefined" && import.meta.env && import.meta.env.VITE_ORS_KEY) || "";
+
+const routeCache = {};
+// Calcula los km de ruta REAL para un camión (perfil driving-hgv) entre dos puntos.
+// Si no hay clave API o la petición falla, recurre al cálculo en línea recta × 1.25.
+export async function calcKmRutaCamion(lat1, lon1, lat2, lon2) {
+  const fallback = () => calcKmBetween(lat1, lon1, lat2, lon2);
+  if (!ORS_KEY) return fallback();
+  const key = `${lat1},${lon1}|${lat2},${lon2}`;
+  if (routeCache[key] != null) return routeCache[key];
+  try {
+    const r = await fetch("https://api.openrouteservice.org/v2/directions/driving-hgv", {
+      method: "POST",
+      headers: { "Authorization": ORS_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ coordinates: [[lon1, lat1],[lon2, lat2]] }),
+    });
+    if (!r.ok) return fallback();
+    const data = await r.json();
+    const metros = data?.routes?.[0]?.summary?.distance;
+    if (!metros) return fallback();
+    const km = Math.round(metros / 1000);
+    routeCache[key] = km;
+    return km;
+  } catch {
+    return fallback();
+  }
 }
 
 export let geoCache = {};
