@@ -85,7 +85,7 @@ export function calcKmBetween(lat1,lon1,lat2,lon2) {
 
 // Clave de OpenRouteService (gratuita, hasta 2.000 peticiones/día).
 // Consíguela en https://openrouteservice.org/dev/#/signup y pégala aquí o en una variable de entorno VITE_ORS_KEY.
-const ORS_KEY = (typeof import.meta!=="undefined" && import.meta.env && import.meta.env.VITE_ORS_KEY) || "";
+const ORS_KEY = (typeof import.meta!=="undefined" && import.meta.env && import.meta.env.VITE_ORS_KEY) || "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImIzMzhhNjdiOGZiZDQzZGRhZmJkYmEwYWI3OWRjMzI3IiwiaCI6Im11cm11cjY0In0=";
 
 const routeCache = {};
 // Calcula los km de ruta REAL para un camión (perfil driving-hgv) entre dos puntos.
