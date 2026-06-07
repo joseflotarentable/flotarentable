@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
 import { euros, eurosKm, pct, fmtDate, calcConsumoHistorico, precioGasoilDe, calcKmRutaCamion } from "../lib/helpers.js";
@@ -14,6 +14,8 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
   const[oCoords,setOCoords]=useState(null);
   const[dCoords,setDCoords]=useState(null);
   const defaultT=tractoras[0];
+  const[nombres,setNombres]=useState({});
+  useEffect(()=>{if(esGerente)sb.from("perfiles").select("id,nombre").then(({data})=>{const m={};(data||[]).forEach(p=>m[p.id]=p.nombre);setNombres(m);});},[esGerente]);
 
   const getAutoSemi=tid=>{const t=tractoras.find(x=>x.id===tid);return t?.conjunto_fijo&&t?.semi_habitual_id?t.semi_habitual_id:"";};
   const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||"")};
@@ -106,7 +108,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
           return(
             <div className="trip" key={v.id} onClick={()=>openEdit(v)}>
               <div className="ttop">
-                <div style={{minWidth:0,flex:1}}><div className="troute" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.origen||"—"} → {v.destino||"—"}{v.pais&&v.pais!=="España"?" 🌍":""}</div><div className="tdate" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{fmtDate(v.fecha)}{v.cliente?` · ${v.cliente}`:""}</div></div>
+                <div style={{minWidth:0,flex:1}}><div className="troute" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.origen||"—"} → {v.destino||"—"}{v.pais&&v.pais!=="España"?" 🌍":""}</div><div className="tdate" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{fmtDate(v.fecha)}{v.cliente?` · ${v.cliente}`:""}{esGerente&&v.user_id&&nombres[v.user_id]?` · añadido por ${nombres[v.user_id]}`:""}</div></div>
                 <button className="btn bd bsm" style={{padding:"0.3rem 0.4rem"}} onClick={e=>{e.stopPropagation();setConfirm({id:v.id,cerrar:false});}}><Icon d={I.trash} size={12}/></button>
               </div>
               <div className="trow">

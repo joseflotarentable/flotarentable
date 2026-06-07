@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
 import { ACCENTS, CONCEPTOS_EMPRESA, CONCEPTOS_VEHICULO, MESES_ES, PAISES, TIPOS_GASTO_VAR } from "../lib/constants.js";
@@ -13,6 +13,8 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
   const[toast,setToast]=useState("");
   const[confirm,setConfirm]=useState(null);
   const[openSections,setOpenSections]=useState({empresa:true});
+  const[nombres,setNombres]=useState({});
+  useEffect(()=>{if(esGerente)sb.from("perfiles").select("id,nombre").then(({data})=>{const m={};(data||[]).forEach(p=>m[p.id]=p.nombre);setNombres(m);});},[esGerente]);
   const mesFiltro=nowMes();
   const anoActual=nowAno();
 
@@ -115,7 +117,7 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
           return(
             <div className="trip" key={g.id} onClick={()=>openEdit(g)}>
               <div className="ttop">
-                <div><div className="troute">{g.tipo}{g.pais&&g.pais!=="España"?` · ${g.pais}`:""}</div><div className="tdate">{fmtDate(g.fecha)}{veh?` · ${veh.matricula}`:""}{g.nota?` · ${g.nota}`:""}</div></div>
+                <div><div className="troute">{g.tipo}{g.pais&&g.pais!=="España"?` · ${g.pais}`:""}</div><div className="tdate">{fmtDate(g.fecha)}{veh?` · ${veh.matricula}`:""}{g.nota?` · ${g.nota}`:""}{esGerente&&g.user_id&&nombres[g.user_id]?` · añadido por ${nombres[g.user_id]}`:""}</div></div>
                 <div style={{display:"flex",alignItems:"center",gap:"0.5rem"}}>
                   <span style={{fontFamily:"'Bebas Neue'",fontSize:"1.1rem",color:"var(--red)",letterSpacing:"0.02em"}}>{euros(parseFloat(g.importe))}</span>
                   <button className="btn bd bsm" style={{padding:"0.3rem 0.4rem"}} onClick={e=>{e.stopPropagation();setConfirm({id:g.id,cerrar:false});}}><Icon d={I.trash} size={12}/></button>
