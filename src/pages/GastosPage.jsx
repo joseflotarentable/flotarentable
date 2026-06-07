@@ -53,7 +53,9 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
 
   const saveGasto=async()=>{
     if(!modal.importe||modal.importe===""||isNaN(parseFloat(modal.importe))){setToast("⚠️ Introduce un importe válido");return;}
+    if(modal.tipo!=="Impuesto"&&parseFloat(modal.importe)<0){setToast("⚠️ El importe no puede ser negativo");return;}
     if(modal.tipo!=="Impuesto"&&!modal.vehicle_id){setToast("⚠️ Selecciona un vehículo");return;}
+    if(modal.tipo==="Impuesto"&&parseInt(modal.imp_mes_ini||1)>parseInt(modal.imp_mes_fin||12)){setToast("⚠️ El mes de inicio no puede ser posterior al mes de fin");return;}
     const fechaGasto=modal.fecha||new Date().toISOString().slice(0,10);
     const mesReal=fechaGasto.slice(0,7);
     const anoReal=fechaGasto.slice(0,4);
@@ -103,7 +105,7 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
         <div className="stat"><div className="slbl">Fijos mes</div><div className="sval y">{euros(totalFijosMes)}</div></div>
       </div>}
 
-      {gastos.length===0?<div className="empty"><div className="ei"><Icon d={I.coin} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin gastos este mes</strong><span style={{fontSize:"0.8rem"}}>Los gastos se archivan automáticamente cada mes</span></div></div>
+      {gastos.length===0?<div className="empty"><div className="ei"><Icon d={I.coin} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin gastos este mes</strong><span style={{fontSize:"0.8rem"}}>Aquí solo se muestran los gastos del mes seleccionado; el resto sigue guardado y disponible en Analizar</span></div></div>
       :<><p style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Gastos variables — {mesLabel}</p>
       <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
         {gastos.map(g=>{

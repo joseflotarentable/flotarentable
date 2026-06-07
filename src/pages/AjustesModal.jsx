@@ -113,7 +113,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
             <div style={{height:4,background:"var(--s3)",borderRadius:2,overflow:"hidden"}}>
               <div style={{height:"100%",width:`${Math.min((Math.max(numMiembros-1,0)/Math.max(planLimite-1,1))*100,100)}%`,background:(numMiembros-1)>=(planLimite-1)?"var(--red)":"var(--a1)",borderRadius:2,transition:"width 0.3s"}}/>
             </div>
-            <div style={{fontSize:"0.7rem",color:"var(--muted)",marginTop:"0.25rem"}}>Plan {planLimite<=3?"Starter":planLimite<=10?"Flota":"Empresa"} · {planLimite-1} chófer{planLimite-1!==1?"es":""} incluidos</div>
+            <div style={{fontSize:"0.7rem",color:"var(--muted)",marginTop:"0.25rem"}}>Plan {planLimite<=4?"Starter":planLimite<=11?"Flota":"Empresa"} · {planLimite-1} chófer{planLimite-1!==1?"es":""} incluidos</div>
           </div>}
         </div>}
         <div className="card">

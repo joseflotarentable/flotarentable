@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
 import { MESES_ES } from "../lib/constants.js";
-import { nowMes, euros, eurosKm, fmtDate, alertDays, alertColor, calcGastosFijosMes, gastoProrrateadoEnMes, calcConsumoHistorico, calcPrecioMedioGasoil, calcCosteKmEmpresa } from "../lib/helpers.js";
+import { nowMes, euros, eurosKm, fmtDate, alertDays, alertColor, calcGastosFijosMes, gastoProrrateadoEnMes, calcConsumoHistorico, precioGasoilDe, calcCosteKmEmpresa } from "../lib/helpers.js";
 
 export function InicioPage({userId,tractoras,semis,perfil,esGerente,gastosTodos,viajesTodos,setViajesTodos,gastosFijos}) {
   const mesFiltro=nowMes();
@@ -68,7 +68,7 @@ export function InicioPage({userId,tractoras,semis,perfil,esGerente,gastosTodos,
     const precio=parseFloat(v.precio)||0;
     const peaje=parseFloat(v.peaje)||0;
     const consumo=t?calcConsumoHistorico(gastosTodos,t.id)||(parseFloat(t.consumo_estimado)||32):32;
-    const precioG=t?calcPrecioMedioGasoil(gastosTodos,t.id):null;
+    const precioG=t?precioGasoilDe(t,gastosTodos):null;
     const costeG=precioG?km*(consumo/100)*precioG:0;
     return{coste:costeG+peaje,ben:precio-costeG-peaje,margen:precio>0?((precio-costeG-peaje)/precio)*100:0};
   };
@@ -84,6 +84,8 @@ export function InicioPage({userId,tractoras,semis,perfil,esGerente,gastosTodos,
   const viajesMesAnt=viajesTodos.filter(v=>v.fecha?.startsWith(mesAnteriorKey));
   const ingMesAnt=viajesMesAnt.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
   const totalVarMesAnt=gastosTodos.reduce((s,g)=>s+gastoProrrateadoEnMes(g,mesAnteriorKey),0);
+  // Nota: los gastos fijos no se guardan por mes histórico, así que se asume que se mantienen
+  // constantes respecto al mes actual (aproximación razonable para la tendencia).
   const gastosMesAnt=totalFijosMes+totalVarMesAnt;
   const benMesAnt=ingMesAnt-gastosMesAnt;
   const tendenciaPct=(actual,anterior)=>{

@@ -115,25 +115,37 @@ export async function geocode(q) {
 }
 
 // Coste €/km completo por tractora
-export function calcCosteKmCompleto(tractora, gastosFijos, gastosVar, viajes) {
+// Precio de gasoil a usar para una tractora: media histórica de sus repostajes,
+// y si no hay datos suficientes, el precio inicial que el usuario indicó al darla de alta.
+export function precioGasoilDe(tractora, gastosVar) {
+  if(!tractora)return null;
+  return calcPrecioMedioGasoil(gastosVar,tractora.id) || (parseFloat(tractora.precio_gasoil_inicial)||null);
+}
+
+export function calcCosteKmCompleto(tractora, gastosFijos, gastosVar, viajes, tractoras) {
   const mesFiltro=nowMes();
+  const flota=(tractoras||[tractora]).filter(t=>t.activa!==false);
   // Km reales del mes de esta tractora (de viajes registrados)
   const kmReales=viajes.filter(v=>v.truck_id===tractora.id&&v.fecha?.startsWith(mesFiltro)).reduce((s,v)=>s+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0),0);
   // Si no hay km reales usar los estimados, si tampoco hay no calcular
   const km=kmReales||parseFloat(tractora.km_mensuales)||0;
   if(!km)return 0;
+  // Km totales de la flota activa (para repartir proporcionalmente los fijos de empresa)
+  const kmTotalesFlota=flota.reduce((s,t)=>{
+    const kmT=viajes.filter(v=>v.truck_id===t.id&&v.fecha?.startsWith(mesFiltro)).reduce((a,v)=>a+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0),0);
+    return s+(kmT||parseFloat(t.km_mensuales)||0);
+  },0);
   // Fijos del vehículo
   const fijosV=gastosFijos.filter(g=>g.entidad_id===tractora.id).reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
   // Fijos empresa repartidos proporcionalmente según km de cada tractora
   const fijosEmpresa=gastosFijos.filter(g=>g.entidad_id==="empresa").reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
-  const kmTotalesFlota=viajes.filter(v=>v.fecha?.startsWith(mesFiltro)).reduce((s,v)=>s+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0),0)||km;
   const propEmpresa=kmTotalesFlota>0?km/kmTotalesFlota:0;
   const fijosEPorTractora=fijosEmpresa*propEmpresa;
   // Variables del mes de esta tractora
   const varMes=gastosVar.filter(g=>g.vehicle_id===tractora.id&&g.mes===mesFiltro).reduce((s,g)=>s+(parseFloat(g.importe)||0),0);
   // Combustible estimado por km (L/100km × precio medio gasoil)
   const consumo=parseFloat(tractora.consumo_estimado)||0;
-  const precioG=calcPrecioMedioGasoil(gastosVar,tractora.id);
+  const precioG=precioGasoilDe(tractora,gastosVar);
   const combustibleKm=consumo>0&&precioG?(consumo/100)*precioG:0;
   return (fijosV+fijosEPorTractora)/km + varMes/km + combustibleKm;
 }
@@ -141,15 +153,31 @@ export function calcCosteKmCompleto(tractora, gastosFijos, gastosVar, viajes) {
 // Coste €/km general de toda la empresa
 export function calcCosteKmEmpresa(tractoras, gastosFijos, gastosVar, viajes) {
   const mesFiltro=nowMes();
-  const kmTotal=viajes.filter(v=>v.fecha?.startsWith(mesFiltro)).reduce((s,v)=>s+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0),0);
+  const flota=(tractoras||[]).filter(t=>t.activa!==false);
+  const kmTotal=flota.reduce((s,t)=>{
+    const kmT=viajes.filter(v=>v.truck_id===t.id&&v.fecha?.startsWith(mesFiltro)).reduce((a,v)=>a+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0),0);
+    return s+(kmT||parseFloat(t.km_mensuales)||0);
+  },0);
   if(!kmTotal)return 0;
   const totalFijos=gastosFijos.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
   const totalVar=gastosVar.reduce((s,g)=>s+gastoProrrateadoEnMes(g,mesFiltro),0);
-  const totalCombustible=tractoras.reduce((s,t)=>{
+  const totalCombustible=flota.reduce((s,t)=>{
     const kmT=viajes.filter(v=>v.truck_id===t.id&&v.fecha?.startsWith(mesFiltro)).reduce((a,v)=>a+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0),0);
     const consumo=parseFloat(t.consumo_estimado)||0;
-    const precioG=calcPrecioMedioGasoil(gastosVar,t.id);
-    return s+(consumo>0&&precioG?kmT*(consumo/100)*precioG:0);
+    const precioG=precioGasoilDe(t,gastosVar);
+    return s+((kmT||parseFloat(t.km_mensuales)||0)*(consumo>0&&precioG?(consumo/100)*precioG:0));
   },0);
   return (totalFijos+totalVar+totalCombustible)/kmTotal;
+}
+
+// Bug #13: aviso de salto de odómetro poco realista entre repostajes (>2000km/día implícito)
+export function consumoHistoricoConAviso(gastos, truckId) {
+  const repos = gastos.filter(g=>g.vehicle_id===truckId&&g.tipo==="Combustible"&&g.odometro&&g.litros).sort((a,b)=>parseFloat(a.odometro)-parseFloat(b.odometro));
+  let aviso=null;
+  for(let i=1;i<repos.length;i++){
+    const kmD=parseFloat(repos[i].odometro)-parseFloat(repos[i-1].odometro);
+    const dias=Math.max(1,Math.abs((new Date(repos[i].fecha)-new Date(repos[i-1].fecha))/86400000));
+    if(kmD>0 && kmD/dias>2000){ aviso="Hay un salto de kilometraje entre dos repostajes que parece poco realista (revisa el odómetro introducido)."; break; }
+  }
+  return { valor: calcConsumoHistorico(gastos,truckId), aviso };
 }

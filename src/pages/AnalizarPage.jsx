@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
 import { MESES_ES, MESES_SHORT } from "../lib/constants.js";
-import { nowMes, nowAno, euros, eurosKm, pct, gastoProrrateadoEnMes, calcConsumoHistorico, calcPrecioMedioGasoil } from "../lib/helpers.js";
+import { nowMes, nowAno, euros, eurosKm, pct, gastoProrrateadoEnMes, calcConsumoHistorico, precioGasoilDe } from "../lib/helpers.js";
 
 export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gastosFijos}) {
   const[simKm,setSimKm]=useState("");
@@ -75,12 +75,12 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     if(!km||!precio)return null;
     const t=tractoras.find(x=>x.id===simTractora);
     const consumo=parseFloat(t?.consumo_estimado)||32;
-    const precioG=t?calcPrecioMedioGasoil(gastosTodos,t.id)||(parseFloat(t.precio_gasoil_inicial)||precioGasoilGlobal()):precioGasoilGlobal();
+    const precioG=t?precioGasoilDe(t,gastosTodos)||precioGasoilGlobal():precioGasoilGlobal();
     const costeGasoil=km*(consumo/100)*precioG;
     const fijosT=gastosFijos.filter(g=>g.entidad_id===t?.id).reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
     const fijosE=gastosFijos.filter(g=>g.entidad_id==="empresa").reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
     const kmMes=parseFloat(t?.km_mensuales)||km;
-    const fijosKm=(fijosT+fijosE/Math.max(tractoras.length,1))/kmMes;
+    const fijosKm=(fijosT+fijosE/Math.max(tractoras.filter(x=>x.activa!==false).length,1))/kmMes;
     const costeFijos=fijosKm*km;
     const costeTotal=costeGasoil+peaje+costeFijos;
     const ben=precio-costeTotal;
@@ -100,7 +100,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
       const t=tractoras.find(x=>x.id===v.truck_id);
       const km=(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0);
       const consumo=parseFloat(t?.consumo_estimado)||32;
-      const precioG=t?calcPrecioMedioGasoil(gastosTodos,t.id)||(parseFloat(t.precio_gasoil_inicial)||precioGasoilGlobal()):precioGasoilGlobal();
+      const precioG=t?precioGasoilDe(t,gastosTodos)||precioGasoilGlobal():precioGasoilGlobal();
       const coste=km*(consumo/100)*precioG+(parseFloat(v.peaje)||0);
       cMap[c].ing+=parseFloat(v.precio)||0;
       cMap[c].cost+=coste;
@@ -118,7 +118,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
       const vMes=viajesTodos.filter(v=>v.fecha?.startsWith(key));
       const gMes=gastosTodos.filter(g=>g.mes===key);
       const kmTotal=vMes.reduce((s,v)=>s+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0),0);
-      const varTotal=gMes.reduce((s,g)=>s+(parseFloat(g.importe)||0),0);
+      const varTotal=gastosTodos.reduce((s,g)=>s+gastoProrrateadoEnMes(g,key),0);
       const fijosTotal=gastosFijos.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
       const costeKm=kmTotal>0?(varTotal+fijosTotal)/kmTotal:0;
       return{label:MESES_SHORT[d.getMonth()],key,kmTotal,costeKm};
@@ -145,7 +145,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     const gFijosT=gastosFijos.filter(g=>g.entidad_id===tractora.id);
     const gFijosE=gastosFijos.filter(g=>g.entidad_id==="empresa");
     const totalFijosT=gFijosT.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
-    const totalFijosE=gFijosE.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0)/Math.max(tractoras.length,1);
+    const totalFijosE=gFijosE.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0)/Math.max(tractoras.filter(x=>x.activa!==false).length,1);
     const totalFijos=totalFijosT+totalFijosE;
     const totalVar=gVar.reduce((s,g)=>s+(parseFloat(g.importe)||0),0);
     const totalIngresos=vMes.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
@@ -227,7 +227,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
       if(y>270){doc.addPage();y=14;}
       const imp=parseFloat(g.importe)||0;
       const mensual=g.periodo==="anual"?imp/12:imp;
-      const mensualReal=g.entidad_id==="empresa"?mensual/Math.max(tractoras.length,1):mensual;
+      const mensualReal=g.entidad_id==="empresa"?mensual/Math.max(tractoras.filter(x=>x.activa!==false).length,1):mensual;
       doc.setTextColor(220,220,235);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
       doc.text(String(g.concepto||"").substring(0,40),M,y);
       doc.text(g.periodo==="anual"?"Anual":"Mensual",M+100,y);
@@ -271,7 +271,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
               const fijosT=gastosFijos.filter(g=>g.entidad_id===t.id).reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
               const varT=gastosTodos.filter(g=>g.vehicle_id===t.id&&g.mes===mesFiltro).reduce((s,g)=>s+(parseFloat(g.importe)||0),0);
               const consumo=calcConsumoHistorico(gastosTodos,t.id)||(parseFloat(t.consumo_estimado)||32);
-              const precioG=calcPrecioMedioGasoil(gastosTodos,t.id)||(parseFloat(t.precio_gasoil_inicial)||1.65);
+              const precioG=precioGasoilDe(t,gastosTodos)||1.65;
               const combustKm=(consumo/100)*precioG;
               const costeTotal=km>0?(fijosT+varT)/km+combustKm:combustKm;
               const ingresos=vT.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
@@ -364,10 +364,10 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
             const rentable=c.margen>=20;
             return(
               <div key={i} style={{background:"var(--s2)",border:`1px solid ${toxico?"#FF3D5A25":rentable?"#06D6A025":"var(--border2)"}`,borderRadius:"var(--r2)",padding:"0.875rem",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div>
+                <div style={{minWidth:0,flex:1,overflow:"hidden"}}>
                   <div style={{fontWeight:700,fontSize:"0.875rem",display:"flex",alignItems:"center",gap:"0.5rem"}}>
                     {i===0&&!toxico?"":""}
-                    {c.n}
+                    <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.n}</span>
                     <span style={{fontSize:"0.65rem",fontWeight:600,padding:"0.15rem 0.5rem",borderRadius:999,background:toxico?"#FF3D5A20":rentable?"#06D6A020":"#FFD16620",color:toxico?"var(--red)":rentable?"var(--green)":"var(--yellow)"}}>
                       {toxico?"TOXICO":rentable?"RENTABLE":"NORMAL"}
                     </span>

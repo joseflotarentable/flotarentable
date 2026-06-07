@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
-import { euros, eurosKm, pct, fmtDate, calcConsumoHistorico, calcPrecioMedioGasoil, calcKmBetween } from "../lib/helpers.js";
+import { euros, eurosKm, pct, fmtDate, calcConsumoHistorico, precioGasoilDe, calcKmBetween } from "../lib/helpers.js";
 import { CityInput, ConfirmModal, Toast } from "../components/ui.jsx";
 
 export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesTodos,setViajesTodos}) {
@@ -29,10 +29,8 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
     const precio=parseFloat(v.precio)||0;
     const peaje=parseFloat(v.peaje)||0;
     const consumo=t?calcConsumoHistorico(gastosTodos,t.id)||(parseFloat(t.consumo_estimado)||32):32;
-    const precioG=t?calcPrecioMedioGasoil(gastosTodos,t.id):null;
+    const precioG=t?precioGasoilDe(t,gastosTodos):null;
     const costeG=precioG?km*(consumo/100)*precioG:0;
-    const kmMes=parseFloat(t?.km_mensuales)||0;
-    const costeKm=kmMes>0?0:0;
     const coste=costeG+peaje;
     return{coste,ben:precio-coste,margen:precio>0?((precio-coste)/precio)*100:0};
   };
@@ -48,7 +46,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
     if(!modal.destino){setToast("⚠️ Introduce el destino");return;}
     if(esGerente&&(!modal.precio||parseFloat(modal.precio)<=0)){setToast("⚠️ Introduce el precio");return;}
     const{base,iva}=calcIVA();
-    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?parseFloat(modal.km_vuelta||modal.km)||0:null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,user_id:String(userId)};
+    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,user_id:String(userId)};
     if(editando?.id){
       const{error}=await sb.from("viajes").update(payload).eq("id",editando.id);
       if(error){setToast("❌ "+error.message);return;}
@@ -94,7 +92,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
           return(
             <div className="trip" key={v.id} onClick={()=>openEdit(v)}>
               <div className="ttop">
-                <div><div className="troute">{v.origen||"—"} → {v.destino||"—"}{v.pais&&v.pais!=="España"?" 🌍":""}</div><div className="tdate">{fmtDate(v.fecha)}{v.cliente?` · ${v.cliente}`:""}</div></div>
+                <div style={{minWidth:0,flex:1}}><div className="troute" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.origen||"—"} → {v.destino||"—"}{v.pais&&v.pais!=="España"?" 🌍":""}</div><div className="tdate" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{fmtDate(v.fecha)}{v.cliente?` · ${v.cliente}`:""}</div></div>
                 <button className="btn bd bsm" style={{padding:"0.3rem 0.4rem"}} onClick={e=>{e.stopPropagation();setConfirm({id:v.id,cerrar:false});}}><Icon d={I.trash} size={12}/></button>
               </div>
               <div className="trow">
@@ -105,7 +103,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
               </div>
               {esGerente&&<div className="tfoot">
                 <span style={{fontSize:"0.73rem",color:"var(--muted)"}}>Gasoil est. + peajes: {euros(coste)} · <span style={{color:ben>=0?"var(--green)":"var(--red)"}}>{ben>=0?"+":""}{euros(ben)}</span></span>
-                <span className={`badge ${ok?"bg-g":warn?"bg-y":"bg-r"}`}>{bad?"🔴":warn?"🟡":"🟢"} {pct(margen)}</span>
+                <span className={`badge ${ok?"bg-g":warn?"bg-y":"bg-r"}`} title="Margen sobre gasoil y peajes; no incluye gastos fijos de la flota">{bad?"🔴":warn?"🟡":"🟢"} {pct(margen)} <span style={{opacity:0.7,fontWeight:400}}>(sin fijos)</span></span>
               </div>}
             </div>
           );
@@ -128,7 +126,9 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
           </div>
           <div className="fld"><label className="lbl">Origen <span style={{color:"var(--red)"}}>*</span></label><CityInput value={modal.origen} onChange={v=>setModal(f=>({...f,origen:v}))} onSelect={s=>handleO(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo"/></div>
           <div className="fld"><label className="lbl">Destino <span style={{color:"var(--red)"}}>*</span></label><CityInput value={modal.destino} onChange={v=>setModal(f=>({...f,destino:v}))} onSelect={s=>handleD(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo"/></div>
-          <div className="fld"><label className="lbl">Km de ida <span style={{color:"var(--red)"}}>*</span> {oCoords&&dCoords?<span style={{color:"var(--green)",fontSize:"0.68rem"}}>· aprox. calculado</span>:""}</label><input className="inp" type="number" placeholder="0" value={modal.km} onChange={e=>setModal({...modal,km:e.target.value})}/></div>
+          <div className="fld"><label className="lbl">Km de ida <span style={{color:"var(--red)"}}>*</span> {oCoords&&dCoords?<span style={{color:"var(--green)",fontSize:"0.68rem"}}>· aprox. calculado</span>:""}</label><input className="inp" type="number" placeholder="0" value={modal.km} onChange={e=>setModal({...modal,km:e.target.value})}/>
+            {oCoords&&dCoords&&<div style={{fontSize:"0.68rem",color:"var(--muted)"}}>Estimación por carretera (línea recta × 1,25). Ajusta el valor si conoces el km exacto.</div>}
+          </div>
           <div className="toggle-row"><span className="toggle-lbl">↩️ Vuelta sin carga</span><button className={`toggle ${vuelta?"on":""}`} onClick={()=>setVuelta(!vuelta)}/></div>
           {vuelta&&<div className="fld"><label className="lbl">Km de vuelta</label><input className="inp" type="number" placeholder={modal.km||"0"} value={modal.km_vuelta} onChange={e=>setModal({...modal,km_vuelta:e.target.value})}/></div>}
           <div className="g2">
@@ -141,7 +141,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
             const peaje=parseFloat(modal.peaje)||0;
             const t=tractoras.find(x=>x.id===modal.truck_id);
             const consumo=parseFloat(t?.consumo_estimado)||32;
-            const precioG=t?calcPrecioMedioGasoil(gastosTodos,t.id)||(parseFloat(t.precio_gasoil_inicial)||1.65):1.65;
+            const precioG=t?(precioGasoilDe(t,gastosTodos)||1.65):1.65;
             const costeGasoil=km*(consumo/100)*precioG;
             const costTotal=costeGasoil+peaje;
             const precioMin=costTotal*1.15;

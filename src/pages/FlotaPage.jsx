@@ -98,9 +98,10 @@ export function TruckForm({t,semis,onSave,onCancel,onDelete}) {
           <div className="fld"><label className="lbl">Matrícula <span style={{color:"var(--red)"}}>*</span></label><input className="inp" type="text" value={form.matricula||""} placeholder="1234 ABC" onChange={e=>setForm({...form,matricula:e.target.value})}/></div>
           <div className="fld"><label className="lbl">Apodo</label><input className="inp" type="text" value={form.apodo||""} placeholder="El Titán" onChange={e=>setForm({...form,apodo:e.target.value})}/></div>
           <div className="fld"><label className="lbl">Tipo</label><select className="inp sel" value={form.subtipo||"Tractora"} onChange={e=>setForm({...form,subtipo:e.target.value})}>{TIPOS_T.map(o=><option key={o}>{o}</option>)}</select></div>
-          <div className="fld"><label className="lbl">Consumo L/100km</label><input className="inp" type="number" value={form.consumo_estimado||""} placeholder="32" onChange={e=>setForm({...form,consumo_estimado:e.target.value})}/></div>
-          <div className="fld"><label className="lbl">Precio gasoil actual (€/L)</label><input className="inp" type="number" value={form.precio_gasoil_inicial||""} placeholder="1,65" onChange={e=>setForm({...form,precio_gasoil_inicial:e.target.value})}/></div>
+          <div className="fld"><label className="lbl">Consumo L/100km <span style={{color:"var(--red)"}}>*</span></label><input className="inp" type="number" value={form.consumo_estimado||""} placeholder="32" onChange={e=>setForm({...form,consumo_estimado:e.target.value})}/></div>
+          <div className="fld"><label className="lbl">Precio gasoil actual (€/L) <span style={{color:"var(--red)"}}>*</span></label><input className="inp" type="number" value={form.precio_gasoil_inicial||""} placeholder="1,65" onChange={e=>setForm({...form,precio_gasoil_inicial:e.target.value})}/></div>
         </div>
+        <div className="alert ay" style={{marginTop:"0.75rem"}}><Icon d={I.alert} size={14} color="var(--yellow)"/><span>El consumo y el precio del gasoil son <b>obligatorios</b>: sin ellos la app no puede calcular el coste real ni la rentabilidad de tus viajes (verías márgenes "perfectos" que en realidad no lo son).</span></div>
       </div>
       {semis.length>0&&<div className="card">
         <div className="chd">Conjunto habitual</div>
@@ -118,7 +119,12 @@ export function TruckForm({t,semis,onSave,onCancel,onDelete}) {
           ))}
         </div>
       </div>
-      <div style={{display:"flex",gap:"0.75rem"}}><button className="btn bg" style={{flex:1}} onClick={onCancel}>Cancelar</button><button className="btn bp" style={{flex:2}} onClick={()=>{if(!form.matricula?.trim()){alert("La matrícula es obligatoria");return;}onSave(form);}}>Guardar</button></div>
+      <div style={{display:"flex",gap:"0.75rem"}}><button className="btn bg" style={{flex:1}} onClick={onCancel}>Cancelar</button><button className="btn bp" style={{flex:2}} onClick={()=>{
+        if(!form.matricula?.trim()){alert("La matrícula es obligatoria");return;}
+        if(!form.consumo_estimado||parseFloat(form.consumo_estimado)<=0){alert("Indica el consumo medio (L/100km): es necesario para calcular el coste real de tus viajes.");return;}
+        if(!form.precio_gasoil_inicial||parseFloat(form.precio_gasoil_inicial)<=0){alert("Indica el precio actual del gasoil (€/L): es necesario para calcular el coste real de tus viajes.");return;}
+        onSave(form);
+      }}>Guardar</button></div>
     </div>
   );
 }
