@@ -212,3 +212,51 @@ export function consumoHistoricoConAviso(gastos, truckId) {
   }
   return { valor: calcConsumoHistorico(gastos,truckId), aviso };
 }
+
+// --- Lectura automática de tickets/facturas (OCR 100% en el navegador, gratis, sin backend) ---
+// Usa Tesseract.js (librería open-source) cargada bajo demanda desde CDN.
+let _tesseractLoading=null;
+function cargarTesseract(){
+  if(window.Tesseract)return Promise.resolve(window.Tesseract);
+  if(_tesseractLoading)return _tesseractLoading;
+  _tesseractLoading=new Promise((resolve,reject)=>{
+    const s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+    s.onload=()=>resolve(window.Tesseract);
+    s.onerror=reject;
+    document.head.appendChild(s);
+  });
+  return _tesseractLoading;
+}
+
+// Analiza el texto reconocido y extrae los campos típicos de un ticket/factura español
+function parsearTextoFactura(texto){
+  const t=texto.replace(/,/g,".");
+  const out={};
+  // Importe total: busca "TOTAL" seguido de un número, o el número más grande con € cerca
+  let m=t.match(/TOTAL[^\d]{0,12}(\d{1,4}(?:\.\d{1,2})?)/i);
+  if(!m)m=t.match(/IMPORTE[^\d]{0,12}(\d{1,4}(?:\.\d{1,2})?)/i);
+  if(m)out.importe=parseFloat(m[1]);
+  // Litros (combustible)
+  let l=t.match(/(\d{1,3}[.,]?\d{0,3})\s*(?:litros|litro|l\.?\b|lts)/i);
+  if(l)out.litros=parseFloat(l[1]);
+  // Precio por litro
+  let pl=t.match(/(\d[.,]\d{2,3})\s*(?:€\s*\/\s*l|€\/litro|eur\/l)/i);
+  if(pl)out.precio_litro=parseFloat(pl[1]);
+  // Fecha dd/mm/aaaa o dd-mm-aaaa
+  let f=t.match(/(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/);
+  if(f)out.fecha=`${f[3]}-${f[2]}-${f[1]}`;
+  // Si hay litros y precio pero no importe, lo calculamos
+  if(!out.importe&&out.litros&&out.precio_litro)out.importe=Math.round(out.litros*out.precio_litro*100)/100;
+  return out;
+}
+
+// Devuelve {importe, litros, precio_litro, fecha, raw} a partir de una imagen en base64 (dataURL)
+export async function extraerDatosFactura(dataUrl, onProgress){
+  const Tesseract=await cargarTesseract();
+  const{data}=await Tesseract.recognize(dataUrl,"spa",{
+    logger:m=>{if(onProgress&&m.status==="recognizing text")onProgress(Math.round((m.progress||0)*100));}
+  });
+  const campos=parsearTextoFactura(data.text||"");
+  return{...campos,raw:data.text};
+}

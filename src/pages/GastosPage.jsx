@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
 import { ACCENTS, CONCEPTOS_EMPRESA, CONCEPTOS_VEHICULO, MESES_ES, PAISES, TIPOS_GASTO_VAR } from "../lib/constants.js";
-import { nowMes, nowAno, euros, fmtDate, calcGastosFijosMes, gastoProrrateadoEnMes } from "../lib/helpers.js";
-import { ConfirmModal, Toast } from "../components/ui.jsx";
+import { nowMes, nowAno, euros, fmtDate, calcGastosFijosMes, gastoProrrateadoEnMes, extraerDatosFactura } from "../lib/helpers.js";
+import { ConfirmModal, Toast, PhotoUpload } from "../components/ui.jsx";
 import { CustomConceptoRow } from "./FlotaPage.jsx";
 
 export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFijos,setGastosFijos,gastosTodos,setGastosTodos}) {
@@ -14,6 +14,29 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
   const[confirm,setConfirm]=useState(null);
   const[openSections,setOpenSections]=useState({empresa:true});
   const[nombres,setNombres]=useState({});
+  const[escaneando,setEscaneando]=useState(0);
+  const escanearFactura=async(dataUrl)=>{
+    setModal(f=>({...f,foto_factura:dataUrl}));
+    setEscaneando(1);
+    try{
+      const d=await extraerDatosFactura(dataUrl,p=>setEscaneando(Math.max(p,1)));
+      setModal(f=>{
+        const next={...f,foto_factura:dataUrl};
+        if(d.importe)next.importe=String(d.importe);
+        if(d.fecha)next.fecha=d.fecha;
+        if(f.tipo==="Combustible"){
+          if(d.litros)next.litros=String(d.litros);
+          if(d.precio_litro)next.precio_litro=String(d.precio_litro);
+        }
+        return next;
+      });
+      const encontrados=[d.importe&&"importe",d.litros&&"litros",d.precio_litro&&"€/litro",d.fecha&&"fecha"].filter(Boolean);
+      setToast(encontrados.length?`📷 Detectado: ${encontrados.join(", ")}. Revisa que sea correcto.`:"📷 No se ha podido leer el ticket, rellena los datos a mano");
+    }catch{
+      setToast("⚠️ No se ha podido leer la foto. Rellena los datos manualmente.");
+    }
+    setEscaneando(0);
+  };
   useEffect(()=>{if(esGerente)sb.from("perfiles").select("id,nombre").then(({data})=>{const m={};(data||[]).forEach(p=>m[p.id]=p.nombre);setNombres(m);});},[esGerente]);
   const mesFiltro=nowMes();
   const anoActual=nowAno();
@@ -48,7 +71,7 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
     }
   };
 
-  const emptyForm={fecha:new Date().toISOString().slice(0,10),tipo:"Combustible",titulo:"",importe:"",litros:"",precio_litro:"",odometro:"",pais:"España",vehicle_id:tractoras[0]?.id||"",vehicle_tipo:"tractora",nota:"",mes:mesFiltro,ano:anoActual,imp_ano:anoActual,imp_mes_ini:"1",imp_mes_fin:"12",itv_meses:"12"};
+  const emptyForm={fecha:new Date().toISOString().slice(0,10),tipo:"Combustible",titulo:"",importe:"",litros:"",precio_litro:"",odometro:"",pais:"España",vehicle_id:tractoras[0]?.id||"",vehicle_tipo:"tractora",nota:"",mes:mesFiltro,ano:anoActual,imp_ano:anoActual,imp_mes_ini:"1",imp_mes_fin:"12",itv_meses:"12",foto_factura:""};
 
   const openNew=()=>{setEditGasto(null);setModal({...emptyForm});};
   const openEdit=g=>{setEditGasto(g);setModal({...g});};
@@ -61,7 +84,7 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
     const fechaGasto=modal.fecha||new Date().toISOString().slice(0,10);
     const mesReal=fechaGasto.slice(0,7);
     const anoReal=fechaGasto.slice(0,4);
-    const payload={fecha:modal.fecha,tipo:modal.tipo,titulo:modal.titulo||"",importe:parseFloat(modal.importe),litros:modal.litros?parseFloat(modal.litros):null,precio_litro:modal.precio_litro?parseFloat(modal.precio_litro):null,odometro:modal.odometro?parseFloat(modal.odometro):null,pais:modal.pais||"España",vehicle_id:modal.tipo==="Impuesto"?"empresa":modal.vehicle_id||null,vehicle_tipo:modal.tipo==="Impuesto"?"empresa":modal.vehicle_tipo||"tractora",nota:modal.nota||"",mes:mesReal,ano:anoReal,imp_ano:modal.tipo==="Impuesto"?modal.imp_ano||anoActual:null,imp_mes_ini:modal.tipo==="Impuesto"?parseInt(modal.imp_mes_ini)||1:null,imp_mes_fin:modal.tipo==="Impuesto"?parseInt(modal.imp_mes_fin)||12:null,itv_meses:modal.tipo==="ITV"?parseInt(modal.itv_meses)||12:null,user_id:String(userId)};
+    const payload={fecha:modal.fecha,tipo:modal.tipo,titulo:modal.titulo||"",importe:parseFloat(modal.importe),litros:modal.litros?parseFloat(modal.litros):null,precio_litro:modal.precio_litro?parseFloat(modal.precio_litro):null,odometro:modal.odometro?parseFloat(modal.odometro):null,pais:modal.pais||"España",vehicle_id:modal.tipo==="Impuesto"?"empresa":modal.vehicle_id||null,vehicle_tipo:modal.tipo==="Impuesto"?"empresa":modal.vehicle_tipo||"tractora",nota:modal.nota||"",mes:mesReal,ano:anoReal,imp_ano:modal.tipo==="Impuesto"?modal.imp_ano||anoActual:null,imp_mes_ini:modal.tipo==="Impuesto"?parseInt(modal.imp_mes_ini)||1:null,imp_mes_fin:modal.tipo==="Impuesto"?parseInt(modal.imp_mes_fin)||12:null,itv_meses:modal.tipo==="ITV"?parseInt(modal.itv_meses)||12:null,foto_factura:modal.foto_factura||null,user_id:String(userId)};
     const veh=[...tractoras,...semis].find(v=>v.id===payload.vehicle_id);
     const resumen=`${payload.tipo}${veh?` · ${veh.matricula}`:""} · ${euros(payload.importe)}`;
     if(editGasto?.id){
@@ -117,7 +140,7 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
           return(
             <div className="trip" key={g.id} onClick={()=>openEdit(g)}>
               <div className="ttop">
-                <div><div className="troute">{g.tipo}{g.pais&&g.pais!=="España"?` · ${g.pais}`:""}</div><div className="tdate">{fmtDate(g.fecha)}{veh?` · ${veh.matricula}`:""}{g.nota?` · ${g.nota}`:""}{esGerente&&g.user_id&&nombres[g.user_id]?` · añadido por ${nombres[g.user_id]}`:""}</div></div>
+                <div><div className="troute">{g.tipo}{g.pais&&g.pais!=="España"?` · ${g.pais}`:""}{g.foto_factura?" 📄":""}</div><div className="tdate">{fmtDate(g.fecha)}{veh?` · ${veh.matricula}`:""}{g.nota?` · ${g.nota}`:""}{esGerente&&g.user_id&&nombres[g.user_id]?` · añadido por ${nombres[g.user_id]}`:""}</div></div>
                 <div style={{display:"flex",alignItems:"center",gap:"0.5rem"}}>
                   <span style={{fontFamily:"'Bebas Neue'",fontSize:"1.1rem",color:"var(--red)",letterSpacing:"0.02em"}}>{euros(parseFloat(g.importe))}</span>
                   <button className="btn bd bsm" style={{padding:"0.3rem 0.4rem"}} onClick={e=>{e.stopPropagation();setConfirm({id:g.id,cerrar:false});}}><Icon d={I.trash} size={12}/></button>
@@ -181,6 +204,10 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
             {modal.tipo==="Impuesto"&&<div style={{display:"flex",gap:"0.5rem"}}><div className="fld" style={{flex:1}}><label className="lbl">Mes inicio</label><select className="inp sel" value={modal.imp_mes_ini||"1"} onChange={e=>setModal({...modal,imp_mes_ini:e.target.value})}>{MESES_ES.map((m,i)=><option key={i+1} value={i+1}>{m}</option>)}</select></div><div className="fld" style={{flex:1}}><label className="lbl">Mes fin</label><select className="inp sel" value={modal.imp_mes_fin||"12"} onChange={e=>setModal({...modal,imp_mes_fin:e.target.value})}>{MESES_ES.map((m,i)=><option key={i+1} value={i+1}>{m}</option>)}</select></div></div>}
             {modal.tipo==="ITV"&&<div className="fld"><label className="lbl">¿Cada cuántos meses pasa ITV?</label><select className="inp sel" value={modal.itv_meses||"12"} onChange={e=>setModal({...modal,itv_meses:e.target.value})}><option value="6">Cada 6 meses</option><option value="12">Cada 12 meses (1 año)</option><option value="24">Cada 24 meses (2 años)</option><option value="36">Cada 36 meses (3 años)</option></select><div style={{fontSize:"0.75rem",color:"var(--muted)",marginTop:"0.3rem"}}>El coste se repartirá entre esos meses automáticamente</div></div>}
           </div>
+          {modal.tipo!=="Impuesto"&&<div className="fld">
+            <PhotoUpload value={modal.foto_factura} onChange={escanearFactura} label="📷 Foto del ticket/factura — autocompleta los datos" height={90}/>
+            {escaneando>0&&<div style={{fontSize:"0.72rem",color:"var(--a2)",marginTop:4,display:"flex",alignItems:"center",gap:6}}><div className="spinner" style={{width:13,height:13}}/> Leyendo factura... {escaneando}%</div>}
+          </div>}
           {modal.tipo==="Combustible"&&<>
             <div className="g2">
               <div className="fld"><label className="lbl">Litros</label><input className="inp" type="number" placeholder="0" value={modal.litros} onChange={e=>handleLitros(e.target.value,modal.precio_litro)}/></div>
