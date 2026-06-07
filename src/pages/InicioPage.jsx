@@ -78,6 +78,25 @@ export function InicioPage({userId,tractoras,semis,perfil,esGerente,gastosTodos,
   const totalVarMes=gastosTodos.reduce((s,g)=>s+gastoProrrateadoEnMes(g,mesFiltro),0);
   const ingMes=viajesMes.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
   const benMes=ingMes-totalFijosMes-totalVarMes;
+
+  // Comparativa con el mes anterior (para mostrar tendencia ▲▼)
+  const mesAnteriorKey=(()=>{const[a,m]=mesFiltro.split("-").map(Number);const d=new Date(a,m-2,1);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;})();
+  const viajesMesAnt=viajesTodos.filter(v=>v.fecha?.startsWith(mesAnteriorKey));
+  const ingMesAnt=viajesMesAnt.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
+  const totalVarMesAnt=gastosTodos.reduce((s,g)=>s+gastoProrrateadoEnMes(g,mesAnteriorKey),0);
+  const gastosMesAnt=totalFijosMes+totalVarMesAnt;
+  const benMesAnt=ingMesAnt-gastosMesAnt;
+  const tendenciaPct=(actual,anterior)=>{
+    if(!anterior)return null;
+    return((actual-anterior)/Math.abs(anterior))*100;
+  };
+  const Tendencia=({actual,anterior,bueno="up"})=>{
+    const t=tendenciaPct(actual,anterior);
+    if(t===null||Math.abs(t)<0.5)return null;
+    const sube=t>0;
+    const esBueno=bueno==="up"?sube:!sube;
+    return<span style={{fontSize:"0.68rem",fontWeight:700,color:esBueno?"var(--green)":"var(--red)",marginLeft:6}}>{sube?"▲":"▼"} {Math.abs(t).toFixed(0)}%</span>;
+  };
   const costeEmpresa=calcCosteKmEmpresa(tractoras,gastosFijos,gastosTodos,viajesTodos);
   const mesLabel=MESES_ES[parseInt(mesFiltro.split("-")[1])-1];
 
@@ -100,9 +119,9 @@ export function InicioPage({userId,tractoras,semis,perfil,esGerente,gastosTodos,
         <div style={{fontSize:"0.82rem",color:"var(--muted)"}}>Registra tus viajes y gastos desde las pestañas de abajo.</div>
       </div>}
       {esGerente&&<div className="g3">
-        <div className="stat"><div className="slbl">Ingresos {mesLabel}</div><div className="sval g">{euros(ingMes)}</div></div>
-        <div className="stat"><div className="slbl">Gastos {mesLabel}</div><div className="sval r">{euros(totalFijosMes+totalVarMes)}</div></div>
-        <div className="stat"><div className="slbl">Beneficio {mesLabel}</div><div className={`sval ${benMes>=0?"g":"r"}`}>{euros(benMes)}</div></div>
+        <div className="stat"><div className="slbl">Ingresos {mesLabel}</div><div className="sval g">{euros(ingMes)}<Tendencia actual={ingMes} anterior={ingMesAnt} bueno="up"/></div></div>
+        <div className="stat"><div className="slbl">Gastos {mesLabel}</div><div className="sval r">{euros(totalFijosMes+totalVarMes)}<Tendencia actual={totalFijosMes+totalVarMes} anterior={gastosMesAnt} bueno="down"/></div></div>
+        <div className="stat"><div className="slbl">Beneficio {mesLabel}</div><div className={`sval ${benMes>=0?"g":"r"}`}>{euros(benMes)}<Tendencia actual={benMes} anterior={benMesAnt} bueno="up"/></div></div>
       </div>}
 
       {esGerente&&costeEmpresa>0&&<div className="hcard">

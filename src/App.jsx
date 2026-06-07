@@ -25,6 +25,12 @@ export default function App() {
   const[tab,setTab]=useState("inicio");
   const[loading,setLoading]=useState(true);
   const[trialStart,setTrialStart]=useState(null);
+  const[theme,setTheme]=useState(()=>localStorage.getItem("fr-theme")||"dark");
+
+  useEffect(()=>{
+    localStorage.setItem("fr-theme",theme);
+    document.body.setAttribute("data-theme",theme);
+  },[theme]);
 
   useEffect(()=>{
     sb.auth.getSession().then(async({data:{session}})=>{
@@ -120,7 +126,7 @@ export default function App() {
         </div>
       </div>
 
-      {showAjustes&&<AjustesModal userId={user.id} perfil={perfil} updatePerfil={updatePerfil} onClose={()=>setShowAjustes(false)} onLogout={handleLogout} tractoras={tractoras}/>}
+      {showAjustes&&<AjustesModal userId={user.id} perfil={perfil} updatePerfil={updatePerfil} onClose={()=>setShowAjustes(false)} onLogout={handleLogout} tractoras={tractoras} theme={theme} setTheme={setTheme}/>}
 
       {tab==="inicio"&&<InicioPage key={`inicio-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} perfil={perfil} esGerente={esGerente} gastosTodos={gastosTodos} viajesTodos={viajesTodos} setViajesTodos={setViajesTodos} gastosFijos={gastosFijos}/>}
       {tab==="flota"&&<FlotaPage userId={user.id} perfil={perfil} updatePerfil={updatePerfil} tractoras={tractoras} semis={semis} setTractoras={setTractoras} setSemis={setSemis}/>}

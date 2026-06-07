@@ -5,7 +5,7 @@ import { ACCENTS } from "../lib/constants.js";
 import { genCode } from "../lib/helpers.js";
 import { InputGuardado, PhotoUpload } from "../components/ui.jsx";
 
-export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tractoras}) {
+export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tractoras,theme,setTheme}) {
   const[codigo,setCodigo]=useState("");
   const[copied,setCopied]=useState(false);
   const[passForm,setPassForm]=useState({nueva:"",confirmar:""});
@@ -116,6 +116,13 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
             <div style={{fontSize:"0.7rem",color:"var(--muted)",marginTop:"0.25rem"}}>Plan {planLimite<=3?"Starter":planLimite<=10?"Flota":"Empresa"} · {planLimite-1} chófer{planLimite-1!==1?"es":""} incluidos</div>
           </div>}
         </div>}
+        <div className="card">
+          <div className="chd">Apariencia</div>
+          <div className="toggle-row">
+            <span className="toggle-lbl">Modo claro</span>
+            <button className={`toggle ${theme==="light"?"on":""}`} onClick={()=>setTheme(theme==="light"?"dark":"light")}/>
+          </div>
+        </div>
         <div className="card">
           <div className="chd">Color de la app</div>
           <div style={{display:"flex",gap:"0.625rem"}}>{ACCENTS.map((a,i)=><div key={i} className={`accent-dot ${(perfil.accent_idx||0)===i?"sel":""}`} style={{background:`linear-gradient(135deg,${a.a1},${a.a2})`}} onClick={()=>saveAjustes({accent_idx:i})}/>)}</div>
