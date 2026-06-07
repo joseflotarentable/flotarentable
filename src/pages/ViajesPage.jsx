@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
 import { euros, eurosKm, pct, fmtDate, calcConsumoHistorico, precioGasoilDe, calcKmRutaCamion } from "../lib/helpers.js";
-import { CityInput, ConfirmModal, Toast } from "../components/ui.jsx";
+import { CityInput, ConfirmModal, Toast, PhotoUpload } from "../components/ui.jsx";
 
 export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesTodos,setViajesTodos}) {
   const[viajes,setViajes]=useState(viajesTodos||[]);
@@ -18,7 +18,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
   useEffect(()=>{if(esGerente)sb.from("perfiles").select("id,nombre").then(({data})=>{const m={};(data||[]).forEach(p=>m[p.id]=p.nombre);setNombres(m);});},[esGerente]);
 
   const getAutoSemi=tid=>{const t=tractoras.find(x=>x.id===tid);return t?.conjunto_fijo&&t?.semi_habitual_id?t.semi_habitual_id:"";};
-  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||"")};
+  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||""),cmr_foto:""};
 
   const[calculandoKm,setCalculandoKm]=useState(false);
   const aplicarRuta=async(o,d)=>{
@@ -56,7 +56,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
     if(!modal.destino){setToast("⚠️ Introduce el destino");return;}
     if(esGerente&&(!modal.precio||parseFloat(modal.precio)<=0)){setToast("⚠️ Introduce el precio");return;}
     const{base,iva}=calcIVA();
-    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,user_id:String(userId)};
+    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,cmr_foto:modal.cmr_foto||null,user_id:String(userId)};
     const resumen=()=>{
       const ruta=`${payload.origen} → ${payload.destino}`;
       if(!esGerente)return ruta;
@@ -108,7 +108,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
           return(
             <div className="trip" key={v.id} onClick={()=>openEdit(v)}>
               <div className="ttop">
-                <div style={{minWidth:0,flex:1}}><div className="troute" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.origen||"—"} → {v.destino||"—"}{v.pais&&v.pais!=="España"?" 🌍":""}</div><div className="tdate" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{fmtDate(v.fecha)}{v.cliente?` · ${v.cliente}`:""}{esGerente&&v.user_id&&nombres[v.user_id]?` · añadido por ${nombres[v.user_id]}`:""}</div></div>
+                <div style={{minWidth:0,flex:1}}><div className="troute" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.origen||"—"} → {v.destino||"—"}{v.pais&&v.pais!=="España"?" 🌍":""}{v.cmr_foto?" 📄":""}</div><div className="tdate" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{fmtDate(v.fecha)}{v.cliente?` · ${v.cliente}`:""}{esGerente&&v.user_id&&nombres[v.user_id]?` · añadido por ${nombres[v.user_id]}`:""}</div></div>
                 <button className="btn bd bsm" style={{padding:"0.3rem 0.4rem"}} onClick={e=>{e.stopPropagation();setConfirm({id:v.id,cerrar:false});}}><Icon d={I.trash} size={12}/></button>
               </div>
               <div className="trow">
@@ -151,6 +151,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
             <div className="fld"><label className="lbl">Peajes (€)</label><input className="inp" type="number" placeholder="0" value={modal.peaje} onChange={e=>setModal({...modal,peaje:e.target.value})}/></div>
             {esGerente&&<div className="fld"><label className="lbl">Precio cobrado (€) <span style={{fontSize:"0.68rem",color:"var(--muted)",fontWeight:400}}>(IVA incluido)</span></label><input className="inp" type="number" placeholder="0" value={modal.precio} onChange={e=>setModal({...modal,precio:e.target.value})}/></div>}
           </div>
+          <PhotoUpload value={modal.cmr_foto} onChange={v=>setModal({...modal,cmr_foto:v})} label="📄 CMR / albarán (opcional)" height={90}/>
           {esGerente&&(()=>{
             const km=(parseFloat(modal.km)||0)+(parseFloat(modal.km_vuelta)||0);
             const precio=parseFloat(modal.precio)||0;
