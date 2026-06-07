@@ -9,7 +9,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
   const[simPrecio,setSimPrecio]=useState("");
   const[simTractora,setSimTractora]=useState(tractoras[0]?.id||"");
   const[simPeaje,setSimPeaje]=useState("");
-  const[subtab,setSubtab]=useState("dashboard");
+  const[subtab,setSubtab]=useState("resumen");
   const[viajes,setViajes]=useState([]);
   const[gastos,setGastos]=useState([]);
   const[gastosFijosRes,setGastosFijosRes]=useState([]);
@@ -258,13 +258,14 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
   return(
     <div className="page fu">
       <div className="ptitle">Analizar</div>
-      <div className="tab-row" style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)"}}>
-        {[["dashboard","Dashboard"],["sim","Simular"],["clientes","Clientes"],["tendencia","Tendencia"],["resumen","Resumen"],["pdf","PDF"]].map(([id,lbl])=>(
+      <div className="tab-row" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)"}}>
+        {[["resumen","Resumen"],["rentabilidad","Rentabilidad"],["simular","Simular"],["informes","Informes"]].map(([id,lbl])=>(
           <div key={id} className={`tab-btn ${subtab===id?"on":""}`} onClick={()=>setSubtab(id)}>{lbl}</div>
         ))}
       </div>
 
-      {subtab==="dashboard"&&<>
+      {subtab==="resumen"&&<>
+        <div style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Este mes</div>
         {/* Coste €/km por tractora este mes */}
         <div className="card">
           <div className="chd">Coste €/km por tractora — {MESES_ES[parseInt(nowMes().split("-")[1])-1]}</div>
@@ -407,7 +408,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
         })()}
       </>}
 
-      {subtab==="sim"&&<>
+      {subtab==="simular"&&<>
         <div className="card">
           <div className="chd">Simula un viaje antes de aceptarlo</div>
           {tractoras.length>1&&<div className="fld" style={{marginBottom:"0.625rem"}}><label className="lbl">Tractora</label>
@@ -446,7 +447,8 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
         {!sr&&<div className="empty"><div className="ei"><Icon d={I.trend} size={20} color="var(--muted)"/></div><span style={{fontSize:"0.8rem"}}>Introduce los km y el precio para simular</span></div>}
       </>}
 
-      {subtab==="clientes"&&<>
+      {subtab==="rentabilidad"&&<>
+        <div style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Ranking de clientes</div>
         {clientes.length===0?<div className="empty"><div className="ei"><Icon d={I.user} size={20} color="var(--muted)"/></div><span style={{fontSize:"0.8rem"}}>Sin viajes registrados aun</span></div>
         :<div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
           {clientes.map((c,i)=>{
@@ -471,7 +473,8 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
         </div>}
       </>}
 
-      {subtab==="tendencia"&&<>
+      {subtab==="rentabilidad"&&<>
+        <div style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginTop:"0.5rem"}}>Tendencia de costes</div>
         <div className="card">
           <div className="chd">Coste €/km ultimos 6 meses</div>
           <div style={{display:"flex",alignItems:"flex-end",gap:6,height:80,marginBottom:"0.5rem"}}>
@@ -577,7 +580,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
         </div>}
       </>}
 
-      {subtab==="pdf"&&<>
+      {subtab==="informes"&&<>
         <div className="card">
           <div className="chd">Informe PDF mensual por tractora</div>
           <p style={{fontSize:"0.82rem",color:"var(--muted)",marginBottom:"0.75rem"}}>Descarga un PDF con viajes, gastos variables, gastos fijos prorrateados y beneficio neto.</p>
