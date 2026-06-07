@@ -119,7 +119,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
       </div>}
 
     </div>
-    {modal&&<div className="ov" onClick={()=>setModal(false)}>
+    {modal&&<div className="ov">
         <div className="modal" onClick={e=>e.stopPropagation()}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div className="mtitle">{editando?"Editar viaje":"Nuevo viaje"}</div>
