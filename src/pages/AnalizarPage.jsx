@@ -79,16 +79,22 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     const costeGasoil=km*(consumo/100)*precioG;
     const fijosT=gastosFijos.filter(g=>g.entidad_id===t?.id).reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
     const fijosE=gastosFijos.filter(g=>g.entidad_id==="empresa").reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
-    const kmMes=parseFloat(t?.km_mensuales)||km;
+    // Si la tractora no tiene km mensuales configurados, usamos los km reales del mes actual
+    // o un valor por defecto razonable (8000 km) — NUNCA los km del propio viaje simulado,
+    // porque eso cargaría todos los gastos fijos del mes sobre un único viaje.
+    const mesFiltroSim=nowMes();
+    const kmRealesMes=t?viajesTodos.filter(v=>v.truck_id===t.id&&v.fecha?.startsWith(mesFiltroSim)).reduce((s,v)=>s+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0),0):0;
+    const kmMes=parseFloat(t?.km_mensuales)||kmRealesMes||8000;
     const fijosKm=(fijosT+fijosE/Math.max(tractoras.filter(x=>x.activa!==false).length,1))/kmMes;
     const costeFijos=fijosKm*km;
+    const fijosAviso=!t?.km_mensuales&&!kmRealesMes;
     const costeTotal=costeGasoil+peaje+costeFijos;
     const ben=precio-costeTotal;
     const margen=precio>0?(ben/precio)*100:0;
     const precioMin=costeTotal*1.15;
     const kmRate=precio/km;
     const kmMin=precioMin/km;
-    return{km,precio,peaje,costeGasoil,costeFijos,costeTotal,ben,margen,precioMin,kmRate,kmMin,ok:ben>0};
+    return{km,precio,peaje,costeGasoil,costeFijos,costeTotal,ben,margen,precioMin,kmRate,kmMin,ok:ben>0,fijosAviso,kmMes};
   };
 
   // Ranking clientes
@@ -345,9 +351,10 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
           <div style={{display:"flex",flexDirection:"column",gap:"0.3rem",fontSize:"0.78rem",color:"var(--muted)"}}>
             <div style={{display:"flex",justifyContent:"space-between"}}><span>Gasoil estimado</span><span style={{color:"var(--text)"}}>{euros(sr.costeGasoil)}</span></div>
             <div style={{display:"flex",justifyContent:"space-between"}}><span>Peajes</span><span style={{color:"var(--text)"}}>{euros(sr.peaje)}</span></div>
-            <div style={{display:"flex",justifyContent:"space-between"}}><span>Gastos fijos proporcionales</span><span style={{color:"var(--text)"}}>{euros(sr.costeFijos)}</span></div>
+            <div style={{display:"flex",justifyContent:"space-between"}}><span>Gastos fijos proporcionales {sr.fijosAviso&&<span style={{color:"var(--yellow)"}}>· estimado sobre {sr.kmMes.toLocaleString("es-ES")} km/mes</span>}</span><span style={{color:"var(--text)"}}>{euros(sr.costeFijos)}</span></div>
             <div style={{display:"flex",justifyContent:"space-between",borderTop:"1px solid var(--border)",paddingTop:"0.3rem",marginTop:"0.1rem",fontWeight:700}}><span>Coste total</span><span style={{color:"var(--text)"}}>{euros(sr.costeTotal)}</span></div>
           </div>
+          {sr.fijosAviso&&<div style={{fontSize:"0.72rem",color:"var(--muted)"}}>💡 Esta tractora no tiene "Km mensuales" configurados ni viajes este mes, así que el reparto de gastos fijos es una estimación sobre {sr.kmMes.toLocaleString("es-ES")} km/mes. Indica los km mensuales reales en Flota para un cálculo más preciso.</div>}
           {!sr.ok&&<div style={{background:"#FF3D5A15",borderRadius:"var(--r2)",padding:"0.75rem",fontSize:"0.82rem",color:"var(--red)",fontWeight:600}}>
             Precio minimo recomendado: {euros(sr.precioMin)} ({eurosKm(sr.kmMin)})
           </div>}
