@@ -461,7 +461,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
                     {i===0&&!toxico?"":""}
                     <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.n}</span>
                     <span style={{fontSize:"0.65rem",fontWeight:600,padding:"0.15rem 0.5rem",borderRadius:999,background:toxico?"#FF3D5A20":rentable?"#06D6A020":"#FFD16620",color:toxico?"var(--red)":rentable?"var(--green)":"var(--yellow)"}}>
-                      {toxico?"TOXICO":rentable?"RENTABLE":"NORMAL"}
+                      {toxico?"PIERDES DINERO":rentable?"RENTABLE":"NORMAL"}
                     </span>
                   </div>
                   <div style={{fontSize:"0.72rem",color:"var(--muted)",marginTop:2}}>{c.viajes} viaje{c.viajes!==1?"s":""} · {euros(c.ing)} facturado</div>
