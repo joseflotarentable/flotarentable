@@ -38,7 +38,8 @@
       "Bash(sed -i '1i import { useState } from \"react\";\\\\nimport { sb } from \"../lib/supabase.js\";\\\\nimport { Icon, I } from \"../lib/icons.jsx\";\\\\nimport { ACCENTS, CONCEPTOS_EMPRESA, CONCEPTOS_VEHICULO, MESES_ES, PAISES, TIPOS_GASTO_VAR } from \"../lib/constants.js\";\\\\nimport { nowMes, nowAno, euros, fmtDate, calcGastosFijosMes, gastoProrrateadoEnMes } from \"../lib/helpers.js\";\\\\nimport { ConfirmModal, Toast } from \"../components/ui.jsx\";\\\\nimport { CustomConceptoRow } from \"./FlotaPage.jsx\";\\\\n' pages/GastosPage.jsx)",
       "Bash(sed -i '136s/.*/  const precioG=precioGasoilDe\\(tractora,gastosVar\\);/' lib/helpers.js)",
       "Bash(sed -i '151s/.*/    const precioG=precioGasoilDe\\(t,gastosVar\\);/' lib/helpers.js)",
-      "Bash(sed -n '136p;151p' lib/helpers.js)"
+      "Bash(sed -n '136p;151p' lib/helpers.js)",
+      "Bash(git push\" 2>&1 | tail -30)"
     ]
   }
 }

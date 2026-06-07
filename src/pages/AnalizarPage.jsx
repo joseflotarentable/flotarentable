@@ -322,6 +322,89 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
             </div>
           );
         })()}
+
+        {/* Predicción simple de cierre de mes */}
+        {(()=>{
+          const mesFiltro=nowMes();
+          const hoy=new Date();
+          const diaActual=hoy.getDate();
+          const diasMes=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate();
+          if(diaActual<3)return null;
+          const vMes=viajesTodos.filter(v=>v.fecha?.startsWith(mesFiltro));
+          const ingresos=vMes.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
+          if(!ingresos)return null;
+          const gMes=gastosTodos.reduce((s,g)=>s+gastoProrrateadoEnMes(g,mesFiltro),0);
+          const fijosMes=gastosFijos.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
+          const benHasta=ingresos-gMes-fijosMes;
+          const ratio=diasMes/diaActual;
+          const benProyectado=benHasta*ratio;
+          return(
+            <div className="card">
+              <div className="chd">📈 Predicción de cierre — {MESES_ES[parseInt(mesFiltro.split("-")[1])-1]}</div>
+              <div style={{fontSize:"0.85rem"}}>A este ritmo (día {diaActual} de {diasMes}), este mes podrías cerrar con un beneficio de aproximadamente <span style={{fontWeight:700,color:benProyectado>=0?"var(--green)":"var(--red)"}}>{euros(benProyectado)}</span>.</div>
+              <div style={{fontSize:"0.7rem",color:"var(--muted)",marginTop:4}}>Estimación lineal basada en lo registrado hasta ahora. Cuantos más datos metas, más precisa será.</div>
+            </div>
+          );
+        })()}
+
+        {/* Alertas de anomalías de consumo */}
+        {(()=>{
+          const mesFiltro=nowMes();
+          const mesAnt=(()=>{const[a,m]=mesFiltro.split("-").map(Number);const d=new Date(a,m-2,1);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;})();
+          const anomalias=[];
+          tractoras.forEach(t=>{
+            const cActual=calcConsumoHistorico(gastosTodos.filter(g=>g.mes===mesFiltro),t.id);
+            const cAnt=calcConsumoHistorico(gastosTodos.filter(g=>g.mes===mesAnt),t.id);
+            if(cActual&&cAnt){
+              const delta=((cActual-cAnt)/cAnt)*100;
+              if(Math.abs(delta)>=12)anomalias.push({matricula:t.matricula||"Tractora",delta});
+            }
+          });
+          if(anomalias.length===0)return null;
+          return(
+            <div className="card">
+              <div className="chd">⚠️ Anomalías detectadas</div>
+              <div style={{display:"flex",flexDirection:"column",gap:"0.4rem"}}>
+                {anomalias.map((a,i)=>(
+                  <div key={i} style={{fontSize:"0.82rem"}}>Este mes el consumo de la <span style={{fontWeight:700}}>{a.matricula}</span> ha {a.delta>0?"subido":"bajado"} un <span style={{fontWeight:700,color:a.delta>0?"var(--red)":"var(--green)"}}>{Math.abs(a.delta).toFixed(0)}%</span> respecto al mes anterior.</div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Ranking de tractoras por rentabilidad */}
+        {(()=>{
+          if(tractoras.length<2)return null;
+          const mesFiltro=nowMes();
+          const ranking=tractoras.map(t=>{
+            const vT=viajesTodos.filter(v=>v.truck_id===t.id&&v.fecha?.startsWith(mesFiltro));
+            const ingresos=vT.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
+            const km=vT.reduce((s,v)=>s+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0),0);
+            const consumo=calcConsumoHistorico(gastosTodos,t.id)||(parseFloat(t.consumo_estimado)||32);
+            const precioG=precioGasoilDe(t,gastosTodos)||1.65;
+            const coste=km*(consumo/100)*precioG+vT.reduce((s,v)=>s+(parseFloat(v.peaje)||0),0);
+            const margen=ingresos>0?((ingresos-coste)/ingresos)*100:null;
+            return{matricula:t.matricula||"Sin mat.",apodo:t.apodo,margen,ingresos,viajes:vT.length};
+          }).filter(r=>r.margen!==null).sort((a,b)=>b.margen-a.margen);
+          if(ranking.length===0)return null;
+          return(
+            <div className="card">
+              <div className="chd">🏆 Ranking de tractoras — {MESES_ES[parseInt(mesFiltro.split("-")[1])-1]}</div>
+              <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
+                {ranking.map((r,i)=>(
+                  <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:"var(--s2)",border:"1px solid var(--border2)",borderRadius:"var(--r2)",padding:"0.7rem 0.875rem"}}>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:"0.83rem"}}>{i===0?"🥇 ":i===1?"🥈 ":i===2?"🥉 ":""}{r.matricula}{r.apodo?` "${r.apodo}"`:""}</div>
+                      <div style={{fontSize:"0.7rem",color:"var(--muted)"}}>{r.viajes} viaje{r.viajes!==1?"s":""} · {euros(r.ingresos)} facturado</div>
+                    </div>
+                    <span className={`badge ${r.margen>=20?"bg-g":r.margen>=0?"bg-y":"bg-r"}`}>{pct(r.margen)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </>}
 
       {subtab==="sim"&&<>

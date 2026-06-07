@@ -60,16 +60,18 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
     const mesReal=fechaGasto.slice(0,7);
     const anoReal=fechaGasto.slice(0,4);
     const payload={fecha:modal.fecha,tipo:modal.tipo,titulo:modal.titulo||"",importe:parseFloat(modal.importe),litros:modal.litros?parseFloat(modal.litros):null,precio_litro:modal.precio_litro?parseFloat(modal.precio_litro):null,odometro:modal.odometro?parseFloat(modal.odometro):null,pais:modal.pais||"España",vehicle_id:modal.tipo==="Impuesto"?"empresa":modal.vehicle_id||null,vehicle_tipo:modal.tipo==="Impuesto"?"empresa":modal.vehicle_tipo||"tractora",nota:modal.nota||"",mes:mesReal,ano:anoReal,imp_ano:modal.tipo==="Impuesto"?modal.imp_ano||anoActual:null,imp_mes_ini:modal.tipo==="Impuesto"?parseInt(modal.imp_mes_ini)||1:null,imp_mes_fin:modal.tipo==="Impuesto"?parseInt(modal.imp_mes_fin)||12:null,itv_meses:modal.tipo==="ITV"?parseInt(modal.itv_meses)||12:null,user_id:String(userId)};
+    const veh=[...tractoras,...semis].find(v=>v.id===payload.vehicle_id);
+    const resumen=`${payload.tipo}${veh?` · ${veh.matricula}`:""} · ${euros(payload.importe)}`;
     if(editGasto?.id){
       await sb.from("gastos").update(payload).eq("id",editGasto.id);
       setGastosTodos(gastosTodos.map(g=>g.id===editGasto.id?{...g,...payload,id:editGasto.id}:g));
-      setToast("✅ Gasto actualizado");
+      setToast(`✅ Actualizado: ${resumen}`);
     }else{
       const{data,error}=await sb.from("gastos").insert(payload).select();
       if(error){setToast("❌ "+error.message);return;}
       const nuevo=Array.isArray(data)?data[0]:data;
       if(nuevo)setGastosTodos([nuevo,...gastosTodos]);
-      setToast("✅ Gasto guardado");
+      setToast(`✅ Guardado: ${resumen}`);
     }
     setModal(false);setEditGasto(null);
   };
@@ -105,7 +107,7 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
         <div className="stat"><div className="slbl">Fijos mes</div><div className="sval y">{euros(totalFijosMes)}</div></div>
       </div>}
 
-      {gastos.length===0?<div className="empty"><div className="ei"><Icon d={I.coin} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin gastos este mes</strong><span style={{fontSize:"0.8rem"}}>Aquí solo se muestran los gastos del mes seleccionado; el resto sigue guardado y disponible en Analizar</span></div></div>
+      {gastos.length===0?<div className="empty"><div className="ei"><Icon d={I.coin} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin gastos este mes</strong><span style={{fontSize:"0.8rem"}}>Aquí solo se muestran los gastos del mes seleccionado; el resto sigue guardado y disponible en Analizar</span></div><button className="btn bp bsm" style={{marginTop:"0.75rem"}} onClick={openNew}><Icon d={I.plus} size={13}/> Añadir un gasto</button></div>
       :<><p style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Gastos variables — {mesLabel}</p>
       <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
         {gastos.map(g=>{

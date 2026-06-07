@@ -2,7 +2,7 @@ import { useState } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
 import { TIPOS_T, TIPOS_S } from "../lib/constants.js";
-import { ConfirmModal, PhotoUpload } from "../components/ui.jsx";
+import { ConfirmModal, PhotoUpload, Toast } from "../components/ui.jsx";
 
 export function FlotaPage({userId,perfil,updatePerfil,tractoras,semis,setTractoras,setSemis}) {
   const[editT,setEditT]=useState(null);
@@ -26,7 +26,7 @@ export function FlotaPage({userId,perfil,updatePerfil,tractoras,semis,setTractor
             <span style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>🚛 Tractoras</span>
             <button className="btn bg bsm" onClick={()=>setEditT({subtipo:"Tractora",conjunto_fijo:false})}><Icon d={I.plus} size={13}/> Añadir</button>
           </div>
-          {tractoras.filter(t=>t.activa!==false).length===0&&<div className="empty" style={{padding:"1rem"}}><div className="ei"><Icon d={I.truck} size={18} color="var(--muted)"/></div><span style={{fontSize:"0.8rem"}}>Sin tractoras</span></div>}
+          {tractoras.filter(t=>t.activa!==false).length===0&&<div className="empty" style={{padding:"1rem"}}><div className="ei"><Icon d={I.truck} size={18} color="var(--muted)"/></div><span style={{fontSize:"0.8rem"}}>Sin tractoras</span><button className="btn bp bsm" style={{marginTop:"0.5rem"}} onClick={()=>setEditT({subtipo:"Tractora",conjunto_fijo:false})}><Icon d={I.plus} size={13}/> Añadir tractora</button></div>}
           <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
             {tractoras.filter(t=>t.activa!==false).map(t=>{const semi=semis.find(s=>s.id===t.semi_habitual_id);
               const consumo=parseFloat(t.consumo_estimado)||32;
@@ -69,7 +69,7 @@ export function FlotaPage({userId,perfil,updatePerfil,tractoras,semis,setTractor
             <span style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>🔧 Semirremolques</span>
             <button className="btn bg bsm" onClick={()=>setEditS({subtipo:"Tautliner"})}><Icon d={I.plus} size={13}/> Añadir</button>
           </div>
-          {semis.length===0&&<div className="empty" style={{padding:"1rem"}}><div className="ei"><Icon d={I.truck} size={18} color="var(--muted)"/></div><span style={{fontSize:"0.8rem"}}>Sin semirremolques</span></div>}
+          {semis.length===0&&<div className="empty" style={{padding:"1rem"}}><div className="ei"><Icon d={I.truck} size={18} color="var(--muted)"/></div><span style={{fontSize:"0.8rem"}}>Sin semirremolques</span><button className="btn bp bsm" style={{marginTop:"0.5rem"}} onClick={()=>setEditS({subtipo:"Tautliner"})}><Icon d={I.plus} size={13}/> Añadir semirremolque</button></div>}
           <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
             {semis.map(s=><div key={s.id} className="vcard" onClick={()=>setEditS(s)}>
               <div className="vcard-foto">{s.foto?<img src={s.foto} alt="" style={{width:42,height:42,objectFit:"cover"}}/>:<Icon d={I.truck} size={18} color="#06D6A0"/>}</div>
@@ -85,8 +85,10 @@ export function FlotaPage({userId,perfil,updatePerfil,tractoras,semis,setTractor
 
 export function TruckForm({t,semis,onSave,onCancel,onDelete}) {
   const[form,setForm]=useState(t||{subtipo:"Tractora",conjunto_fijo:false});
+  const[toast,setToast]=useState("");
   return(
     <div className="page fu">
+      {toast&&<Toast msg={toast} onDone={()=>setToast("")}/>}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div style={{display:"flex",alignItems:"center",gap:"0.75rem"}}><button className="btn bg bsm" style={{width:"auto",padding:"0.45rem 0.75rem"}} onClick={onCancel}><Icon d={I.back} size={14}/></button><div className="ptitle">{form.matricula||"Nueva tractora"}</div></div>
         {form.id&&<button className="btn bd bsm" onClick={()=>{onDelete(form.id);onCancel();}} style={{fontSize:"0.75rem",padding:"0.35rem 0.75rem"}}>Dar de baja</button>}
@@ -120,9 +122,9 @@ export function TruckForm({t,semis,onSave,onCancel,onDelete}) {
         </div>
       </div>
       <div style={{display:"flex",gap:"0.75rem"}}><button className="btn bg" style={{flex:1}} onClick={onCancel}>Cancelar</button><button className="btn bp" style={{flex:2}} onClick={()=>{
-        if(!form.matricula?.trim()){alert("La matrícula es obligatoria");return;}
-        if(!form.consumo_estimado||parseFloat(form.consumo_estimado)<=0){alert("Indica el consumo medio (L/100km): es necesario para calcular el coste real de tus viajes.");return;}
-        if(!form.precio_gasoil_inicial||parseFloat(form.precio_gasoil_inicial)<=0){alert("Indica el precio actual del gasoil (€/L): es necesario para calcular el coste real de tus viajes.");return;}
+        if(!form.matricula?.trim()){setToast("⚠️ La matrícula es obligatoria");return;}
+        if(!form.consumo_estimado||parseFloat(form.consumo_estimado)<=0){setToast("⚠️ Indica el consumo medio (L/100km): es necesario para calcular el coste real de tus viajes.");return;}
+        if(!form.precio_gasoil_inicial||parseFloat(form.precio_gasoil_inicial)<=0){setToast("⚠️ Indica el precio actual del gasoil (€/L): es necesario para calcular el coste real de tus viajes.");return;}
         onSave(form);
       }}>Guardar</button></div>
     </div>
@@ -131,8 +133,10 @@ export function TruckForm({t,semis,onSave,onCancel,onDelete}) {
 
 export function SemiForm({s,onSave,onCancel,onDelete}) {
   const[form,setForm]=useState(s||{subtipo:"Tautliner"});
+  const[toast,setToast]=useState("");
   return(
     <div className="page fu">
+      {toast&&<Toast msg={toast} onDone={()=>setToast("")}/>}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div style={{display:"flex",alignItems:"center",gap:"0.75rem"}}><button className="btn bg bsm" style={{width:"auto",padding:"0.45rem 0.75rem"}} onClick={onCancel}><Icon d={I.back} size={14}/></button><div className="ptitle">{form.matricula||"Nuevo semirremolque"}</div></div>
         {form.id&&<button className="btn bd bsm" onClick={()=>{onDelete(form.id);onCancel();}} style={{fontSize:"0.75rem",padding:"0.35rem 0.75rem"}}>Dar de baja</button>}
@@ -163,7 +167,7 @@ export function SemiForm({s,onSave,onCancel,onDelete}) {
           <div className="fld"><label className="lbl">Marca motor frigo</label><input className="inp" type="text" value={form.frigo_marca||""} placeholder="Thermo King, Carrier..." onChange={e=>setForm({...form,frigo_marca:e.target.value})}/></div>
         </div>
       </div>}
-      <div style={{display:"flex",gap:"0.75rem"}}><button className="btn bg" style={{flex:1}} onClick={onCancel}>Cancelar</button><button className="btn bp" style={{flex:2}} onClick={()=>{if(!form.matricula?.trim()){alert("La matrícula es obligatoria");return;}onSave(form);}}>Guardar</button></div>
+      <div style={{display:"flex",gap:"0.75rem"}}><button className="btn bg" style={{flex:1}} onClick={onCancel}>Cancelar</button><button className="btn bp" style={{flex:2}} onClick={()=>{if(!form.matricula?.trim()){setToast("⚠️ La matrícula es obligatoria");return;}onSave(form);}}>Guardar</button></div>
     </div>
   );
 }

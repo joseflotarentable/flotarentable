@@ -55,19 +55,25 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
     if(esGerente&&(!modal.precio||parseFloat(modal.precio)<=0)){setToast("⚠️ Introduce el precio");return;}
     const{base,iva}=calcIVA();
     const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,user_id:String(userId)};
+    const resumen=()=>{
+      const ruta=`${payload.origen} → ${payload.destino}`;
+      if(!esGerente)return ruta;
+      const{ben}=calcV(payload);
+      return `${ruta} · beneficio estimado ${euros(ben)}`;
+    };
     if(editando?.id){
       const{error}=await sb.from("viajes").update(payload).eq("id",editando.id);
       if(error){setToast("❌ "+error.message);return;}
       const updated=viajes.map(v=>v.id===editando.id?{...v,...payload,id:editando.id}:v);
       setViajes(updated);
       if(setViajesTodos)setViajesTodos(viajesTodos.map(v=>v.id===editando.id?{...v,...payload,id:editando.id}:v));
-      setToast("✅ Viaje actualizado");
+      setToast(`✅ Actualizado: ${resumen()}`);
     }else{
       const{data,error}=await sb.from("viajes").insert(payload).select();
       if(error){setToast("❌ "+error.message);return;}
       const nuevo=Array.isArray(data)?data[0]:data;
       if(nuevo){setViajes([nuevo,...viajes]);if(setViajesTodos)setViajesTodos([nuevo,...viajesTodos]);}
-      setToast("✅ Viaje guardado");
+      setToast(`✅ Guardado: ${resumen()}`);
     }
     setModal(false);setEditando(null);
   };
@@ -90,7 +96,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
         <button className="btn bp bsm" onClick={openNew}><Icon d={I.plus} size={14}/> Añadir</button>
       </div>
       {tractoras.length===0&&<div className="alert ay"><Icon d={I.alert} size={14} color="var(--yellow)"/><span>Añade una tractora en <strong>Flota</strong> para registrar viajes.</span></div>}
-      {viajes.length===0?<div className="empty"><div className="ei"><Icon d={I.truck} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin viajes</strong><span style={{fontSize:"0.8rem"}}>Toca el botón para añadir tu primera ruta</span></div></div>
+      {viajes.length===0?<div className="empty"><div className="ei"><Icon d={I.truck} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin viajes</strong><span style={{fontSize:"0.8rem"}}>Registra tu primera ruta para empezar a ver tu rentabilidad</span></div><button className="btn bp bsm" style={{marginTop:"0.75rem"}} onClick={openNew}><Icon d={I.plus} size={13}/> Añadir mi primer viaje</button></div>
       :<div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
         {viajes.map(v=>{
           const{coste,ben,margen}=calcV(v);

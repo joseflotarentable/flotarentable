@@ -4,7 +4,7 @@ import { Icon, I } from "../lib/icons.jsx";
 import { MESES_ES } from "../lib/constants.js";
 import { nowMes, euros, eurosKm, fmtDate, alertDays, alertColor, calcGastosFijosMes, gastoProrrateadoEnMes, calcConsumoHistorico, precioGasoilDe, calcCosteKmEmpresa } from "../lib/helpers.js";
 
-export function InicioPage({userId,tractoras,semis,perfil,esGerente,gastosTodos,viajesTodos,setViajesTodos,gastosFijos}) {
+export function InicioPage({userId,tractoras,semis,perfil,esGerente,gastosTodos,viajesTodos,setViajesTodos,gastosFijos,setTab}) {
   const mesFiltro=nowMes();
   const[ultRegistros,setUltRegistros]=useState([]);
 
@@ -174,6 +174,10 @@ export function InicioPage({userId,tractoras,semis,perfil,esGerente,gastosTodos,
           })}
         </div>}
       </div>
+
+      <button onClick={()=>setTab&&setTab("viajes")} title="Añadir viaje rápido" style={{position:"fixed",right:"1.1rem",bottom:"5.5rem",width:52,height:52,borderRadius:"50%",background:"var(--a1)",color:"#fff",border:"none",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 24px #0006",zIndex:150,cursor:"pointer"}}>
+        <Icon d={I.plus} size={22}/>
+      </button>
     </div>
   );
 }

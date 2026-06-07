@@ -58,5 +58,8 @@ export function ConfirmModal({msg,onConfirm,onCancel}) {
     </div>
   );
 }
-export function Toast({msg,onDone}) { useEffect(()=>{const t=setTimeout(onDone,2500);return()=>clearTimeout(t);},[]);return<div className="toast">{msg}</div>; }
+export function Toast({msg,onDone}) {
+  useEffect(()=>{const t=setTimeout(onDone,msg.length>40?4200:2500);return()=>clearTimeout(t);},[]);
+  return<div className="toast" style={{whiteSpace:"normal",maxWidth:"min(92vw,380px)",textAlign:"center",lineHeight:1.4,animation:"toast-in 0.25s ease both"}}>{msg}</div>;
+}
 

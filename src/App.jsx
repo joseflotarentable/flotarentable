@@ -128,7 +128,7 @@ export default function App() {
 
       {showAjustes&&<AjustesModal userId={user.id} perfil={perfil} updatePerfil={updatePerfil} onClose={()=>setShowAjustes(false)} onLogout={handleLogout} tractoras={tractoras} theme={theme} setTheme={setTheme}/>}
 
-      {tab==="inicio"&&<InicioPage key={`inicio-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} perfil={perfil} esGerente={esGerente} gastosTodos={gastosTodos} viajesTodos={viajesTodos} setViajesTodos={setViajesTodos} gastosFijos={gastosFijos}/>}
+      {tab==="inicio"&&<InicioPage key={`inicio-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} perfil={perfil} esGerente={esGerente} gastosTodos={gastosTodos} viajesTodos={viajesTodos} setViajesTodos={setViajesTodos} gastosFijos={gastosFijos} setTab={setTab}/>}
       {tab==="flota"&&<FlotaPage userId={user.id} perfil={perfil} updatePerfil={updatePerfil} tractoras={tractoras} semis={semis} setTractoras={setTractoras} setSemis={setSemis}/>}
       {tab==="viajes"&&<ViajesPage key={`viajes-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} esGerente={esGerente} gastosTodos={gastosTodos} viajesTodos={viajesTodos} setViajesTodos={setViajesTodos}/>}
       {tab==="gastos"&&<GastosPage key={`gastos-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} esGerente={esGerente} accentIdx={perfil.accent_idx||0} gastosFijos={gastosFijos} setGastosFijos={setGastosFijos} gastosTodos={gastosTodos} setGastosTodos={setGastosTodos}/>}
