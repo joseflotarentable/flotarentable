@@ -452,16 +452,18 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
         {clientes.length===0?<div className="empty"><div className="ei"><Icon d={I.user} size={20} color="var(--muted)"/></div><span style={{fontSize:"0.8rem"}}>Sin viajes registrados aun</span></div>
         :<div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
           {clientes.map((c,i)=>{
-            const toxico=c.margen<0;
-            const rentable=c.margen>=20;
+            const noRentable=c.margen<10;
+            const muyRentable=c.margen>=20;
+            const col=noRentable?"var(--red)":muyRentable?"var(--green)":"var(--yellow)";
+            const bg=noRentable?"#FF3D5A":muyRentable?"#06D6A0":"#FFD166";
+            const lbl=noRentable?"NO RENTABLE":muyRentable?"MUY RENTABLE":"RENTABLE";
             return(
-              <div key={i} style={{background:"var(--s2)",border:`1px solid ${toxico?"#FF3D5A25":rentable?"#06D6A025":"var(--border2)"}`,borderRadius:"var(--r2)",padding:"0.875rem",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div key={i} style={{background:"var(--s2)",border:`1px solid ${bg}25`,borderRadius:"var(--r2)",padding:"0.875rem",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div style={{minWidth:0,flex:1,overflow:"hidden"}}>
                   <div style={{fontWeight:700,fontSize:"0.875rem",display:"flex",alignItems:"center",gap:"0.5rem"}}>
-                    {i===0&&!toxico?"":""}
                     <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.n}</span>
-                    <span style={{fontSize:"0.65rem",fontWeight:600,padding:"0.15rem 0.5rem",borderRadius:999,background:toxico?"#FF3D5A20":rentable?"#06D6A020":"#FFD16620",color:toxico?"var(--red)":rentable?"var(--green)":"var(--yellow)"}}>
-                      {toxico?"PIERDES DINERO":rentable?"RENTABLE":"NORMAL"}
+                    <span style={{fontSize:"0.65rem",fontWeight:600,padding:"0.15rem 0.5rem",borderRadius:999,background:`${bg}20`,color:col}}>
+                      {lbl}
                     </span>
                   </div>
                   <div style={{fontSize:"0.72rem",color:"var(--muted)",marginTop:2}}>{c.viajes} viaje{c.viajes!==1?"s":""} · {euros(c.ing)} facturado</div>
