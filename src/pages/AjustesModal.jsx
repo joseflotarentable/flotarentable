@@ -157,12 +157,17 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
           </div>}
         </div>}
         {perfil.rol==="gerente"&&<div className="card">
-          <div className="chd">Empleados (chófer / tráfico)</div>
-          {empleados.length>0&&<div style={{display:"flex",flexDirection:"column",gap:"0.5rem",marginBottom:"0.75rem"}}>
-            {empleados.map(e=>(
-              <div key={e.id} style={{display:"flex",flexDirection:"column",gap:"0.3rem",padding:"0.5rem",background:"var(--s3)",borderRadius:8}}>
+          <div className="chd">👤 Usuarios (chóferes y tráfico)</div>
+          {empleados.length>0?<div style={{display:"flex",flexDirection:"column",gap:"0.5rem",marginBottom:"1rem"}}>
+            {empleados.map(e=>{
+              const t=(tractoras||[]).find(x=>x.id===e.truck_id);
+              return(
+              <div key={e.id} style={{display:"flex",flexDirection:"column",gap:"0.4rem",padding:"0.6rem",background:"var(--s3)",borderRadius:8}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span style={{fontWeight:700,fontSize:"0.85rem"}}>{e.nombre}</span>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:"0.88rem"}}>{e.nombre}</div>
+                    <div style={{fontSize:"0.7rem",color:"var(--muted)"}}>{e.rol==="chofer"?`🚛 ${t?.matricula||"sin tractora"}`:"📋 Tráfico (ve todos los viajes)"}</div>
+                  </div>
                   <select className="inp" style={{width:"auto",padding:"0.25rem 0.5rem",fontSize:"0.75rem"}} value={e.rol} onChange={ev=>actualizarEmpleado(e.id,{rol:ev.target.value,...(ev.target.value!=="chofer"?{truck_id:null}:{})})}>
                     <option value="chofer">Chófer</option>
                     <option value="trafico">Tráfico</option>
@@ -173,12 +178,12 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
                   {(tractoras||[]).map(t=><option key={t.id} value={t.id}>{t.matricula}</option>)}
                 </select>}
               </div>
-            ))}
-          </div>}
+            );})}
+          </div>:<p style={{fontSize:"0.78rem",color:"var(--muted)",marginBottom:"0.75rem"}}>Aún no has creado ningún usuario.</p>}
+          <div style={{height:1,background:"var(--border)",marginBottom:"0.75rem"}}/>
+          <div style={{fontWeight:700,fontSize:"0.85rem",marginBottom:"0.5rem"}}>➕ Crear nuevo usuario</div>
           <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
             <div className="fld"><label className="lbl">Nombre</label><input className="inp" placeholder="Ej: Juan Pérez" value={nuevoEmp.nombre} onChange={e=>setNuevoEmp({...nuevoEmp,nombre:e.target.value})}/></div>
-            <div className="fld"><label className="lbl">Usuario</label><input className="inp" placeholder="Ej: 1234ABC (matrícula)" value={nuevoEmp.usuario} onChange={e=>setNuevoEmp({...nuevoEmp,usuario:e.target.value})}/></div>
-            <div className="fld"><label className="lbl">Contraseña</label><input className="inp" type="password" placeholder="Mínimo 6 caracteres" value={nuevoEmp.password} onChange={e=>setNuevoEmp({...nuevoEmp,password:e.target.value})}/></div>
             <div className="fld"><label className="lbl">Tipo</label>
               <select className="inp" value={nuevoEmp.rol} onChange={e=>setNuevoEmp({...nuevoEmp,rol:e.target.value})}>
                 <option value="chofer">Chófer (ve solo su tractora)</option>
@@ -191,8 +196,10 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
                 {(tractoras||[]).map(t=><option key={t.id} value={t.id}>{t.matricula}</option>)}
               </select>
             </div>}
+            <div className="fld"><label className="lbl">Usuario para iniciar sesión</label><input className="inp" placeholder="Ej: 1111MMM (la matrícula es fácil de recordar)" value={nuevoEmp.usuario} onChange={e=>setNuevoEmp({...nuevoEmp,usuario:e.target.value})}/></div>
+            <div className="fld"><label className="lbl">Contraseña</label><input className="inp" type="password" placeholder="Mínimo 6 caracteres" value={nuevoEmp.password} onChange={e=>setNuevoEmp({...nuevoEmp,password:e.target.value})}/></div>
             {empMsg&&<p style={{fontSize:"0.78rem",color:empMsg.includes("✅")?"var(--green)":"var(--red)"}}>{empMsg}</p>}
-            <button className="btn bp" onClick={crearEmpleado} disabled={creandoEmp}>{creandoEmp?"Creando...":"Crear empleado"}</button>
+            <button className="btn bp" onClick={crearEmpleado} disabled={creandoEmp}>{creandoEmp?"Creando...":"Crear usuario"}</button>
           </div>
         </div>}
         <div className="card">
