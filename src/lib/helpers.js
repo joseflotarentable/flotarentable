@@ -121,7 +121,7 @@ export async function geocode(q) {
     const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=8&addressdetails=1`,{headers:{"Accept-Language":"es","User-Agent":"FlotaRentable/1.0"}});
     const data = await r.json();
     const res = data
-      .filter(x=>["city","town","village","municipality"].includes(x.type)||["city","town","village"].includes(x.addresstype))
+      .filter(x=>["city","town","village","municipality","hamlet","administrative"].includes(x.type)||["city","town","village","municipality","hamlet"].includes(x.addresstype))
       .slice(0,5)
       .map(x=>{
         const a=x.address;
