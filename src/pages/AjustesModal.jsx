@@ -92,7 +92,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   };
 
   return(
-    <div className="ov" onClick={onClose}>
+    <div className="ov">
       <div className="modal" onClick={e=>e.stopPropagation()} style={{maxHeight:"92vh",overflowY:"auto"}}>
         <div className="mdrag"/>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"0.25rem"}}>
