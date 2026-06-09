@@ -4,7 +4,7 @@ import { Icon, I } from "../lib/icons.jsx";
 import { euros, eurosKm, pct, fmtDate, calcConsumoHistorico, precioGasoilDe, calcKmRutaCamion } from "../lib/helpers.js";
 import { CityInput, ConfirmModal, Toast, PhotoUpload } from "../components/ui.jsx";
 
-export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesTodos,setViajesTodos}) {
+export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTodos,viajesTodos,setViajesTodos}) {
   const[viajes,setViajes]=useState(viajesTodos||[]);
   const[modal,setModal]=useState(false);
   const[editando,setEditando]=useState(null);
@@ -18,7 +18,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
   useEffect(()=>{if(esGerente)sb.from("perfiles").select("id,nombre").then(({data})=>{const m={};(data||[]).forEach(p=>m[p.id]=p.nombre);setNombres(m);});},[esGerente]);
 
   const getAutoSemi=tid=>{const t=tractoras.find(x=>x.id===tid);return t?.conjunto_fijo&&t?.semi_habitual_id?t.semi_habitual_id:"";};
-  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||""),cmr_foto:""};
+  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||""),cmr_foto:"",indicaciones:""};
 
   const[calculandoKm,setCalculandoKm]=useState(false);
   const aplicarRuta=async(o,d)=>{
@@ -56,7 +56,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
     if(!modal.destino){setToast("⚠️ Introduce el destino");return;}
     if(esGerente&&(!modal.precio||parseFloat(modal.precio)<=0)){setToast("⚠️ Introduce el precio");return;}
     const{base,iva}=calcIVA();
-    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,cmr_foto:modal.cmr_foto||null,user_id:String(userId)};
+    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,cmr_foto:modal.cmr_foto||null,indicaciones:modal.indicaciones||null,user_id:String(userId)};
     const resumen=()=>{
       const ruta=`${payload.origen} → ${payload.destino}`;
       if(!esGerente)return ruta;
@@ -116,7 +116,9 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
                 <span>📏 {v.km}km{v.km_vuelta?` + ${v.km_vuelta}km`:""}</span>
                 {esGerente&&<span>💰 {euros(parseFloat(v.precio))}{v.tiene_iva?" (IVA)":""}</span>}
                 {parseFloat(v.peaje)>0&&<span>🛣️ {euros(parseFloat(v.peaje))}</span>}
+                {v.destino&&<a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.destino)}`} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{color:"var(--a2)",textDecoration:"none"}}>🗺️ Maps</a>}
               </div>
+              {v.indicaciones&&<div style={{fontSize:"0.73rem",color:"var(--muted)",marginTop:"0.2rem"}}>📍 {v.indicaciones}</div>}
               {esGerente&&<div className="tfoot">
                 <span style={{fontSize:"0.73rem",color:"var(--muted)"}}>Gasoil est. + peajes: {euros(coste)} · <span style={{color:ben>=0?"var(--green)":"var(--red)"}}>{ben>=0?"+":""}{euros(ben)}</span></span>
                 <span className={`badge ${ok?"bg-g":warn?"bg-y":"bg-r"}`} title="Margen sobre gasoil y peajes; no incluye gastos fijos de la flota">{bad?"🔴":warn?"🟡":"🟢"} {pct(margen)} <span style={{opacity:0.7,fontWeight:400}}>(sin fijos)</span></span>
@@ -150,6 +152,13 @@ export function ViajesPage({userId,tractoras,semis,esGerente,gastosTodos,viajesT
           <div className="g2">
             <div className="fld"><label className="lbl">Peajes (€)</label><input className="inp" type="number" placeholder="0" value={modal.peaje} onChange={e=>setModal({...modal,peaje:e.target.value})}/></div>
             {esGerente&&<div className="fld"><label className="lbl">Precio cobrado (€) <span style={{fontSize:"0.68rem",color:"var(--muted)",fontWeight:400}}>(IVA incluido)</span></label><input className="inp" type="number" placeholder="0" value={modal.precio} onChange={e=>setModal({...modal,precio:e.target.value})}/></div>}
+          </div>
+          <div className="fld">
+            <label className="lbl">📍 Indicaciones de destino (opcional)</label>
+            {(esGerente||esTrafico)?
+              <textarea className="inp" rows={2} placeholder="Ej: entrada por la puerta 3, preguntar por Juan..." value={modal.indicaciones||""} onChange={e=>setModal({...modal,indicaciones:e.target.value})}/>
+              :<div style={{fontSize:"0.8rem",color:"var(--muted)"}}>{modal.indicaciones||"Sin indicaciones"}</div>}
+            {modal.destino&&<a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(modal.destino)}`} target="_blank" rel="noreferrer" className="btn bd bsm" style={{marginTop:"0.4rem",display:"inline-flex",width:"auto",textDecoration:"none"}} onClick={e=>e.stopPropagation()}>🗺️ Abrir en Google Maps</a>}
           </div>
           <PhotoUpload value={modal.cmr_foto} onChange={v=>setModal({...modal,cmr_foto:v})} label="📄 CMR / albarán (opcional)" height={90}/>
           {esGerente&&(()=>{

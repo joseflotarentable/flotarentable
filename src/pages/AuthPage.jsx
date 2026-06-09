@@ -2,6 +2,7 @@ import { useState } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
 import { genCode } from "../lib/helpers.js";
+import { DOMINIO_USUARIO } from "../lib/supabase.js";
 
 export function AuthPage({onAuth,accent}) {
   const[mode,setMode]=useState("welcome");
@@ -59,9 +60,10 @@ export function AuthPage({onAuth,accent}) {
   };
 
   const handleLogin=async()=>{
-    if(!form.email||!form.password){setErr("Email y contraseña obligatorios");return;}
+    if(!form.email||!form.password){setErr("Usuario/email y contraseña obligatorios");return;}
     setLoading(true);
-    const{data,error}=await sb.auth.signInWithPassword({email:form.email,password:form.password});
+    const emailReal=form.email.includes("@")?form.email:`${form.email.trim().toLowerCase()}@${DOMINIO_USUARIO}`;
+    const{data,error}=await sb.auth.signInWithPassword({email:emailReal,password:form.password});
     if(error){setErr("Email o contraseña incorrectos");setLoading(false);return;}
     const{data:p}=await sb.from("perfiles").select("*").eq("id",data.user.id).single();
     onAuth(data.user,p||{});setLoading(false);
@@ -126,7 +128,7 @@ export function AuthPage({onAuth,accent}) {
       <div style={{padding:"3rem 1.5rem 1.5rem",display:"flex",flexDirection:"column",gap:"1rem"}}>
         <button className="btn bg bsm" style={{width:"auto",alignSelf:"flex-start"}} onClick={()=>setMode("welcome")}><Icon d={I.back} size={14}/> Volver</button>
         <div style={{fontFamily:"'Bebas Neue'",fontSize:"2rem",letterSpacing:"0.04em"}}>Iniciar sesión</div>
-        <div className="fld"><label className="lbl">Email</label><input className="inp" type="email" placeholder="tu@email.com" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></div>
+        <div className="fld"><label className="lbl">Email o usuario</label><input className="inp" type="text" placeholder="tu@email.com o usuario" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></div>
         <div className="fld"><label className="lbl">Contraseña</label><div className="pass-wrap"><input className="inp" type={showPass?"text":"password"} placeholder="••••••" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} onKeyDown={e=>e.key==="Enter"&&handleLogin()}/><button className="pass-eye" onClick={()=>setShowPass(!showPass)}><Icon d={showPass?I.eyeoff:I.eye} size={16}/></button></div></div>
         <p style={{fontSize:"0.78rem",color:"var(--a1)",textAlign:"right",cursor:"pointer",margin:"-0.25rem 0"}} onClick={()=>setMode("forgot")}>¿Olvidaste tu contraseña?</p>
         {err&&<p style={{fontSize:"0.8rem",color:"var(--red)"}}>{err}</p>}

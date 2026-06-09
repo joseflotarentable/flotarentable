@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { sb } from "../lib/supabase.js";
+import { sb, crearClienteTemporal, DOMINIO_USUARIO } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
 import { ACCENTS } from "../lib/constants.js";
 import { genCode } from "../lib/helpers.js";
@@ -12,6 +12,15 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   const[passMsg,setPassMsg]=useState("");
   const[numMiembros,setNumMiembros]=useState(1);
   const[empresaGerente,setEmpresaGerente]=useState(null);
+  const[empleados,setEmpleados]=useState([]);
+  const[nuevoEmp,setNuevoEmp]=useState({nombre:"",usuario:"",password:"",rol:"chofer",truck_id:""});
+  const[empMsg,setEmpMsg]=useState("");
+  const[creandoEmp,setCreandoEmp]=useState(false);
+
+  const cargarEmpleados=async(empresaId)=>{
+    const{data}=await sb.from("perfiles").select("id,nombre,rol,truck_id").eq("empresa_id",empresaId).neq("id",userId);
+    setEmpleados(data||[]);
+  };
   const planLimite=perfil.plan==="empresa"?999:perfil.plan==="flota"?11:4;
   const tractorasActivas=(tractoras||[]).filter(t=>t.activa!==false).length;
 
@@ -29,6 +38,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
         if(data?.codigo)setCodigo(data.codigo);
         if(data?.miembros)setNumMiembros(data.miembros.length);
       });
+      cargarEmpleados(perfil.empresa_id);
     } else {
       sb.from("empresas").select("id,codigo,miembros").eq("gerente_id",userId).single().then(async({data:emp})=>{
         if(emp){
@@ -36,6 +46,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
           updatePerfil({empresa_id:emp.id});
           setCodigo(emp.codigo);
           if(emp.miembros)setNumMiembros(emp.miembros.length);
+          cargarEmpleados(emp.id);
         }
       });
     }
@@ -49,6 +60,35 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
     if(error){setPassMsg("Error al cambiar la contraseña");return;}
     setPassMsg("✅ Contraseña cambiada correctamente. Supabase enviará un email de confirmación.");
     setPassForm({nueva:"",confirmar:""});
+  };
+
+  const crearEmpleado=async()=>{
+    setEmpMsg("");
+    if(!nuevoEmp.nombre||!nuevoEmp.usuario||!nuevoEmp.password){setEmpMsg("Rellena nombre, usuario y contraseña");return;}
+    if(nuevoEmp.password.length<6){setEmpMsg("La contraseña debe tener al menos 6 caracteres");return;}
+    setCreandoEmp(true);
+    try{
+      const email=`${nuevoEmp.usuario.trim().toLowerCase()}@${DOMINIO_USUARIO}`;
+      const temp=crearClienteTemporal();
+      const{data,error}=await temp.auth.signUp({email,password:nuevoEmp.password});
+      if(error){setEmpMsg(error.message.includes("registered")?"Ese usuario ya existe":"Error: "+error.message);setCreandoEmp(false);return;}
+      const newId=data.user?.id;
+      if(!newId){setEmpMsg("No se pudo crear el usuario");setCreandoEmp(false);return;}
+      await temp.from("perfiles").upsert({id:newId,nombre:nuevoEmp.nombre,rol:nuevoEmp.rol,empresa_id:perfil.empresa_id,truck_id:nuevoEmp.rol==="chofer"?(nuevoEmp.truck_id||null):null});
+      const{data:emp}=await sb.from("empresas").select("miembros").eq("id",perfil.empresa_id).single();
+      const miembros=[...(emp?.miembros||[]),newId];
+      await sb.from("empresas").update({miembros}).eq("id",perfil.empresa_id);
+      setNumMiembros(miembros.length);
+      setEmpMsg("✅ Empleado creado correctamente");
+      setNuevoEmp({nombre:"",usuario:"",password:"",rol:"chofer",truck_id:""});
+      cargarEmpleados(perfil.empresa_id);
+    }catch(e){setEmpMsg("Error: "+e.message);}
+    setCreandoEmp(false);
+  };
+
+  const actualizarEmpleado=async(id,patch)=>{
+    await sb.from("perfiles").update(patch).eq("id",id);
+    setEmpleados(emps=>emps.map(e=>e.id===id?{...e,...patch}:e));
   };
 
   return(
@@ -115,6 +155,45 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
             </div>
             <div style={{fontSize:"0.7rem",color:"var(--muted)",marginTop:"0.25rem"}}>Plan {planLimite<=4?"Starter":planLimite<=11?"Flota":"Empresa"} · {planLimite-1} chófer{planLimite-1!==1?"es":""} incluidos</div>
           </div>}
+        </div>}
+        {perfil.rol==="gerente"&&<div className="card">
+          <div className="chd">Empleados (chófer / tráfico)</div>
+          {empleados.length>0&&<div style={{display:"flex",flexDirection:"column",gap:"0.5rem",marginBottom:"0.75rem"}}>
+            {empleados.map(e=>(
+              <div key={e.id} style={{display:"flex",flexDirection:"column",gap:"0.3rem",padding:"0.5rem",background:"var(--s3)",borderRadius:8}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{fontWeight:700,fontSize:"0.85rem"}}>{e.nombre}</span>
+                  <select className="inp" style={{width:"auto",padding:"0.25rem 0.5rem",fontSize:"0.75rem"}} value={e.rol} onChange={ev=>actualizarEmpleado(e.id,{rol:ev.target.value,...(ev.target.value!=="chofer"?{truck_id:null}:{})})}>
+                    <option value="chofer">Chófer</option>
+                    <option value="trafico">Tráfico</option>
+                  </select>
+                </div>
+                {e.rol==="chofer"&&<select className="inp" style={{fontSize:"0.75rem"}} value={e.truck_id||""} onChange={ev=>actualizarEmpleado(e.id,{truck_id:ev.target.value||null})}>
+                  <option value="">Sin tractora asignada</option>
+                  {(tractoras||[]).map(t=><option key={t.id} value={t.id}>{t.matricula}</option>)}
+                </select>}
+              </div>
+            ))}
+          </div>}
+          <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
+            <div className="fld"><label className="lbl">Nombre</label><input className="inp" placeholder="Ej: Juan Pérez" value={nuevoEmp.nombre} onChange={e=>setNuevoEmp({...nuevoEmp,nombre:e.target.value})}/></div>
+            <div className="fld"><label className="lbl">Usuario</label><input className="inp" placeholder="Ej: 1234ABC (matrícula)" value={nuevoEmp.usuario} onChange={e=>setNuevoEmp({...nuevoEmp,usuario:e.target.value})}/></div>
+            <div className="fld"><label className="lbl">Contraseña</label><input className="inp" type="password" placeholder="Mínimo 6 caracteres" value={nuevoEmp.password} onChange={e=>setNuevoEmp({...nuevoEmp,password:e.target.value})}/></div>
+            <div className="fld"><label className="lbl">Tipo</label>
+              <select className="inp" value={nuevoEmp.rol} onChange={e=>setNuevoEmp({...nuevoEmp,rol:e.target.value})}>
+                <option value="chofer">Chófer (ve solo su tractora)</option>
+                <option value="trafico">Tráfico (ve todos los viajes)</option>
+              </select>
+            </div>
+            {nuevoEmp.rol==="chofer"&&<div className="fld"><label className="lbl">Tractora asignada</label>
+              <select className="inp" value={nuevoEmp.truck_id} onChange={e=>setNuevoEmp({...nuevoEmp,truck_id:e.target.value})}>
+                <option value="">Sin asignar</option>
+                {(tractoras||[]).map(t=><option key={t.id} value={t.id}>{t.matricula}</option>)}
+              </select>
+            </div>}
+            {empMsg&&<p style={{fontSize:"0.78rem",color:empMsg.includes("✅")?"var(--green)":"var(--red)"}}>{empMsg}</p>}
+            <button className="btn bp" onClick={crearEmpleado} disabled={creandoEmp}>{creandoEmp?"Creando...":"Crear empleado"}</button>
+          </div>
         </div>}
         <div className="card">
           <div className="chd">Apariencia</div>

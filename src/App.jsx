@@ -40,7 +40,7 @@ export default function App() {
         setPerfil(p||{});
         let tractorUserId=session.user.id;
         let ts=p?.trial_start||null;
-        if(p?.rol==="chofer"&&p?.empresa_id){
+        if((p?.rol==="chofer"||p?.rol==="trafico")&&p?.empresa_id){
           const{data:emp}=await sb.from("empresas").select("gerente_id").eq("id",p.empresa_id).single();
           if(emp?.gerente_id){
             tractorUserId=emp.gerente_id;
@@ -72,7 +72,7 @@ export default function App() {
     setUser(u);setPerfil(p);
     let tractorUserId=u.id;
     let ts=p?.trial_start||null;
-    if(p.rol==="chofer"&&p.empresa_id){
+    if((p.rol==="chofer"||p.rol==="trafico")&&p.empresa_id){
       const{data:emp}=await sb.from("empresas").select("gerente_id").eq("id",p.empresa_id).single();
       if(emp?.gerente_id){
         tractorUserId=emp.gerente_id;
@@ -101,7 +101,8 @@ export default function App() {
   const[showAjustes,setShowAjustes]=useState(false);
 
   const accent=ACCENTS[perfil.accent_idx||0];
-  const esGerente=perfil.rol!=="chofer";
+  const esGerente=perfil.rol==="gerente";
+  const esTrafico=perfil.rol==="trafico";
   const days=getDaysLeft(trialStart||perfil.trial_start);
 
   if(loading)return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#08080F"}}><div className="spinner" style={{width:32,height:32,borderColor:"rgba(255,61,90,0.3)",borderTopColor:"#FF3D5A"}}/></div>);
@@ -109,8 +110,13 @@ export default function App() {
   if(user&&!perfil.rol)return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#08080F"}}><div className="spinner" style={{width:32,height:32,borderColor:"rgba(255,61,90,0.3)",borderTopColor:"#FF3D5A"}}/></div>);
 
   const tabs=[{id:"inicio",lbl:"Inicio",icon:I.dash},...(esGerente?[{id:"flota",lbl:"Vehículos",icon:I.truck}]:[]),{id:"viajes",lbl:"Viajes",icon:I.trend},{id:"gastos",lbl:"Gastos",icon:I.coin},...(esGerente?[{id:"analizar",lbl:"Analizar",icon:I.analyze}]:[])];
-  const tractorasActivas=tractoras.filter(t=>t.activa!==false);
+  // El chofer solo ve su tractora asignada (perfil.truck_id); gerente y trafico ven toda la flota.
+  const esChofer=perfil.rol==="chofer";
+  const tractorasActivas=(esChofer?tractoras.filter(t=>t.id===perfil.truck_id):tractoras).filter(t=>t.activa!==false);
   const semisActivas=semis.filter(s=>s.activa!==false);
+  const viajesVisibles=esChofer?viajesTodos.filter(v=>v.truck_id===perfil.truck_id):viajesTodos;
+  const gastosVisibles=esChofer?gastosTodos.filter(g=>tractorasActivas.some(t=>t.id===g.vehicle_id)||semisActivas.some(s=>s.id===g.vehicle_id)):gastosTodos;
+  const rolLabel=perfil.rol==="gerente"?"Gerente":perfil.rol==="trafico"?"Tráfico":"Chófer";
 
   return(
     <><style>{makeCSS(accent)}</style>
@@ -118,7 +124,7 @@ export default function App() {
       <div className="hdr">
         <div className="hdr-left">
           {(()=>{const logo=esGerente?perfil.logo:logoGerente||perfil.logo;return logo?<img src={logo} alt="" className="hdr-logo"/>:<div className="hdr-logo-ph"><svg width="20" height="20" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M 18 80 Q 18 48 48 48 Q 78 48 78 16" stroke="white" strokeWidth="7" strokeLinecap="round"/><circle cx="78" cy="16" r="13" fill="#F5C842"/><circle cx="78" cy="16" r="5" fill="#E8490F"/><circle cx="18" cy="80" r="13" fill="#1A1A1A" stroke="white" strokeWidth="2"/><path d="M 22 74.5 A 6.5 6.5 0 1 0 22 85.5" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none"/><line x1="11" y1="78" x2="20" y2="78" stroke="white" strokeWidth="2.2" strokeLinecap="round"/><line x1="11" y1="82" x2="20" y2="82" stroke="white" strokeWidth="2.2" strokeLinecap="round"/></svg></div>;})()}
-          <div><div className="hdr-brand">{perfil.empresa||"FlotaRentable"}</div><div className="hdr-sub">{esGerente?"Gerente":"Chofer"} · {tractorasActivas.length} tractora{tractorasActivas.length!==1?"s":""}</div></div>
+          <div><div className="hdr-brand">{perfil.empresa||"FlotaRentable"}</div><div className="hdr-sub">{rolLabel} · {tractorasActivas.length} tractora{tractorasActivas.length!==1?"s":""}</div></div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:"0.5rem"}}>
           <div className="trial-chip"><Icon d={I.clock} size={10} color="var(--muted)"/><span className="chip-d">{days}d</span></div>
@@ -128,10 +134,10 @@ export default function App() {
 
       {showAjustes&&<AjustesModal userId={user.id} perfil={perfil} updatePerfil={updatePerfil} onClose={()=>setShowAjustes(false)} onLogout={handleLogout} tractoras={tractoras} theme={theme} setTheme={setTheme}/>}
 
-      {tab==="inicio"&&<InicioPage key={`inicio-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} perfil={perfil} esGerente={esGerente} gastosTodos={gastosTodos} viajesTodos={viajesTodos} setViajesTodos={setViajesTodos} gastosFijos={gastosFijos} setTab={setTab}/>}
+      {tab==="inicio"&&<InicioPage key={`inicio-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} perfil={perfil} esGerente={esGerente} gastosTodos={gastosVisibles} viajesTodos={viajesVisibles} setViajesTodos={setViajesTodos} gastosFijos={gastosFijos} setTab={setTab}/>}
       {tab==="flota"&&<FlotaPage userId={user.id} perfil={perfil} updatePerfil={updatePerfil} tractoras={tractoras} semis={semis} setTractoras={setTractoras} setSemis={setSemis}/>}
-      {tab==="viajes"&&<ViajesPage key={`viajes-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} esGerente={esGerente} gastosTodos={gastosTodos} viajesTodos={viajesTodos} setViajesTodos={setViajesTodos}/>}
-      {tab==="gastos"&&<GastosPage key={`gastos-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} esGerente={esGerente} accentIdx={perfil.accent_idx||0} gastosFijos={gastosFijos} setGastosFijos={setGastosFijos} gastosTodos={gastosTodos} setGastosTodos={setGastosTodos}/>}
+      {tab==="viajes"&&<ViajesPage key={`viajes-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} esGerente={esGerente} esTrafico={esTrafico} gastosTodos={gastosVisibles} viajesTodos={viajesVisibles} setViajesTodos={setViajesTodos}/>}
+      {tab==="gastos"&&<GastosPage key={`gastos-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} esGerente={esGerente} accentIdx={perfil.accent_idx||0} gastosFijos={gastosFijos} setGastosFijos={setGastosFijos} gastosTodos={gastosVisibles} setGastosTodos={setGastosTodos}/>}
       {tab==="analizar"&&esGerente&&<AnalizarPage key={`analizar-${tractoras.length}-${semis.length}`} userId={user.id} tractoras={tractoras} semis={semis} gastosTodos={gastosTodos} viajesTodos={viajesTodos} gastosFijos={gastosFijos}/>}
       {tab==="analizar"&&!esGerente&&<div className="page"><div className="alert ay"><Icon d={I.lock} size={14} color="var(--yellow)"/><span>Esta seccion solo esta disponible para el gerente.</span></div></div>}
 
