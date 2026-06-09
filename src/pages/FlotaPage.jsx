@@ -8,10 +8,27 @@ export function FlotaPage({userId,perfil,updatePerfil,tractoras,semis,setTractor
   const[editT,setEditT]=useState(null);
   const[editS,setEditS]=useState(null);
   const[confirmFlota,setConfirmFlota]=useState(null);
+  const[errorFlota,setErrorFlota]=useState("");
 
-  const saveT=async t=>{const p={...t,user_id:userId};if(t.id){await sb.from("tractoras").update(p).eq("id",t.id);}else{await sb.from("tractoras").insert({...p,id:undefined});}const{data}=await sb.from("tractoras").select("*").eq("user_id",userId);setTractoras(data||[]);setEditT(null);};
+  const saveT=async(t,onError)=>{
+    const p={...t,user_id:userId};
+    let err;
+    if(t.id){({error:err}=await sb.from("tractoras").update(p).eq("id",t.id));}
+    else{({error:err}=await sb.from("tractoras").insert({...p,id:undefined}));}
+    if(err){if(onError)onError("❌ Error al guardar: "+err.message);return;}
+    const{data}=await sb.from("tractoras").select("*").eq("user_id",userId);
+    setTractoras(data||[]);setEditT(null);
+  };
   const deleteT=async id=>{const fecha=new Date().toISOString().slice(0,10);await sb.from("tractoras").update({activa:false,fecha_baja:fecha}).eq("id",id);setTractoras(tractoras.map(x=>x.id===id?{...x,activa:false,fecha_baja:fecha}:x));};
-  const saveS=async s=>{const p={...s,user_id:userId};if(s.id){await sb.from("semirremolques").update(p).eq("id",s.id);}else{await sb.from("semirremolques").insert({...p,id:undefined});}const{data}=await sb.from("semirremolques").select("*").eq("user_id",userId);setSemis(data||[]);setEditS(null);};
+  const saveS=async(s,onError)=>{
+    const p={...s,user_id:userId};
+    let err;
+    if(s.id){({error:err}=await sb.from("semirremolques").update(p).eq("id",s.id));}
+    else{({error:err}=await sb.from("semirremolques").insert({...p,id:undefined}));}
+    if(err){if(onError)onError("❌ Error al guardar: "+err.message);return;}
+    const{data}=await sb.from("semirremolques").select("*").eq("user_id",userId);
+    setSemis(data||[]);setEditS(null);
+  };
   const deleteS=async id=>{const fecha=new Date().toISOString().slice(0,10);await sb.from("semirremolques").update({activa:false,fecha_baja:fecha}).eq("id",id);setSemis(semis.map(x=>x.id===id?{...x,activa:false,fecha_baja:fecha}:x));};
 
   if(editT)return<TruckForm t={editT} semis={semis} onSave={saveT} onCancel={()=>setEditT(null)} onDelete={deleteT}/>;
@@ -125,7 +142,7 @@ export function TruckForm({t,semis,onSave,onCancel,onDelete}) {
         if(!form.matricula?.trim()){setToast("⚠️ La matrícula es obligatoria");return;}
         if(!form.consumo_estimado||parseFloat(form.consumo_estimado)<=0){setToast("⚠️ Indica el consumo medio (L/100km): es necesario para calcular el coste real de tus viajes.");return;}
         if(!form.precio_gasoil_inicial||parseFloat(form.precio_gasoil_inicial)<=0){setToast("⚠️ Indica el precio actual del gasoil (€/L): es necesario para calcular el coste real de tus viajes.");return;}
-        onSave(form);
+        onSave(form,msg=>setToast(msg));
       }}>Guardar</button></div>
     </div>
   );
@@ -167,7 +184,7 @@ export function SemiForm({s,onSave,onCancel,onDelete}) {
           <div className="fld"><label className="lbl">Marca motor frigo</label><input className="inp" type="text" value={form.frigo_marca||""} placeholder="Thermo King, Carrier..." onChange={e=>setForm({...form,frigo_marca:e.target.value})}/></div>
         </div>
       </div>}
-      <div style={{display:"flex",gap:"0.75rem"}}><button className="btn bg" style={{flex:1}} onClick={onCancel}>Cancelar</button><button className="btn bp" style={{flex:2}} onClick={()=>{if(!form.matricula?.trim()){setToast("⚠️ La matrícula es obligatoria");return;}onSave(form);}}>Guardar</button></div>
+      <div style={{display:"flex",gap:"0.75rem"}}><button className="btn bg" style={{flex:1}} onClick={onCancel}>Cancelar</button><button className="btn bp" style={{flex:2}} onClick={()=>{if(!form.matricula?.trim()){setToast("⚠️ La matrícula es obligatoria");return;}onSave(form,msg=>setToast(msg));}}>Guardar</button></div>
     </div>
   );
 }
