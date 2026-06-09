@@ -19,7 +19,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
   useEffect(()=>{if(esGerente)sb.from("perfiles").select("id,nombre").then(({data})=>{const m={};(data||[]).forEach(p=>m[p.id]=p.nombre);setNombres(m);});},[esGerente]);
 
   const getAutoSemi=tid=>{const t=tractoras.find(x=>x.id===tid);return t?.conjunto_fijo&&t?.semi_habitual_id?t.semi_habitual_id:"";};
-  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||""),cmr_foto:"",indicaciones:"",lugar_carga:"",km_vacio:""};
+  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||""),cmr_foto:"",indicaciones:"",lugar_carga:"",km_vacio:"",ubicacion_maps:""};
 
   const[calculandoKm,setCalculandoKm]=useState(false);
   const[calculandoKmVacio,setCalculandoKmVacio]=useState(false);
@@ -66,7 +66,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
     if(!modal.destino){setToast("⚠️ Introduce el destino");return;}
     if(esGerente&&(!modal.precio||parseFloat(modal.precio)<=0)){setToast("⚠️ Introduce el precio");return;}
     const{base,iva}=calcIVA();
-    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,cmr_foto:modal.cmr_foto||null,indicaciones:modal.indicaciones||null,lugar_carga:modal.lugar_carga&&modal.lugar_carga.trim()?modal.lugar_carga.trim():null,km_vacio:modal.lugar_carga&&modal.lugar_carga.trim()?(parseFloat(modal.km_vacio)||0):null,user_id:String(userId)};
+    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,cmr_foto:modal.cmr_foto||null,indicaciones:modal.indicaciones||null,lugar_carga:modal.lugar_carga&&modal.lugar_carga.trim()?modal.lugar_carga.trim():null,km_vacio:modal.lugar_carga&&modal.lugar_carga.trim()?(parseFloat(modal.km_vacio)||0):null,ubicacion_maps:modal.ubicacion_maps?.trim()||null,user_id:String(userId)};
     const resumen=()=>{
       const ruta=`${payload.origen} → ${payload.destino}`;
       if(!esGerente)return ruta;
@@ -126,7 +126,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
                 <span>📏 {v.km}km{v.km_vacio?` + ${v.km_vacio}km vacío`:""}{v.km_vuelta?` + ${v.km_vuelta}km vuelta`:""}</span>
                 {esGerente&&<span>💰 {euros(parseFloat(v.precio))}{v.tiene_iva?" (IVA)":""}</span>}
                 {parseFloat(v.peaje)>0&&<span>🛣️ {euros(parseFloat(v.peaje))}</span>}
-                {v.destino&&<a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.destino)}`} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{color:"var(--a2)",textDecoration:"none"}}>🗺️ Maps</a>}
+                {(v.ubicacion_maps||v.destino)&&<a href={v.ubicacion_maps||`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.destino)}`} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{color:"var(--a2)",textDecoration:"none"}}>🗺️ Maps</a>}
               </div>
               {v.indicaciones&&<div style={{fontSize:"0.73rem",color:"var(--muted)",marginTop:"0.2rem"}}>📍 {v.indicaciones}</div>}
               {esGerente&&<div className="tfoot">
@@ -175,7 +175,14 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
             {(esGerente||esTrafico)?
               <textarea className="inp" rows={2} placeholder="Ej: entrada por la puerta 3, preguntar por Juan..." value={modal.indicaciones||""} onChange={e=>setModal({...modal,indicaciones:e.target.value})}/>
               :<div style={{fontSize:"0.8rem",color:"var(--muted)"}}>{modal.indicaciones||"Sin indicaciones"}</div>}
-            {modal.destino&&<a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(modal.destino)}`} target="_blank" rel="noreferrer" className="btn bd bsm" style={{marginTop:"0.4rem",display:"inline-flex",width:"auto",textDecoration:"none"}} onClick={e=>e.stopPropagation()}>🗺️ Abrir en Google Maps</a>}
+          </div>
+          <div className="fld">
+            <label className="lbl">📌 Ubicación exacta en Google Maps (opcional)</label>
+            {(esGerente||esTrafico)?<>
+              <input className="inp" placeholder="Pega aquí el enlace de Google Maps del punto exacto" value={modal.ubicacion_maps||""} onChange={e=>setModal({...modal,ubicacion_maps:e.target.value})}/>
+              <div style={{fontSize:"0.68rem",color:"var(--muted)",marginTop:"0.3rem"}}>En Google Maps: busca el sitio exacto, pulsa "Compartir" y copia el enlace aquí.</div>
+            </>:null}
+            {(modal.ubicacion_maps||modal.destino)&&<a href={modal.ubicacion_maps||`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(modal.destino)}`} target="_blank" rel="noreferrer" className="btn bd bsm" style={{marginTop:"0.4rem",display:"inline-flex",width:"auto",textDecoration:"none"}} onClick={e=>e.stopPropagation()}>🗺️ Abrir en Google Maps</a>}
           </div>
           <PhotoUpload value={modal.cmr_foto} onChange={v=>setModal({...modal,cmr_foto:v})} label="📄 CMR / albarán (opcional)" height={90}/>
           {esGerente&&(()=>{
