@@ -60,7 +60,7 @@ export default function App() {
           sb.from("semirremolques").select("*").eq("user_id",tractorUserId),
           sb.from("gastos").select("*").order("fecha",{ascending:false}),
           sb.from("gastos_fijos").select("*").eq("user_id",tractorUserId),
-          sb.from("viajes").select("*").order("fecha",{ascending:false}),
+          sb.from("viajes").select("*").order("fecha",{ascending:false}).order("id",{ascending:false}),
         ]);
         setTractoras(t||[]);setSemis(s||[]);setGastosTodos(g||[]);setGastosFijos(gf||[]);setViajesTodos(v||[]);
       }
@@ -92,7 +92,7 @@ export default function App() {
       sb.from("semirremolques").select("*").eq("user_id",tractorUserId),
       sb.from("gastos").select("*").order("fecha",{ascending:false}),
       sb.from("gastos_fijos").select("*").eq("user_id",tractorUserId),
-      sb.from("viajes").select("*").order("fecha",{ascending:false}),
+      sb.from("viajes").select("*").order("fecha",{ascending:false}).order("id",{ascending:false}),
     ]);
     setTractoras(t||[]);setSemis(s||[]);setGastosTodos(g||[]);setGastosFijos(gf||[]);setViajesTodos(v||[]);
   };
