@@ -1,6 +1,65 @@
+import { useState } from "react";
 import { Icon, I } from "../lib/icons.jsx";
 
+const LEGAL_TEXT={
+  aviso:{title:"Aviso legal",body:`En cumplimiento de la Ley 34/2002, de Servicios de la Sociedad de la Información y Comercio Electrónico (LSSI-CE), se informa de los datos identificativos del titular de este sitio web.
+
+Titular: FlotaRentable
+Email de contacto: soporte@kmrentable.com
+Sitio web: kmrentable.vercel.app
+
+El acceso y uso de este sitio web atribuye la condición de usuario y supone la aceptación de las condiciones aquí recogidas. FlotaRentable se reserva el derecho de modificar cualquier tipo de información que pudiera aparecer en el sitio web, sin que exista obligación de preavisar o poner en conocimiento de los usuarios dichas obligaciones.`},
+  privacidad:{title:"Política de privacidad",body:`De acuerdo con el Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD), te informamos sobre el tratamiento de tus datos personales.
+
+Responsable del tratamiento: FlotaRentable (soporte@kmrentable.com)
+
+Datos que tratamos: nombre, email, teléfono, empresa, datos de la flota, viajes y gastos que introduces voluntariamente en la aplicación.
+
+Finalidad: prestar el servicio de gestión de flotas y rentabilidad contratado, gestionar tu cuenta y cuota, y enviarte comunicaciones relacionadas con el servicio.
+
+Legitimación: ejecución del contrato de prestación de servicios y consentimiento del usuario.
+
+Conservación: tus datos se conservan mientras mantengas tu cuenta activa y, posteriormente, durante los plazos legalmente exigibles.
+
+Destinatarios: tus datos se almacenan en infraestructura de terceros proveedores (hosting y base de datos) que actúan como encargados del tratamiento bajo contrato, sin cederse a terceros para fines comerciales.
+
+Derechos: puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a soporte@kmrentable.com.`},
+  terminos:{title:"Términos y condiciones",body:`El uso de FlotaRentable implica la aceptación de estos términos.
+
+1. Objeto: FlotaRentable es una aplicación de gestión de flotas de transporte que permite registrar viajes, gastos y calcular la rentabilidad del negocio.
+
+2. Periodo de prueba: se ofrece un periodo de prueba gratuito de 7 días desde el registro. Transcurrido este periodo, el acceso al servicio requiere una suscripción de pago.
+
+3. Suscripción: la suscripción tiene un coste de 14,99€/mes, se renueva automáticamente y puede cancelarse en cualquier momento desde los ajustes de la cuenta, sin permanencia.
+
+4. Uso del servicio: el usuario es responsable de la veracidad de los datos introducidos (viajes, gastos, vehículos, usuarios). FlotaRentable no se hace responsable de las decisiones tomadas en base a los cálculos generados, que son orientativos.
+
+5. Cuentas y roles: el usuario "gerente" es responsable de gestionar el alta/baja de usuarios "chófer" y "tráfico" dentro de su empresa.
+
+6. Disponibilidad: se realizarán esfuerzos razonables para mantener el servicio disponible, sin poder garantizar una disponibilidad del 100%.
+
+7. Modificaciones: estos términos pueden actualizarse; se notificará a los usuarios de cambios relevantes.
+
+Para cualquier duda: soporte@kmrentable.com`},
+};
+
+function LegalPage({page,onBack}) {
+  const d=LEGAL_TEXT[page];
+  return(
+    <div className="lp">
+      <style>{`*{box-sizing:border-box}body{margin:0}.lp{font-family:'Plus Jakarta Sans',sans-serif;background:#08080F;color:#EEEDF5;min-height:100vh}`}</style>
+      <div style={{maxWidth:760,margin:"0 auto",padding:"2.5rem 1.5rem 4rem"}}>
+        <button onClick={onBack} style={{background:"#ffffff10",color:"#EEEDF5",border:"1px solid #ffffff18",borderRadius:10,padding:"0.6rem 1.1rem",cursor:"pointer",fontWeight:700,fontSize:"0.85rem",marginBottom:"2rem"}}>← Volver</button>
+        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.2rem",letterSpacing:"0.03em",marginBottom:"1.5rem"}}>{d.title}</h1>
+        <div style={{whiteSpace:"pre-line",fontSize:"0.9rem",lineHeight:1.8,color:"#C7C7DA"}}>{d.body}</div>
+      </div>
+    </div>
+  );
+}
+
 export function LandingPage({accent,onLogin,onRegister}) {
+  const[legalView,setLegalView]=useState(null);
+  if(legalView)return<LegalPage page={legalView} onBack={()=>setLegalView(null)}/>;
   const feats=[
     {icon:I.trend,col:"#FF3D5A",t:"Rentabilidad real por km",s:"Calcula automáticamente cuánto te cuesta y cuánto ganas en cada viaje, incluyendo gasoil, peajes y gastos fijos prorrateados."},
     {icon:I.truck,col:"#06D6A0",t:"Gestión de flota completa",s:"Tractoras, semirremolques y conjuntos, con consumo histórico, ITV, seguros y mantenimiento al día."},
@@ -78,6 +137,9 @@ export function LandingPage({accent,onLogin,onRegister}) {
   .lp-rev-name{font-size:0.85rem;font-weight:700}
   .lp-rev-role{font-size:0.72rem;color:#8A8AA2}
   .lp-foot{text-align:center;padding:2.5rem 1.5rem;color:#5A5A72;font-size:0.8rem;border-top:1px solid #ffffff0D;margin-top:1rem}
+  .lp-foot-links{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;margin-bottom:1rem}
+  .lp-foot-links span{cursor:pointer;color:#8A8AA2;transition:color .15s}
+  .lp-foot-links span:hover{color:#EEEDF5}
   @media(max-width:640px){.lp-navbtns .lp-btn-ghost{display:none}}
   `;
 
@@ -214,6 +276,11 @@ export function LandingPage({accent,onLogin,onRegister}) {
       </section>
 
       <footer className="lp-foot">
+        <div className="lp-foot-links">
+          <span onClick={()=>setLegalView("aviso")}>Aviso legal</span>
+          <span onClick={()=>setLegalView("privacidad")}>Política de privacidad</span>
+          <span onClick={()=>setLegalView("terminos")}>Términos y condiciones</span>
+        </div>
         © {new Date().getFullYear()} FlotaRentable · Hecho para el transporte por carretera en España
       </footer>
     </div>
