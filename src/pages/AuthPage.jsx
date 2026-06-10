@@ -4,8 +4,8 @@ import { Icon, I } from "../lib/icons.jsx";
 import { genCode } from "../lib/helpers.js";
 import { DOMINIO_USUARIO } from "../lib/supabase.js";
 
-export function AuthPage({onAuth,accent}) {
-  const[mode,setMode]=useState("welcome");
+export function AuthPage({onAuth,accent,initialMode,onBack}) {
+  const[mode,setMode]=useState(initialMode||"welcome");
   const[step,setStep]=useState(1);
   const[loading,setLoading]=useState(false);
   const[err,setErr]=useState("");
@@ -106,6 +106,7 @@ export function AuthPage({onAuth,accent}) {
     <div className="auth-wrap fu">
       <div style={{position:"relative",padding:"3rem 1.75rem 2rem",textAlign:"center",overflow:"hidden",display:"flex",flexDirection:"column",alignItems:"center",gap:"1.25rem"}}>
         <div className="auth-glow"/>
+        {onBack&&<button className="btn bg bsm" style={{width:"auto",alignSelf:"flex-start",position:"relative",zIndex:1}} onClick={onBack}><Icon d={I.back} size={14}/> Volver a la web</button>}
         <div className="auth-logo"><svg width="38" height="38" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M 18 80 Q 18 48 48 48 Q 78 48 78 16" stroke="white" strokeWidth="7" strokeLinecap="round"/><circle cx="78" cy="16" r="13" fill="#F5C842"/><circle cx="78" cy="16" r="5" fill="#E8490F"/><circle cx="18" cy="80" r="13" fill="#1A1A1A" stroke="white" strokeWidth="2"/><path d="M 22 74.5 A 6.5 6.5 0 1 0 22 85.5" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none"/><line x1="11" y1="78" x2="20" y2="78" stroke="white" strokeWidth="2.2" strokeLinecap="round"/><line x1="11" y1="82" x2="20" y2="82" stroke="white" strokeWidth="2.2" strokeLinecap="round"/></svg></div>
         <div><div className="auth-wordmark">Flota<br/>Rentable</div><p style={{position:"relative",zIndex:1,fontSize:"0.9rem",color:"var(--muted)",lineHeight:1.65,maxWidth:270}}>Tu negocio de transporte en el bolsillo.</p></div>
       </div>
@@ -126,7 +127,7 @@ export function AuthPage({onAuth,accent}) {
   if(mode==="login")return(
     <div className="auth-wrap fu">
       <div style={{padding:"3rem 1.5rem 1.5rem",display:"flex",flexDirection:"column",gap:"1rem"}}>
-        <button className="btn bg bsm" style={{width:"auto",alignSelf:"flex-start"}} onClick={()=>setMode("welcome")}><Icon d={I.back} size={14}/> Volver</button>
+        <button className="btn bg bsm" style={{width:"auto",alignSelf:"flex-start"}} onClick={()=>onBack?onBack():setMode("welcome")}><Icon d={I.back} size={14}/> Volver</button>
         <div style={{fontFamily:"'Bebas Neue'",fontSize:"2rem",letterSpacing:"0.04em"}}>Iniciar sesión</div>
         <div className="fld"><label className="lbl">Email o usuario</label><input className="inp" type="text" placeholder="tu@email.com o usuario" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></div>
         <div className="fld"><label className="lbl">Contraseña</label><div className="pass-wrap"><input className="inp" type={showPass?"text":"password"} placeholder="••••••" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} onKeyDown={e=>e.key==="Enter"&&handleLogin()}/><button className="pass-eye" onClick={()=>setShowPass(!showPass)}><Icon d={showPass?I.eyeoff:I.eye} size={16}/></button></div></div>
@@ -140,7 +141,7 @@ export function AuthPage({onAuth,accent}) {
   return(
     <div className="auth-wrap fu">
       <div style={{padding:"3rem 1.5rem 1.5rem",display:"flex",flexDirection:"column",gap:"1rem"}}>
-        <button className="btn bg bsm" style={{width:"auto",alignSelf:"flex-start"}} onClick={()=>step>1?setStep(step-1):setMode("welcome")}><Icon d={I.back} size={14}/> {step>1?"Atrás":"Volver"}</button>
+        <button className="btn bg bsm" style={{width:"auto",alignSelf:"flex-start"}} onClick={()=>step>1?setStep(step-1):(onBack?onBack():setMode("welcome"))}><Icon d={I.back} size={14}/> {step>1?"Atrás":"Volver"}</button>
         <div style={{display:"flex",gap:"0.5rem",justifyContent:"center"}}>{[1,2,3].map(n=><div key={n} className={`step-dot ${step===n?"on":""}`}/>)}</div>
         {step===1&&<><div style={{fontFamily:"'Bebas Neue'",fontSize:"1.8rem",letterSpacing:"0.04em"}}>Tus datos</div>
           <div className="fld"><label className="lbl">Nombre *</label><input className="inp" placeholder="Juan García" value={form.nombre} onChange={e=>setForm({...form,nombre:e.target.value})}/></div>

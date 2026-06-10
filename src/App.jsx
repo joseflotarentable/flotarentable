@@ -6,6 +6,7 @@ import { getDaysLeft } from "./lib/helpers.js";
 import { makeCSS } from "./styles.js";
 
 import { AuthPage } from "./pages/AuthPage.jsx";
+import { LandingPage } from "./pages/LandingPage.jsx";
 import { AjustesModal } from "./pages/AjustesModal.jsx";
 import { InicioPage } from "./pages/InicioPage.jsx";
 import { FlotaPage } from "./pages/FlotaPage.jsx";
@@ -26,6 +27,8 @@ export default function App() {
   const[loading,setLoading]=useState(true);
   const[trialStart,setTrialStart]=useState(null);
   const[theme,setTheme]=useState(()=>localStorage.getItem("fr-theme")||"dark");
+  const[showAuth,setShowAuth]=useState(false);
+  const[authMode,setAuthMode]=useState("welcome");
 
   useEffect(()=>{
     localStorage.setItem("fr-theme",theme);
@@ -106,7 +109,8 @@ export default function App() {
   const days=getDaysLeft(trialStart||perfil.trial_start);
 
   if(loading)return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#08080F"}}><div className="spinner" style={{width:32,height:32,borderColor:"rgba(255,61,90,0.3)",borderTopColor:"#FF3D5A"}}/></div>);
-  if(!user)return(<><style>{makeCSS(accent)}</style><div className="app"><AuthPage onAuth={handleAuth} accent={accent}/></div></>);
+  if(!user&&!showAuth)return(<LandingPage accent={accent} onLogin={()=>{setAuthMode("login");setShowAuth(true);}} onRegister={()=>{setAuthMode("register");setShowAuth(true);}}/>);
+  if(!user)return(<><style>{makeCSS(accent)}</style><div className="app"><AuthPage onAuth={handleAuth} accent={accent} initialMode={authMode} onBack={()=>setShowAuth(false)}/></div></>);
   if(user&&!perfil.rol)return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#08080F"}}><div className="spinner" style={{width:32,height:32,borderColor:"rgba(255,61,90,0.3)",borderTopColor:"#FF3D5A"}}/></div>);
 
   const tabs=[{id:"inicio",lbl:"Inicio",icon:I.dash},...(esGerente?[{id:"flota",lbl:"Vehículos",icon:I.truck}]:[]),{id:"viajes",lbl:"Viajes",icon:I.trend},{id:"gastos",lbl:"Gastos",icon:I.coin},...(esGerente?[{id:"analizar",lbl:"Analizar",icon:I.analyze}]:[])];
