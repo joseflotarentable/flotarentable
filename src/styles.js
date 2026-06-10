@@ -23,9 +23,7 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
   .page{padding:1.5rem 2.5rem;padding-bottom:2.5rem;max-width:1080px;margin:0 auto;width:100%}
   .modal{max-width:480px;margin:2rem auto;border-radius:var(--r);padding-bottom:2rem;flex:none;max-height:calc(100vh - 4rem);overflow-y:auto}
   .ov{align-items:flex-start;justify-content:center;background:#000a}
-  .sgrid{grid-template-columns:repeat(2,1fr)}
-  .page{display:grid;grid-template-columns:1fr 1fr;align-content:flex-start;gap:0.875rem}
-  .page>.sgrid,.page>.hcard,.page>.alert,.page>.empty,.page>.ptitle{grid-column:1/-1}
+  .sgrid{grid-template-columns:repeat(4,1fr)}
 }
 
 .btn{display:flex;align-items:center;justify-content:center;gap:0.5rem;border:none;border-radius:var(--r2);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:0.875rem;transition:all 0.15s;padding:0.875rem 1.5rem;width:100%}
