@@ -225,7 +225,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     doc.setTextColor(232,73,15);doc.setFontSize(10);doc.setFont("helvetica","bold");doc.text("VIAJES",M,y);y+=5;
     doc.setDrawColor(232,73,15);doc.setLineWidth(0.3);doc.line(M,y,M+CW,y);y+=4;
     doc.setTextColor(120,120,140);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
-    ["Fecha","Origen → Destino","Cliente","Km","Precio","Peaje"].forEach((h,i)=>{
+    ["Fecha","Origen -> Destino","Cliente","Km","Precio","Peaje"].forEach((h,i)=>{
       const xs=[0,18,90,118,138,158];doc.text(h,M+xs[i],y);
     });y+=4;
     doc.setDrawColor(40,40,55);doc.setLineWidth(0.2);doc.line(M,y,M+CW,y);y+=3;
@@ -233,7 +233,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
       if(y>270){doc.addPage();y=14;}
       doc.setTextColor(220,220,235);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
       const xs=[0,18,90,118,138,158];
-      const vals=[v.fecha?v.fecha.split("-").reverse().join("/"):"",`${v.origen||""}${v.destino?` → ${v.destino}`:""}`,v.cliente||"",`${((parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)).toLocaleString("es-ES")}`,eur(v.precio),eur(v.peaje)];
+      const vals=[v.fecha?v.fecha.split("-").reverse().join("/"):"",`${v.origen||""}${v.destino?` -> ${v.destino}`:""}`,v.cliente||"",`${((parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)).toLocaleString("es-ES")}`,eur(v.precio),eur(v.peaje)];
       vals.forEach((val,i)=>{doc.text(String(val).substring(0,i===1?30:14),M+xs[i],y);});
       y+=5;
     });
