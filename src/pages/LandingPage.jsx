@@ -23,20 +23,26 @@ export function LandingPage({accent,onLogin,onRegister}) {
   .lp-btn-ghost:hover{border-color:#ffffff35}
   .lp-btn-pri{background:linear-gradient(135deg,${accent.a1},${accent.a2});color:#fff;box-shadow:0 8px 24px -8px ${accent.a1}80}
   .lp-btn-pri:hover{filter:brightness(1.08)}
-  .lp-hero{position:relative;text-align:center;padding:4.5rem 1.5rem 3.5rem;max-width:780px;margin:0 auto}
-  .lp-glow{position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:520px;height:520px;background:radial-gradient(circle,${accent.a1}25,transparent 65%);pointer-events:none;z-index:0}
+  .lp-hero{position:relative;text-align:center;padding:5.5rem 1.5rem 4rem;max-width:860px;margin:0 auto;overflow:hidden}
+  .lp-glow{position:absolute;top:-220px;left:50%;transform:translateX(-50%);width:900px;height:900px;background:radial-gradient(circle,${accent.a1}40,transparent 60%);pointer-events:none;z-index:0;animation:lp-pulse 6s ease-in-out infinite}
+  .lp-glow2{position:absolute;bottom:-260px;right:-120px;width:560px;height:560px;background:radial-gradient(circle,#FFD16630,transparent 65%);pointer-events:none;z-index:0}
+  @keyframes lp-pulse{0%,100%{opacity:0.7;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.08)}}
   .lp-hero>*{position:relative;z-index:1}
-  .lp-tag{display:inline-flex;align-items:center;gap:0.4rem;background:#ffffff0D;border:1px solid #ffffff18;border-radius:999px;padding:0.4rem 0.9rem;font-size:0.78rem;color:#8A8AA2;margin-bottom:1.5rem}
-  .lp-h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.6rem,7vw,4.5rem);line-height:1.05;letter-spacing:0.02em}
+  .lp-tag{display:inline-flex;align-items:center;gap:0.4rem;background:#ffffff0D;border:1px solid #ffffff18;border-radius:999px;padding:0.45rem 1rem;font-size:0.8rem;font-weight:600;color:#EEEDF5;margin-bottom:1.75rem;box-shadow:0 0 30px -8px ${accent.a1}80}
+  .lp-h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,9vw,5.6rem);line-height:1.02;letter-spacing:0.02em;text-shadow:0 0 60px ${accent.a1}30}
   .lp-h1 span{background:linear-gradient(135deg,${accent.a1},#FFD166);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .lp-sub{font-size:1.05rem;color:#8A8AA2;line-height:1.65;max-width:540px;margin:1.25rem auto 2rem}
-  .lp-ctas{display:flex;gap:0.85rem;justify-content:center;flex-wrap:wrap}
-  .lp-ctas .lp-btn{padding:0.95rem 1.8rem;font-size:0.95rem}
-  .lp-mock{max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem;display:flex;justify-content:center}
-  .lp-mock-card{background:linear-gradient(160deg,#15151F,#0B0B14);border:1px solid #ffffff14;border-radius:24px;padding:1.75rem;width:100%;max-width:760px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;box-shadow:0 30px 80px -30px rgba(0,0,0,0.7)}
-  .lp-mock-stat{background:#ffffff08;border:1px solid #ffffff10;border-radius:14px;padding:1rem}
+  .lp-sub{font-size:1.15rem;color:#C7C7DA;line-height:1.7;max-width:580px;margin:1.5rem auto 2.25rem}
+  .lp-ctas{display:flex;gap:0.85rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem}
+  .lp-ctas .lp-btn{padding:1.05rem 2.1rem;font-size:1rem}
+  .lp-ctas .lp-btn-pri{box-shadow:0 12px 36px -10px ${accent.a1}}
+  .lp-stats{display:flex;justify-content:center;gap:2.5rem;flex-wrap:wrap}
+  .lp-stat-num{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:0.02em;background:linear-gradient(135deg,${accent.a1},#FFD166);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .lp-stat-lbl{font-size:0.75rem;color:#8A8AA2;margin-top:0.15rem}
+  .lp-mock{max-width:1100px;margin:0 auto;padding:0 1.5rem 5rem;display:flex;justify-content:center;position:relative;z-index:1}
+  .lp-mock-card{background:linear-gradient(160deg,#1c1c2c,#0B0B14);border:1px solid #ffffff18;border-radius:24px;padding:1.75rem;width:100%;max-width:760px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;box-shadow:0 40px 100px -30px ${accent.a1}40,0 0 0 1px #ffffff08}
+  .lp-mock-stat{background:#ffffff08;border:1px solid #ffffff10;border-radius:14px;padding:1.1rem}
   .lp-mock-lbl{font-size:0.65rem;font-weight:700;color:#8A8AA2;text-transform:uppercase;letter-spacing:0.08em}
-  .lp-mock-val{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:0.02em;margin-top:0.2rem}
+  .lp-mock-val{font-family:'Bebas Neue',sans-serif;font-size:2.1rem;letter-spacing:0.02em;margin-top:0.25rem}
   .lp-section{max-width:1100px;margin:0 auto;padding:3.5rem 1.5rem}
   .lp-section-h{text-align:center;max-width:600px;margin:0 auto 2.5rem}
   .lp-section-h h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,4vw,2.6rem);letter-spacing:0.03em}
@@ -72,12 +78,18 @@ export function LandingPage({accent,onLogin,onRegister}) {
 
       <header className="lp-hero">
         <div className="lp-glow"/>
+        <div className="lp-glow2"/>
         <div className="lp-tag">🚛 Hecho para transportistas autónomos y flotas</div>
-        <h1 className="lp-h1">Sabe exactamente <span>cuánto ganas</span><br/>en cada kilómetro</h1>
+        <h1 className="lp-h1">Sabe exactamente<br/><span>cuánto ganas</span> en cada kilómetro</h1>
         <p className="lp-sub">FlotaRentable calcula la rentabilidad real de tu flota: combustible, peajes, gastos fijos e IVA, viaje a viaje y mes a mes. Todo desde el móvil.</p>
         <div className="lp-ctas">
           <button className="lp-btn lp-btn-pri" onClick={onRegister}>Empezar gratis 7 días <Icon d={I.arrow} size={15} color="#fff"/></button>
           <button className="lp-btn lp-btn-ghost" onClick={onLogin}>Ya tengo cuenta</button>
+        </div>
+        <div className="lp-stats">
+          <div><div className="lp-stat-num">0,62€</div><div className="lp-stat-lbl">coste medio por km</div></div>
+          <div><div className="lp-stat-num">7 días</div><div className="lp-stat-lbl">de prueba gratis</div></div>
+          <div><div className="lp-stat-num">100%</div><div className="lp-stat-lbl">listo para tu gestoría</div></div>
         </div>
       </header>
 
