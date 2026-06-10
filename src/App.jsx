@@ -22,6 +22,7 @@ export default function App() {
   const[semis,setSemis]=useState([]);
   const[gastosTodos,setGastosTodos]=useState([]);
   const[gastosFijos,setGastosFijos]=useState([]);
+  const[clientesTodos,setClientesTodos]=useState([]);
   const[viajesTodos,setViajesTodos]=useState([]);
   const[tab,setTab]=useState("inicio");
   const[loading,setLoading]=useState(true);
@@ -58,14 +59,15 @@ export default function App() {
           const{data:emp}=await sb.from("empresas").select("miembros").eq("id",p.empresa_id).single();
           if(emp?.miembros&&emp.miembros.length>0)userIds=emp.miembros;
         }
-        const[{data:t},{data:s},{data:g},{data:gf},{data:v}]=await Promise.all([
+        const[{data:t},{data:s},{data:g},{data:gf},{data:v},{data:cl}]=await Promise.all([
           sb.from("tractoras").select("*").eq("user_id",tractorUserId),
           sb.from("semirremolques").select("*").eq("user_id",tractorUserId),
           sb.from("gastos").select("*").order("fecha",{ascending:false}),
           sb.from("gastos_fijos").select("*").eq("user_id",tractorUserId),
           sb.from("viajes").select("*").order("fecha",{ascending:false}).order("id",{ascending:false}),
+          sb.from("clientes").select("*").order("nombre",{ascending:true}),
         ]);
-        setTractoras(t||[]);setSemis(s||[]);setGastosTodos(g||[]);setGastosFijos(gf||[]);setViajesTodos(v||[]);
+        setTractoras(t||[]);setSemis(s||[]);setGastosTodos(g||[]);setGastosFijos(gf||[]);setViajesTodos(v||[]);setClientesTodos(cl||[]);
       }
       setLoading(false);
     });
@@ -90,14 +92,15 @@ export default function App() {
       const{data:emp}=await sb.from("empresas").select("miembros").eq("id",p.empresa_id).single();
       if(emp?.miembros&&emp.miembros.length>0)userIds=emp.miembros;
     }
-    const[{data:t},{data:s},{data:g},{data:gf},{data:v}]=await Promise.all([
+    const[{data:t},{data:s},{data:g},{data:gf},{data:v},{data:cl}]=await Promise.all([
       sb.from("tractoras").select("*").eq("user_id",tractorUserId),
       sb.from("semirremolques").select("*").eq("user_id",tractorUserId),
       sb.from("gastos").select("*").order("fecha",{ascending:false}),
       sb.from("gastos_fijos").select("*").eq("user_id",tractorUserId),
       sb.from("viajes").select("*").order("fecha",{ascending:false}).order("id",{ascending:false}),
+      sb.from("clientes").select("*").order("nombre",{ascending:true}),
     ]);
-    setTractoras(t||[]);setSemis(s||[]);setGastosTodos(g||[]);setGastosFijos(gf||[]);setViajesTodos(v||[]);
+    setTractoras(t||[]);setSemis(s||[]);setGastosTodos(g||[]);setGastosFijos(gf||[]);setViajesTodos(v||[]);setClientesTodos(cl||[]);
   };
   const handleLogout=async()=>{await sb.auth.signOut();setUser(null);setPerfil({});setTractoras([]);setSemis([]);setViajesTodos([]);setGastosTodos([]);setGastosFijos([]);};
   const updatePerfil=patch=>setPerfil(p=>({...p,...patch}));
@@ -136,11 +139,11 @@ export default function App() {
         </div>
       </div>
 
-      {showAjustes&&<AjustesModal userId={user.id} perfil={perfil} updatePerfil={updatePerfil} onClose={()=>setShowAjustes(false)} onLogout={handleLogout} tractoras={tractoras} theme={theme} setTheme={setTheme}/>}
+      {showAjustes&&<AjustesModal userId={user.id} perfil={perfil} updatePerfil={updatePerfil} onClose={()=>setShowAjustes(false)} onLogout={handleLogout} tractoras={tractoras} theme={theme} setTheme={setTheme} clientesTodos={clientesTodos} setClientesTodos={setClientesTodos}/>}
 
       {tab==="inicio"&&<InicioPage key={`inicio-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} perfil={perfil} esGerente={esGerente} gastosTodos={gastosVisibles} viajesTodos={viajesVisibles} setViajesTodos={setViajesTodos} gastosFijos={gastosFijos} setTab={setTab}/>}
       {tab==="flota"&&<FlotaPage userId={user.id} perfil={perfil} updatePerfil={updatePerfil} tractoras={tractoras} semis={semis} setTractoras={setTractoras} setSemis={setSemis}/>}
-      {tab==="viajes"&&<ViajesPage key={`viajes-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} esGerente={esGerente} esTrafico={esTrafico} gastosTodos={gastosVisibles} gastosFijos={gastosFijos} viajesTodos={viajesVisibles} setViajesTodos={setViajesTodos}/>}
+      {tab==="viajes"&&<ViajesPage key={`viajes-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} esGerente={esGerente} esTrafico={esTrafico} gastosTodos={gastosVisibles} gastosFijos={gastosFijos} viajesTodos={viajesVisibles} setViajesTodos={setViajesTodos} clientesTodos={clientesTodos} setClientesTodos={setClientesTodos}/>}
       {tab==="gastos"&&<GastosPage key={`gastos-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} esGerente={esGerente} accentIdx={perfil.accent_idx||0} gastosFijos={gastosFijos} setGastosFijos={setGastosFijos} gastosTodos={gastosVisibles} setGastosTodos={setGastosTodos}/>}
       {tab==="analizar"&&esGerente&&<AnalizarPage key={`analizar-${tractoras.length}-${semis.length}`} userId={user.id} tractoras={tractoras} semis={semis} gastosTodos={gastosTodos} viajesTodos={viajesTodos} gastosFijos={gastosFijos}/>}
       {tab==="analizar"&&!esGerente&&<div className="page"><div className="alert ay"><Icon d={I.lock} size={14} color="var(--yellow)"/><span>Esta seccion solo esta disponible para el gerente.</span></div></div>}

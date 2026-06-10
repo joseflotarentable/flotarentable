@@ -5,7 +5,9 @@ import { ACCENTS } from "../lib/constants.js";
 import { genCode } from "../lib/helpers.js";
 import { InputGuardado, PhotoUpload } from "../components/ui.jsx";
 
-export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tractoras,theme,setTheme}) {
+export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tractoras,theme,setTheme,clientesTodos,setClientesTodos}) {
+  const[nuevoCliente,setNuevoCliente]=useState({nombre:"",cif:"",contacto:"",tarifa_km:""});
+  const[clienteMsg,setClienteMsg]=useState("");
   const[codigo,setCodigo]=useState("");
   const[copied,setCopied]=useState(false);
   const[passForm,setPassForm]=useState({nueva:"",confirmar:""});
@@ -89,6 +91,21 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   const actualizarEmpleado=async(id,patch)=>{
     await sb.from("perfiles").update(patch).eq("id",id);
     setEmpleados(emps=>emps.map(e=>e.id===id?{...e,...patch}:e));
+  };
+
+  const crearCliente=async()=>{
+    if(!nuevoCliente.nombre.trim()){setClienteMsg("Pon un nombre para el cliente");return;}
+    const payload={nombre:nuevoCliente.nombre.trim(),cif:nuevoCliente.cif.trim()||null,contacto:nuevoCliente.contacto.trim()||null,tarifa_km:nuevoCliente.tarifa_km?parseFloat(nuevoCliente.tarifa_km):null,user_id:String(userId)};
+    const{data,error}=await sb.from("clientes").insert(payload).select();
+    if(error){setClienteMsg("Error: "+error.message);return;}
+    const nuevo=Array.isArray(data)?data[0]:data;
+    if(nuevo&&setClientesTodos)setClientesTodos(cs=>[...cs,nuevo].sort((a,b)=>a.nombre.localeCompare(b.nombre)));
+    setNuevoCliente({nombre:"",cif:"",contacto:"",tarifa_km:""});
+    setClienteMsg("✅ Cliente añadido");
+  };
+  const eliminarCliente=async id=>{
+    await sb.from("clientes").delete().eq("id",id);
+    if(setClientesTodos)setClientesTodos(cs=>cs.filter(c=>c.id!==id));
   };
 
   return(
@@ -200,6 +217,34 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
             <div className="fld"><label className="lbl">Contraseña</label><input className="inp" type="password" placeholder="Mínimo 6 caracteres" value={nuevoEmp.password} onChange={e=>setNuevoEmp({...nuevoEmp,password:e.target.value})}/></div>
             {empMsg&&<p style={{fontSize:"0.78rem",color:empMsg.includes("✅")?"var(--green)":"var(--red)"}}>{empMsg}</p>}
             <button className="btn bp" onClick={crearEmpleado} disabled={creandoEmp}>{creandoEmp?"Creando...":"Crear usuario"}</button>
+          </div>
+        </div>}
+        {perfil.rol==="gerente"&&<div className="card">
+          <div className="chd">🧾 Clientes</div>
+          {(clientesTodos||[]).length>0?<div style={{display:"flex",flexDirection:"column",gap:"0.5rem",marginBottom:"1rem"}}>
+            {(clientesTodos||[]).map(c=>(
+              <div key={c.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"0.6rem",background:"var(--s3)",borderRadius:8}}>
+                <div>
+                  <div style={{fontWeight:700,fontSize:"0.88rem"}}>{c.nombre}</div>
+                  <div style={{fontSize:"0.7rem",color:"var(--muted)"}}>{c.cif?`${c.cif} · `:""}{c.contacto?`${c.contacto} · `:""}{c.tarifa_km?`tarifa ${c.tarifa_km}€/km`:"sin tarifa"}</div>
+                </div>
+                <button className="btn bd bsm" style={{padding:"0.3rem 0.4rem",width:"auto"}} onClick={()=>eliminarCliente(c.id)}><Icon d={I.trash} size={12}/></button>
+              </div>
+            ))}
+          </div>:<p style={{fontSize:"0.78rem",color:"var(--muted)",marginBottom:"0.75rem"}}>Aún no has añadido ningún cliente.</p>}
+          <div style={{height:1,background:"var(--border)",marginBottom:"0.75rem"}}/>
+          <div style={{fontWeight:700,fontSize:"0.85rem",marginBottom:"0.5rem"}}>➕ Añadir cliente</div>
+          <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
+            <div className="fld"><label className="lbl">Nombre</label><input className="inp" placeholder="Ej: Transportes García S.L." value={nuevoCliente.nombre} onChange={e=>setNuevoCliente({...nuevoCliente,nombre:e.target.value})}/></div>
+            <div className="g2">
+              <div className="fld"><label className="lbl">CIF (opcional)</label><input className="inp" placeholder="B12345678" value={nuevoCliente.cif} onChange={e=>setNuevoCliente({...nuevoCliente,cif:e.target.value})}/></div>
+              <div className="fld"><label className="lbl">Contacto (opcional)</label><input className="inp" placeholder="Email o teléfono" value={nuevoCliente.contacto} onChange={e=>setNuevoCliente({...nuevoCliente,contacto:e.target.value})}/></div>
+            </div>
+            <div className="fld"><label className="lbl">Tarifa pactada (€/km, opcional)</label><input className="inp" type="number" placeholder="Ej: 1.20" value={nuevoCliente.tarifa_km} onChange={e=>setNuevoCliente({...nuevoCliente,tarifa_km:e.target.value})}/>
+              <div style={{fontSize:"0.68rem",color:"var(--muted)",marginTop:"0.25rem"}}>Si la pones, al elegir este cliente en un viaje se sugerirá el precio automáticamente.</div>
+            </div>
+            {clienteMsg&&<p style={{fontSize:"0.78rem",color:clienteMsg.includes("✅")?"var(--green)":"var(--red)"}}>{clienteMsg}</p>}
+            <button className="btn bp" onClick={crearCliente}>Añadir cliente</button>
           </div>
         </div>}
         <div className="card">

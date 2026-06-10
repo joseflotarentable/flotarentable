@@ -4,7 +4,7 @@ import { Icon, I } from "../lib/icons.jsx";
 import { euros, eurosKm, pct, fmtDate, calcConsumoHistorico, precioGasoilDe, calcKmRutaCamion, calcCosteFijoKm } from "../lib/helpers.js";
 import { CityInput, ConfirmModal, Toast, PhotoUpload } from "../components/ui.jsx";
 
-export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTodos,gastosFijos,viajesTodos,setViajesTodos}) {
+export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTodos,gastosFijos,viajesTodos,setViajesTodos,clientesTodos}) {
   const[viajes,setViajes]=useState(viajesTodos||[]);
   const[modal,setModal]=useState(false);
   const[editando,setEditando]=useState(null);
@@ -19,7 +19,19 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
   useEffect(()=>{if(esGerente)sb.from("perfiles").select("id,nombre").then(({data})=>{const m={};(data||[]).forEach(p=>m[p.id]=p.nombre);setNombres(m);});},[esGerente]);
 
   const getAutoSemi=tid=>{const t=tractoras.find(x=>x.id===tid);return t?.conjunto_fijo&&t?.semi_habitual_id?t.semi_habitual_id:"";};
-  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||""),cmr_foto:"",indicaciones:"",lugar_carga:"",km_vacio:"",ubicacion_maps:""};
+  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||""),cmr_foto:"",indicaciones:"",lugar_carga:"",km_vacio:"",ubicacion_maps:"",cobrado:false,fecha_cobro:""};
+
+  const handleCliente=val=>{
+    const cliente=(clientesTodos||[]).find(c=>c.nombre.toLowerCase()===val.trim().toLowerCase());
+    setModal(f=>{
+      const next={...f,cliente:val};
+      if(cliente?.tarifa_km&&!f.precio&&parseFloat(f.km)>0){
+        const km=(parseFloat(f.km)||0)+(parseFloat(f.km_vuelta)||0)+(parseFloat(f.km_vacio)||0);
+        next.precio=(cliente.tarifa_km*km).toFixed(2);
+      }
+      return next;
+    });
+  };
 
   const[calculandoKm,setCalculandoKm]=useState(false);
   const[calculandoKmVacio,setCalculandoKmVacio]=useState(false);
@@ -66,7 +78,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
     if(!modal.destino){setToast("⚠️ Introduce el destino");return;}
     if(esGerente&&(!modal.precio||parseFloat(modal.precio)<=0)){setToast("⚠️ Introduce el precio");return;}
     const{base,iva}=calcIVA();
-    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,cmr_foto:modal.cmr_foto||null,indicaciones:modal.indicaciones||null,lugar_carga:modal.lugar_carga&&modal.lugar_carga.trim()?modal.lugar_carga.trim():null,km_vacio:modal.lugar_carga&&modal.lugar_carga.trim()?(parseFloat(modal.km_vacio)||0):null,ubicacion_maps:modal.ubicacion_maps?.trim()||null,user_id:String(userId)};
+    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,cmr_foto:modal.cmr_foto||null,indicaciones:modal.indicaciones||null,lugar_carga:modal.lugar_carga&&modal.lugar_carga.trim()?modal.lugar_carga.trim():null,km_vacio:modal.lugar_carga&&modal.lugar_carga.trim()?(parseFloat(modal.km_vacio)||0):null,ubicacion_maps:modal.ubicacion_maps?.trim()||null,cobrado:modal.cobrado||false,fecha_cobro:modal.cobrado&&modal.fecha_cobro?modal.fecha_cobro:null,user_id:String(userId)};
     const resumen=()=>{
       const ruta=`${payload.origen} → ${payload.destino}`;
       if(!esGerente)return ruta;
@@ -128,6 +140,8 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
                 {t&&<span>🚛 {t.matricula}</span>}{s&&<span>🔧 {s.matricula}</span>}
                 <span>📏 {v.km}km{v.km_vacio?` + ${v.km_vacio}km vacío`:""}{v.km_vuelta?` + ${v.km_vuelta}km vuelta`:""}</span>
                 {esGerente&&<span>💰 {euros(parseFloat(v.precio))}{v.tiene_iva?" (IVA)":""}</span>}
+                {esGerente&&parseFloat(v.precio)>0&&!v.cobrado&&<span style={{color:"var(--yellow)"}}>🟡 Pendiente de cobro</span>}
+                {esGerente&&parseFloat(v.precio)>0&&v.cobrado&&<span style={{color:"var(--green)"}}>✅ Cobrado</span>}
                 {parseFloat(v.peaje)>0&&<span>🛣️ {euros(parseFloat(v.peaje))}</span>}
                 {(v.ubicacion_maps||v.destino)&&<a href={v.ubicacion_maps||`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.destino)}`} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{color:"var(--a2)",textDecoration:"none"}}>🗺️ Maps</a>}
               </div>
@@ -156,7 +170,9 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
           </div>
           <div className="g2">
             <div className="fld"><label className="lbl">Fecha</label><input type="date" className="inp" value={modal.fecha} onChange={e=>setModal({...modal,fecha:e.target.value})}/></div>
-            <div className="fld"><label className="lbl">Cliente</label><input className="inp" placeholder="Nombre" value={modal.cliente} onChange={e=>setModal({...modal,cliente:e.target.value})}/></div>
+            <div className="fld"><label className="lbl">Cliente</label><input className="inp" list="clientes-list" placeholder="Nombre" value={modal.cliente} onChange={e=>handleCliente(e.target.value)}/>
+              <datalist id="clientes-list">{(clientesTodos||[]).map(c=><option key={c.id} value={c.nombre}/>)}</datalist>
+            </div>
           </div>
           <div className="fld"><label className="lbl">Origen (donde está el camión) <span style={{color:"var(--red)"}}>*</span></label><CityInput value={modal.origen} onChange={v=>setModal(f=>({...f,origen:v}))} onSelect={s=>handleO(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo"/></div>
           <div className="toggle-row"><span className="toggle-lbl">📦 Recoger la carga en otro sitio</span><button className={`toggle ${modal.lugar_carga?"on":""}`} onClick={()=>setModal(f=>({...f,lugar_carga:f.lugar_carga?"":" "}))}/></div>
@@ -176,6 +192,8 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
             <div className="fld"><label className="lbl">Peajes (€)</label><input className="inp" type="number" placeholder="0" value={modal.peaje} onChange={e=>setModal({...modal,peaje:e.target.value})}/></div>
             {esGerente&&<div className="fld"><label className="lbl">Precio cobrado (€) <span style={{fontSize:"0.68rem",color:"var(--muted)",fontWeight:400}}>(IVA incluido)</span></label><input className="inp" type="number" placeholder="0" value={modal.precio} onChange={e=>setModal({...modal,precio:e.target.value})}/></div>}
           </div>
+          {esGerente&&<div className="toggle-row"><span className="toggle-lbl">💶 Pago del cliente cobrado</span><button className={`toggle ${modal.cobrado?"on":""}`} onClick={()=>setModal(f=>({...f,cobrado:!f.cobrado,fecha_cobro:!f.cobrado?(f.fecha_cobro||new Date().toISOString().slice(0,10)):f.fecha_cobro}))}/></div>}
+          {esGerente&&modal.cobrado&&<div className="fld"><label className="lbl">Fecha de cobro</label><input type="date" className="inp" value={modal.fecha_cobro||""} onChange={e=>setModal({...modal,fecha_cobro:e.target.value})}/></div>}
           <div className="fld">
             <label className="lbl">📍 Indicaciones de destino (opcional)</label>
             {(esGerente||esTrafico)?
