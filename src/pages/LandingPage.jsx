@@ -24,7 +24,11 @@ export function LandingPage({accent,onLogin,onRegister}) {
   .lp-nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;max-width:1100px;margin:0 auto}
   .lp-logo{display:flex;align-items:center;gap:0.6rem;font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.08em;background:linear-gradient(135deg,${accent.a1},${accent.a2});-webkit-background-clip:text;-webkit-text-fill-color:transparent}
   .lp-logo-ph{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,${accent.a1},${accent.a2});display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .lp-navlinks{display:flex;gap:1.75rem}
+  .lp-navlinks a{color:#C7C7DA;text-decoration:none;font-size:0.85rem;font-weight:600;transition:color .15s}
+  .lp-navlinks a:hover{color:#EEEDF5}
   .lp-navbtns{display:flex;gap:0.6rem}
+  @media(max-width:860px){.lp-navlinks{display:none}}
   .lp-btn{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:10px;padding:0.7rem 1.3rem;cursor:pointer;transition:all .15s}
   .lp-btn-ghost{background:#ffffff10;color:#EEEDF5;border:1px solid #ffffff18}
   .lp-btn-ghost:hover{border-color:#ffffff35}
@@ -85,6 +89,12 @@ export function LandingPage({accent,onLogin,onRegister}) {
           <div className="lp-logo-ph"><svg width="18" height="18" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M 18 80 Q 18 48 48 48 Q 78 48 78 16" stroke="white" strokeWidth="7" strokeLinecap="round"/><circle cx="78" cy="16" r="13" fill="#F5C842"/><circle cx="78" cy="16" r="5" fill="#E8490F"/><circle cx="18" cy="80" r="13" fill="#1A1A1A" stroke="white" strokeWidth="2"/><path d="M 22 74.5 A 6.5 6.5 0 1 0 22 85.5" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none"/><line x1="11" y1="78" x2="20" y2="78" stroke="white" strokeWidth="2.2" strokeLinecap="round"/><line x1="11" y1="82" x2="20" y2="82" stroke="white" strokeWidth="2.2" strokeLinecap="round"/></svg></div>
           FlotaRentable
         </div>
+        <div className="lp-navlinks">
+          <a href="#funciones">Funciones</a>
+          <a href="#precios">Precios</a>
+          <a href="#nosotros">Quiénes somos</a>
+          <a href="#contacto">Contacto</a>
+        </div>
         <div className="lp-navbtns">
           <button className="lp-btn lp-btn-ghost" onClick={onLogin}>Acceder</button>
           <button className="lp-btn lp-btn-pri" onClick={onRegister}>Empezar gratis</button>
@@ -116,7 +126,7 @@ export function LandingPage({accent,onLogin,onRegister}) {
         </div>
       </div>
 
-      <section className="lp-section">
+      <section className="lp-section" id="funciones">
         <div className="lp-section-h">
           <h2>Todo lo que necesitas para llevar tu negocio</h2>
           <p>Desde el primer viaje hasta el cierre del mes para tu gestoría, sin hojas de cálculo.</p>
@@ -167,6 +177,39 @@ export function LandingPage({accent,onLogin,onRegister}) {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="lp-section" id="nosotros">
+        <div className="lp-section-h">
+          <h2>Quiénes somos</h2>
+          <p>FlotaRentable nace en España de la mano de gente del sector del transporte, cansada de llevar las cuentas en libretas y hojas de cálculo sueltas.</p>
+        </div>
+        <div className="lp-grid">
+          <div className="lp-feat">
+            <h3>Nuestro origen</h3>
+            <p>Empezamos ayudando a un pequeño grupo de autónomos y empresas de transporte a controlar sus números reales: cuánto cuesta cada km y cuánto deja cada viaje. Vimos que nadie tenía esa información clara y decidimos construir la herramienta que a nosotros nos hubiera gustado tener.</p>
+          </div>
+          <div className="lp-feat">
+            <h3>Nuestra misión</h3>
+            <p>Que cualquier transportista, autónomo o empresa con flota propia pueda tomar decisiones con datos reales: qué clientes son rentables, qué camiones cuestan más de la cuenta y cuánto queda al final del mes después de todos los gastos.</p>
+          </div>
+          <div className="lp-feat">
+            <h3>Cómo trabajamos</h3>
+            <p>Escuchamos cada sugerencia de nuestros usuarios y mejoramos la app constantemente: nuevas funciones, ajustes de cálculo y mejoras de diseño basadas en el uso real, día a día, de gerentes, tráfico y chóferes.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="lp-section" id="contacto">
+        <div className="lp-section-h">
+          <h2>Contacto</h2>
+          <p>¿Tienes dudas o quieres que te ayudemos a empezar? Escríbenos.</p>
+        </div>
+        <div className="lp-pricing">
+          <div style={{fontSize:"0.95rem",fontWeight:700,marginBottom:"0.5rem"}}>📧 soporte@kmrentable.com</div>
+          <div style={{fontSize:"0.85rem",color:"#8A8AA2",marginBottom:"1.5rem"}}>Te respondemos en menos de 24h laborables.</div>
+          <button className="lp-btn lp-btn-pri" style={{width:"100%"}} onClick={onRegister}>Empezar 7 días gratis</button>
         </div>
       </section>
 
