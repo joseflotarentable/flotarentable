@@ -119,7 +119,7 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
     {toast&&<Toast msg={toast} onDone={()=>setToast("")}/>}
     {confirm&&<ConfirmModal msg="¿Eliminar este gasto?" onConfirm={()=>{deleteGasto(confirm.id);if(confirm.cerrar)setModal(false);setConfirm(null);}} onCancel={()=>setConfirm(null)}/>}
     <div className="page fu">
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div className="phead" style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div className="ptitle">Gastos</div>
         <div style={{display:"flex",gap:"0.5rem",alignItems:"center"}}>
           <div className="mes-badge">{mesLabel}</div>
@@ -133,8 +133,9 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
       </div>}
 
       {gastos.length===0?<div className="empty"><div className="ei"><Icon d={I.coin} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin gastos este mes</strong><span style={{fontSize:"0.8rem"}}>Aquí solo se muestran los gastos del mes seleccionado; el resto sigue guardado y disponible en Analizar</span></div><button className="btn bp bsm" style={{marginTop:"0.75rem"}} onClick={openNew}><Icon d={I.plus} size={13}/> Añadir un gasto</button></div>
-      :<><p style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Gastos variables — {mesLabel}</p>
-      <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
+      :<div className="gastos-var">
+      <p style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Gastos variables — {mesLabel}</p>
+      <div className="trip-list" style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
         {gastos.map(g=>{
           const veh=[...tractoras,...semis].find(v=>v.id===g.vehicle_id);
           return(
@@ -150,9 +151,9 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
             </div>
           );
         })}
-      </div></>}
+      </div></div>}
 
-      {esGerente&&<div style={{marginTop:"0.5rem"}}>
+      {esGerente&&<div className="gastos-fijos" style={{marginTop:"0.5rem"}}>
         <p style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:"0.625rem"}}>Gastos fijos mensuales</p>
         <div style={{display:"flex",flexDirection:"column",gap:"0.625rem"}}>
           {vehiculos.map(v=>(
