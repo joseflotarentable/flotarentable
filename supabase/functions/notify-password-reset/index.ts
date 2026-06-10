@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "FlotaRentable <notificaciones@kmrentable.vercel.app>",
+        from: "FlotaRentable <onboarding@resend.dev>",
         to: gerente.email,
         subject: `Recuperacion de contraseña: ${perfil.nombre || username}`,
         html,
