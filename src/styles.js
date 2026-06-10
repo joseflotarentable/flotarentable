@@ -16,7 +16,7 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
   [data-theme="light"] body{background:radial-gradient(circle at 50% 0%,#ffffff 0%,#dde1ec 60%);}
   .app{max-width:1300px;width:100%;margin:0 auto;flex-direction:row;min-height:100vh;align-items:stretch}
   .main{flex:1;display:flex;flex-direction:column;min-width:0}
-  .nav{position:sticky;top:0;left:auto;bottom:auto;transform:none;flex-direction:column;justify-content:flex-start;align-items:stretch;width:220px;flex-shrink:0;height:100vh;max-width:none;grid-template-columns:none;border-top:none;border-right:1px solid var(--border);background:var(--s1);padding:1.5rem 0.75rem;gap:0.25rem;backdrop-filter:none}
+  .nav{display:flex;position:sticky;top:0;left:auto;bottom:auto;transform:none;flex-direction:column;justify-content:flex-start;align-items:stretch;width:220px;flex-shrink:0;height:100vh;max-width:none;border-top:none;border-right:1px solid var(--border);background:var(--s1);padding:1.5rem 0.75rem;gap:0.25rem;backdrop-filter:none}
   .nb{flex-direction:row;justify-content:flex-start;gap:0.875rem;padding:0.7rem 0.875rem;font-size:0.85rem;border-radius:10px}
   .nb.on{background:var(--s2)}
   .nb.on::after{display:none}
