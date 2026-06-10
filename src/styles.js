@@ -5,25 +5,11 @@ export const makeCSS = accent => `
 [data-theme="light"]{--bg:#F4F5FA;--s1:#FFFFFF;--s2:#F0F1F7;--s3:#E6E8F0;--border:#00000012;--border2:#0000001E;--border3:#00000030;--text:#15151F;--muted:#6B6B80;--muted2:#9494A6;}
 body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;transition:background 0.2s,color 0.2s}
 .app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
-@media (min-width:700px) and (max-width:899px){
+@media (min-width:700px){
   body{display:flex;justify-content:center;align-items:flex-start;background:radial-gradient(circle at 50% 0%,#15151f 0%,#08080F 60%);}
   [data-theme="light"] body{background:radial-gradient(circle at 50% 0%,#ffffff 0%,#dde1ec 60%);}
   .app{max-width:430px;width:430px;min-height:100vh;box-shadow:0 0 0 1px var(--border),0 30px 80px -20px rgba(0,0,0,0.6);background:var(--bg);}
   .nav,.modal{max-width:430px;}
-}
-@media (min-width:900px){
-  body{background:radial-gradient(circle at 50% 0%,#15151f 0%,#08080F 60%);}
-  [data-theme="light"] body{background:radial-gradient(circle at 50% 0%,#ffffff 0%,#dde1ec 60%);}
-  .app{max-width:1300px;width:100%;margin:0 auto;flex-direction:row;min-height:100vh;align-items:stretch}
-  .main{flex:1;display:flex;flex-direction:column;min-width:0}
-  .nav{position:sticky;top:0;left:0;flex-direction:column;justify-content:flex-start;align-items:stretch;width:220px;flex-shrink:0;height:100vh;max-width:none;transform:none;grid-template-columns:none;border-top:none;border-right:1px solid var(--border);background:var(--s1);padding:1.5rem 0.75rem;gap:0.25rem;backdrop-filter:none}
-  .nb{flex-direction:row;justify-content:flex-start;gap:0.875rem;padding:0.7rem 0.875rem;font-size:0.85rem;border-radius:10px}
-  .nb.on{background:var(--s2)}
-  .nb.on::after{display:none}
-  .page{padding:1.5rem 2.5rem;padding-bottom:2.5rem;max-width:1080px;margin:0 auto;width:100%}
-  .modal{max-width:480px;margin:2rem auto;border-radius:var(--r);padding-bottom:2rem;flex:none;max-height:calc(100vh - 4rem);overflow-y:auto}
-  .ov{align-items:flex-start;justify-content:center;background:#000a}
-  .sgrid{grid-template-columns:repeat(4,1fr)}
 }
 
 .btn{display:flex;align-items:center;justify-content:center;gap:0.5rem;border:none;border-radius:var(--r2);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:0.875rem;transition:all 0.15s;padding:0.875rem 1.5rem;width:100%}
