@@ -348,14 +348,25 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
           );
         })()}
 
-        {/* Alertas de anomalías de consumo */}
+        {/* Alertas de anomalías de consumo: compara los últimos repostajes con el histórico previo */}
         {(()=>{
-          const mesFiltro=nowMes();
-          const mesAnt=(()=>{const[a,m]=mesFiltro.split("-").map(Number);const d=new Date(a,m-2,1);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;})();
           const anomalias=[];
           tractoras.forEach(t=>{
-            const cActual=calcConsumoHistorico(gastosTodos.filter(g=>g.mes===mesFiltro),t.id);
-            const cAnt=calcConsumoHistorico(gastosTodos.filter(g=>g.mes===mesAnt),t.id);
+            const repos=gastosTodos.filter(g=>g.vehicle_id===t.id&&g.tipo==="Combustible"&&g.odometro&&g.litros).sort((a,b)=>parseFloat(a.odometro)-parseFloat(b.odometro));
+            if(repos.length<5)return; // hacen falta suficientes repostajes para comparar con fiabilidad
+            const N=3; // comparamos los últimos 3 tramos con todo el histórico anterior
+            const tramos=[];
+            for(let i=1;i<repos.length;i++){
+              const kmD=parseFloat(repos[i].odometro)-parseFloat(repos[i-1].odometro);
+              const lit=parseFloat(repos[i].litros)||0;
+              if(kmD>0&&lit>0)tramos.push({kmD,lit});
+            }
+            if(tramos.length<N+2)return;
+            const recientes=tramos.slice(-N);
+            const previos=tramos.slice(0,-N);
+            const consumo=arr=>{const km=arr.reduce((s,x)=>s+x.kmD,0);const l=arr.reduce((s,x)=>s+x.lit,0);return km>0?(l/km)*100:null;};
+            const cActual=consumo(recientes);
+            const cAnt=consumo(previos);
             if(cActual&&cAnt){
               const delta=((cActual-cAnt)/cAnt)*100;
               if(Math.abs(delta)>=12)anomalias.push({matricula:t.matricula||"Tractora",delta});
