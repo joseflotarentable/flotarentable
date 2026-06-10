@@ -298,7 +298,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
       </div>
 
       {subtab==="resumen"&&<>
-        <div style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Este mes</div>
+        <div className="section-lbl" style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Este mes</div>
         {/* Coste €/km por tractora este mes */}
         <div className="card">
           <div className="chd">Coste €/km por tractora — {MESES_ES[parseInt(nowMes().split("-")[1])-1]}</div>
