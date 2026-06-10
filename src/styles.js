@@ -124,7 +124,8 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
   .nb.on{background:var(--s2)}
   .nb.on::after{display:none}
   .page{max-width:1400px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));grid-auto-flow:dense;align-content:flex-start;align-items:start;gap:0.875rem}
-  .page>.ptitle,.page>.alert,.page>.empty,.page>.g3{grid-column:1/-1}
+  .page>.ptitle,.page>.alert,.page>.empty,.page>.g3,.page>.phead,.page>.trip-list{grid-column:1/-1}
+  .trip-list{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(380px,1fr))!important;align-items:start;gap:0.875rem!important}
   .page>.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:0.625rem}
   .page>.flota-wrap{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start}
   .vcard-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))!important}

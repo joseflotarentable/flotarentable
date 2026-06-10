@@ -115,13 +115,13 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
     {toast&&<Toast msg={toast} onDone={()=>setToast("")}/>}
     {confirm&&<ConfirmModal msg="¿Eliminar este viaje?" onConfirm={()=>{deleteViaje(confirm.id);if(confirm.cerrar)setModal(false);setConfirm(null);}} onCancel={()=>setConfirm(null)}/>}
     <div className="page fu">
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div className="phead" style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div className="ptitle">Viajes</div>
         <button className="btn bp bsm" onClick={openNew}><Icon d={I.plus} size={14}/> Añadir</button>
       </div>
       {tractoras.length===0&&<div className="alert ay"><Icon d={I.alert} size={14} color="var(--yellow)"/><span>Añade una tractora en <strong>Flota</strong> para registrar viajes.</span></div>}
       {viajes.length===0?<div className="empty"><div className="ei"><Icon d={I.truck} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin viajes</strong><span style={{fontSize:"0.8rem"}}>Registra tu primera ruta para empezar a ver tu rentabilidad</span></div><button className="btn bp bsm" style={{marginTop:"0.75rem"}} onClick={openNew}><Icon d={I.plus} size={13}/> Añadir mi primer viaje</button></div>
-      :<div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
+      :<div className="trip-list" style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
         {(()=>{const costeFijoKm=esGerente?calcCosteFijoKm(tractoras,gastosFijos||[],gastosTodos,viajesTodos):0;return viajes.map(v=>{
           const{coste,ben,margen}=calcV(v);
           const kmTotalV=(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)+(parseFloat(v.km_vacio)||0);
