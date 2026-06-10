@@ -35,6 +35,7 @@ export function LandingPage({accent,onLogin,onRegister}) {
   .lp-glow2{position:absolute;bottom:-260px;right:-120px;width:560px;height:560px;background:radial-gradient(circle,#FFD16630,transparent 65%);pointer-events:none;z-index:0}
   @keyframes lp-pulse{0%,100%{opacity:0.7;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.08)}}
   .lp-hero>*{position:relative;z-index:1}
+  .lp-hero>.lp-glow,.lp-hero>.lp-glow2{position:absolute;z-index:0}
   .lp-tag{display:inline-flex;align-items:center;gap:0.4rem;background:#ffffff0D;border:1px solid #ffffff18;border-radius:999px;padding:0.45rem 1rem;font-size:0.8rem;font-weight:600;color:#EEEDF5;margin-bottom:1.75rem;box-shadow:0 0 30px -8px ${accent.a1}80}
   .lp-h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,9vw,5.6rem);line-height:1.02;letter-spacing:0.02em;text-shadow:0 0 60px ${accent.a1}30}
   .lp-h1 span{background:linear-gradient(135deg,${accent.a1},#FFD166);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
