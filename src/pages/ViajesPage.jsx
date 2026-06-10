@@ -42,6 +42,23 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
     setCalculandoKm(false);
     setModal(f=>({...f,km:String(km)}));
   };
+  const[d2Coords,setD2Coords]=useState(null);
+  const recalcRuta=async(o,d,d2)=>{
+    if(!o||!d)return;
+    setCalculandoKm(true);
+    let km=await calcKmRutaCamion(o.lat,o.lon,d.lat,d.lon);
+    if(d2){const km2=await calcKmRutaCamion(d.lat,d.lon,d2.lat,d2.lon);km+=km2;}
+    setCalculandoKm(false);
+    setModal(f=>({...f,km:String(Math.round(km))}));
+  };
+  const handleD2=(val,coords)=>{setD2Coords(coords);setModal(f=>({...f,destino2:val}));if(coords&&oCoords&&dCoords)recalcRuta(oCoords,dCoords,coords);};
+  const swapDestinos=()=>{
+    const newDestino=modal.destino2.trim(),newDestino2=modal.destino;
+    const newDCoords=d2Coords,newD2Coords=dCoords;
+    setModal(f=>({...f,destino:newDestino,destino2:newDestino2}));
+    setDCoords(newDCoords);setD2Coords(newD2Coords);
+    if(oCoords&&newDCoords)recalcRuta(oCoords,newDCoords,newD2Coords);
+  };
   const aplicarRutaVacio=async(o,l)=>{
     if(!o||!l)return;
     setCalculandoKmVacio(true);
@@ -49,8 +66,8 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
     setCalculandoKmVacio(false);
     setModal(f=>({...f,km_vacio:String(km)}));
   };
-  const handleO=(val,coords)=>{setOCoords(coords);setModal(f=>({...f,origen:val}));if(coords&&dCoords)aplicarRuta(coords,dCoords);if(coords&&lCoords)aplicarRutaVacio(coords,lCoords);};
-  const handleD=(val,coords)=>{setDCoords(coords);setModal(f=>({...f,destino:val}));if(coords&&oCoords)aplicarRuta(oCoords,coords);};
+  const handleO=(val,coords)=>{setOCoords(coords);setModal(f=>({...f,origen:val}));if(coords&&dCoords)recalcRuta(coords,dCoords,d2Coords);if(coords&&lCoords)aplicarRutaVacio(coords,lCoords);};
+  const handleD=(val,coords)=>{setDCoords(coords);setModal(f=>({...f,destino:val}));if(coords&&oCoords)recalcRuta(oCoords,coords,d2Coords);};
   const handleL=(val,coords)=>{setLCoords(coords);setModal(f=>({...f,lugar_carga:val}));if(coords&&oCoords)aplicarRutaVacio(oCoords,coords);};
 
   const calcIVA=()=>{const p=parseFloat(modal.precio)||0;const t=(parseFloat(modal.tipo_iva)||21)/100;const base=p/(1+t);return{base:base.toFixed(2),iva:(p-base).toFixed(2)};};
@@ -185,8 +202,11 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
           <div className="fld"><label className="lbl">Destino <span style={{color:"var(--red)"}}>*</span></label><CityInput value={modal.destino} onChange={v=>setModal(f=>({...f,destino:v}))} onSelect={s=>handleD(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo"/></div>
           <div className="toggle-row"><span className="toggle-lbl">📦 Descarga también en otro destino</span><button className={`toggle ${modal.destino2?"on":""}`} onClick={()=>setModal(f=>({...f,destino2:f.destino2?"":" "}))}/></div>
           {modal.destino2&&<div className="fld">
-            <label className="lbl">Segundo destino</label>
-            <CityInput value={modal.destino2.trim()} onChange={v=>setModal(f=>({...f,destino2:v}))} placeholder="Ciudad o pueblo del segundo destino"/>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <label className="lbl">Segundo destino {calculandoKm?<span style={{color:"var(--a2)",fontSize:"0.68rem"}}>· recalculando km...</span>:""}</label>
+              {modal.destino2.trim()&&<button type="button" className="btn bg bsm" style={{padding:"0.2rem 0.5rem"}} onClick={swapDestinos}><Icon d={I.swap||I.trend} size={12}/> Invertir orden</button>}
+            </div>
+            <CityInput value={modal.destino2.trim()} onChange={v=>setModal(f=>({...f,destino2:v}))} onSelect={s=>handleD2(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo del segundo destino"/>
           </div>}
           <div className="fld"><label className="lbl">Km de ida <span style={{color:"var(--red)"}}>*</span> {calculandoKm?<span style={{color:"var(--a2)",fontSize:"0.68rem"}}>· calculando ruta...</span>:oCoords&&dCoords?<span style={{color:"var(--green)",fontSize:"0.68rem"}}>· ruta calculada</span>:""}</label><input className="inp" type="number" placeholder="0" value={modal.km} onChange={e=>setModal({...modal,km:e.target.value})}/>
             {oCoords&&dCoords&&!calculandoKm&&<div style={{fontSize:"0.68rem",color:"var(--muted)"}}>Estimación de ruta para camión (carreteras aptas para vehículos pesados). Ajusta el valor si conoces el km exacto.</div>}
