@@ -231,7 +231,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     doc.setDrawColor(40,40,55);doc.setLineWidth(0.2);doc.line(M,y,M+CW,y);y+=3;
     vMes.forEach(v=>{
       if(y>270){doc.addPage();y=14;}
-      doc.setTextColor(220,220,235);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
+      doc.setTextColor(40,40,55);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
       const xs=[0,18,90,118,138,158];
       const vals=[v.fecha?v.fecha.split("-").reverse().join("/"):"",`${v.origen||""}${v.destino?` -> ${v.destino}`:""}`,v.cliente||"",`${((parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)).toLocaleString("es-ES")}`,eur(v.precio),eur(v.peaje)];
       vals.forEach((val,i)=>{doc.text(String(val).substring(0,i===1?30:14),M+xs[i],y);});
@@ -248,7 +248,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     doc.setDrawColor(40,40,55);doc.line(M,y,M+CW,y);y+=3;
     gVar.forEach(g=>{
       if(y>270){doc.addPage();y=14;}
-      doc.setTextColor(220,220,235);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
+      doc.setTextColor(40,40,55);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
       const vals=[g.fecha?g.fecha.split("-").reverse().join("/"):"",g.tipo||"",g.nota||g.titulo||"",eur(g.importe)];
       [0,18,60,152].forEach((x,i)=>{doc.text(String(vals[i]).substring(0,i===2?40:16),M+x,y);});
       y+=5;
@@ -267,7 +267,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
       const imp=parseFloat(g.importe)||0;
       const mensual=g.periodo==="anual"?imp/12:imp;
       const mensualReal=g.entidad_id==="empresa"?mensual/Math.max(tractoras.filter(x=>x.activa!==false).length,1):mensual;
-      doc.setTextColor(220,220,235);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
+      doc.setTextColor(40,40,55);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
       doc.text(String(g.concepto||"").substring(0,40),M,y);
       doc.text(g.periodo==="anual"?"Anual":"Mensual",M+100,y);
       doc.text(eur(mensualReal),M+152,y);
