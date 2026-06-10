@@ -104,8 +104,8 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
       const c=v.cliente||"Sin nombre";
       if(!cMap[c])cMap[c]={ing:0,cost:0,viajes:0};
       const t=tractoras.find(x=>x.id===v.truck_id);
-      const km=(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0);
-      const consumo=parseFloat(t?.consumo_estimado)||32;
+      const km=(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)+(parseFloat(v.km_vacio)||0);
+      const consumo=t?calcConsumoHistorico(gastosTodos,t.id)||(parseFloat(t.consumo_estimado)||32):32;
       const precioG=t?precioGasoilDe(t,gastosTodos)||precioGasoilGlobal():precioGasoilGlobal();
       const coste=km*(consumo/100)*precioG+(parseFloat(v.peaje)||0);
       cMap[c].ing+=parseFloat(v.precio)||0;
