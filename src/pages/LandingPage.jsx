@@ -10,6 +10,13 @@ export function LandingPage({accent,onLogin,onRegister}) {
     {icon:I.user,col:"#06D6A0",t:"Equipo conectado",s:"Gerentes, tráfico y choferes ven la información que necesitan, en tiempo real, desde el móvil."},
   ];
 
+  const reviews=[
+    {n:"Antonio Ramírez",r:"Autónomo, tractora 1330MMM",t:"Llevaba años apuntando los gastos en una libreta y nunca sabía si un viaje merecía la pena. Con FlotaRentable veo el beneficio neto al momento, descontando hasta los gastos fijos.",init:"AR",col:"#FF3D5A"},
+    {n:"Rocío Fernández",r:"Gerente, Transportes Fernández S.L.",t:"Tengo 6 tractoras y antes perdía media tarde cada mes haciendo el Excel para la gestoría. Ahora exporto el resumen con el IVA desglosado en dos clics.",init:"RF",col:"#06D6A0"},
+    {n:"Manuel Ortega",r:"Chófer, ruta nacional",t:"Desde el móvil registro el viaje, la carga y el ticket de gasoil con la cámara. Mi jefe ve todo en tiempo real y a mí me ahorra muchísimo papeleo.",init:"MO",col:"#5B8CFF"},
+    {n:"Lucía Navarro",r:"Tráfico, flota de 12 camiones",t:"Lo que más nos ha cambiado es la alerta de consumo: detectó una tractora gastando un 15% más de lo normal y resultó ser una avería que no habíamos visto.",init:"LN",col:"#FFD166"},
+  ];
+
   const css=`
   *{box-sizing:border-box}
   body{margin:0}
@@ -58,6 +65,13 @@ export function LandingPage({accent,onLogin,onRegister}) {
   .lp-price-sub{color:#8A8AA2;font-size:0.85rem;margin-bottom:1.5rem}
   .lp-pricing ul{list-style:none;padding:0;margin:1.5rem 0;text-align:left;display:flex;flex-direction:column;gap:0.7rem}
   .lp-pricing li{display:flex;align-items:flex-start;gap:0.6rem;font-size:0.88rem;color:#EEEDF5}
+  .lp-rev{background:#15151F;border:1px solid #ffffff10;border-radius:18px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem}
+  .lp-rev-stars{color:#FFD166;font-size:0.95rem;letter-spacing:0.15em}
+  .lp-rev p{font-size:0.9rem;color:#C7C7DA;line-height:1.65}
+  .lp-rev-who{display:flex;align-items:center;gap:0.7rem;margin-top:0.25rem}
+  .lp-rev-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fff;flex-shrink:0}
+  .lp-rev-name{font-size:0.85rem;font-weight:700}
+  .lp-rev-role{font-size:0.72rem;color:#8A8AA2}
   .lp-foot{text-align:center;padding:2.5rem 1.5rem;color:#5A5A72;font-size:0.8rem;border-top:1px solid #ffffff0D;margin-top:1rem}
   @media(max-width:640px){.lp-navbtns .lp-btn-ghost{display:none}}
   `;
@@ -134,6 +148,25 @@ export function LandingPage({accent,onLogin,onRegister}) {
             <li>✅ Acceso para chóferes y tráfico</li>
           </ul>
           <button className="lp-btn lp-btn-pri" style={{width:"100%"}} onClick={onRegister}>Empezar 7 días gratis</button>
+        </div>
+      </section>
+
+      <section className="lp-section">
+        <div className="lp-section-h">
+          <h2>Lo que dicen nuestros clientes</h2>
+          <p>Transportistas y empresas que ya controlan su rentabilidad con FlotaRentable.</p>
+        </div>
+        <div className="lp-grid">
+          {reviews.map((r,i)=>(
+            <div className="lp-rev" key={i}>
+              <div className="lp-rev-stars">★★★★★</div>
+              <p>"{r.t}"</p>
+              <div className="lp-rev-who">
+                <div className="lp-rev-av" style={{background:r.col}}>{r.init}</div>
+                <div><div className="lp-rev-name">{r.n}</div><div className="lp-rev-role">{r.r}</div></div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
