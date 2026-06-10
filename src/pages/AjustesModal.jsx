@@ -18,6 +18,10 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   const[nuevoEmp,setNuevoEmp]=useState({nombre:"",usuario:"",password:"",rol:"chofer",truck_id:""});
   const[empMsg,setEmpMsg]=useState("");
   const[creandoEmp,setCreandoEmp]=useState(false);
+  const[resetEmp,setResetEmp]=useState(null);
+  const[resetPass,setResetPass]=useState("");
+  const[resetMsg,setResetMsg]=useState("");
+  const[reseteando,setReseteando]=useState(false);
 
   const cargarEmpleados=async(empresaId)=>{
     const{data}=await sb.from("perfiles").select("id,nombre,rol,truck_id").eq("empresa_id",empresaId).neq("id",userId);
@@ -91,6 +95,18 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   const actualizarEmpleado=async(id,patch)=>{
     await sb.from("perfiles").update(patch).eq("id",id);
     setEmpleados(emps=>emps.map(e=>e.id===id?{...e,...patch}:e));
+  };
+
+  const resetearPassword=async()=>{
+    setResetMsg("");
+    if(resetPass.length<6){setResetMsg("Mínimo 6 caracteres");return;}
+    setReseteando(true);
+    const{data,error}=await sb.functions.invoke("admin-reset-password",{body:{requesterId:userId,targetUserId:resetEmp.id,newPassword:resetPass}});
+    setReseteando(false);
+    if(error||data?.error){setResetMsg("Error: "+(data?.error||error.message));return;}
+    setResetMsg("✅ Contraseña actualizada");
+    setResetPass("");
+    setTimeout(()=>{setResetEmp(null);setResetMsg("");},1200);
   };
 
   const crearCliente=async()=>{
@@ -194,6 +210,14 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
                   <option value="">Sin tractora asignada</option>
                   {(tractoras||[]).map(t=><option key={t.id} value={t.id}>{t.matricula}</option>)}
                 </select>}
+                {resetEmp?.id===e.id?<div style={{display:"flex",flexDirection:"column",gap:"0.4rem",marginTop:"0.2rem"}}>
+                  <input className="inp" type="text" style={{fontSize:"0.75rem"}} placeholder="Nueva contraseña (mín. 6 caracteres)" value={resetPass} onChange={ev=>setResetPass(ev.target.value)}/>
+                  {resetMsg&&<div style={{fontSize:"0.7rem",color:resetMsg.startsWith("✅")?"var(--green)":"var(--red)"}}>{resetMsg}</div>}
+                  <div style={{display:"flex",gap:"0.4rem"}}>
+                    <button className="btn bp bsm" style={{flex:1}} onClick={resetearPassword} disabled={reseteando}>{reseteando?<span className="spinner"/>:"Guardar"}</button>
+                    <button className="btn bg bsm" style={{flex:1}} onClick={()=>{setResetEmp(null);setResetPass("");setResetMsg("");}}>Cancelar</button>
+                  </div>
+                </div>:<button className="btn bg bsm" style={{fontSize:"0.72rem",alignSelf:"flex-start"}} onClick={()=>{setResetEmp(e);setResetPass("");setResetMsg("");}}>🔑 Restablecer contraseña</button>}
               </div>
             );})}
           </div>:<p style={{fontSize:"0.78rem",color:"var(--muted)",marginBottom:"0.75rem"}}>Aún no has creado ningún usuario.</p>}

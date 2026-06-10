@@ -70,8 +70,16 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
   };
 
   const handleForgot=async()=>{
-    if(!form.email){setErr("Introduce tu email");return;}
+    if(!form.email){setErr("Introduce tu email o usuario");return;}
     setLoading(true);
+    if(!form.email.includes("@")){
+      // Usuario interno (chofer/trafico) sin email real: avisamos al gerente por email.
+      const emailReal=`${form.email.trim().toLowerCase()}@${DOMINIO_USUARIO}`;
+      const{error}=await sb.functions.invoke("notify-password-reset",{body:{email:emailReal}});
+      setLoading(false);
+      if(error){setErr("No se pudo avisar a tu gerente. Pidele que te restablezca la contraseña desde Ajustes.");return;}
+      setErr("");setMode("forgotSentGerente");return;
+    }
     const{error}=await sb.auth.resetPasswordForEmail(form.email,{redirectTo:"https://kmrentable.vercel.app"});
     setLoading(false);
     if(error){setErr("Error al enviar el email. Verifica la dirección.");return;}
@@ -89,15 +97,26 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
     </div>
   );
 
+  if(mode==="forgotSentGerente")return(
+    <div className="auth-wrap fu">
+      <div style={{padding:"3rem 1.5rem 1.5rem",display:"flex",flexDirection:"column",gap:"1rem",alignItems:"center",textAlign:"center"}}>
+        <div style={{fontSize:"3rem"}}>📨</div>
+        <div style={{fontFamily:"'Bebas Neue'",fontSize:"1.8rem",letterSpacing:"0.04em"}}>Aviso enviado a tu gerente</div>
+        <p style={{fontSize:"0.88rem",color:"var(--muted)",lineHeight:1.6}}>Hemos avisado a tu gerente para que te asigne una nueva contraseña. En cuanto lo haga, podrás iniciar sesión con ella.</p>
+        <button className="btn bp" style={{width:"100%",marginTop:"0.5rem"}} onClick={()=>setMode("login")}>Volver al inicio de sesión</button>
+      </div>
+    </div>
+  );
+
   if(mode==="forgot")return(
     <div className="auth-wrap fu">
       <div style={{padding:"3rem 1.5rem 1.5rem",display:"flex",flexDirection:"column",gap:"1rem"}}>
         <button className="btn bg bsm" style={{width:"auto",alignSelf:"flex-start"}} onClick={()=>setMode("login")}><Icon d={I.back} size={14}/> Volver</button>
         <div style={{fontFamily:"'Bebas Neue'",fontSize:"2rem",letterSpacing:"0.04em"}}>Recuperar contraseña</div>
-        <p style={{fontSize:"0.85rem",color:"var(--muted)",lineHeight:1.5}}>Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.</p>
-        <div className="fld"><label className="lbl">Email</label><input className="inp" type="email" placeholder="tu@email.com" autoFocus value={form.email} onChange={e=>setForm({...form,email:e.target.value})} onKeyDown={e=>e.key==="Enter"&&handleForgot()}/></div>
+        <p style={{fontSize:"0.85rem",color:"var(--muted)",lineHeight:1.5}}>Si tienes email propio, te enviaremos un enlace para restablecer tu contraseña. Si eres chófer o tráfico y entras con un usuario (sin @), avisaremos a tu gerente para que te asigne una nueva.</p>
+        <div className="fld"><label className="lbl">Email o usuario</label><input className="inp" type="text" placeholder="tu@email.com o usuario" autoFocus value={form.email} onChange={e=>setForm({...form,email:e.target.value})} onKeyDown={e=>e.key==="Enter"&&handleForgot()}/></div>
         {err&&<p style={{fontSize:"0.8rem",color:"var(--red)"}}>{err}</p>}
-        <button className="btn bp" onClick={handleForgot} disabled={loading}>{loading?<span className="spinner"/>:"Enviar enlace"}</button>
+        <button className="btn bp" onClick={handleForgot} disabled={loading}>{loading?<span className="spinner"/>:"Enviar"}</button>
       </div>
     </div>
   );
