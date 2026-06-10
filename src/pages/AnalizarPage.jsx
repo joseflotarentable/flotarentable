@@ -16,36 +16,46 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
   const[modalExport,setModalExport]=useState(false);
   const[expTipo,setExpTipo]=useState("todo");
   const[expPeriodo,setExpPeriodo]=useState(nowMes());
+  const[expTruck,setExpTruck]=useState("");
+  const[nombresUsr,setNombresUsr]=useState({});
 
   useEffect(()=>{
     Promise.all([
       sb.from("viajes").select("*").order("fecha",{ascending:false}),
       sb.from("gastos").select("*").order("fecha",{ascending:false}),
       sb.from("gastos_fijos").select("*").eq("user_id",userId),
-    ]).then(([{data:v},{data:g},{data:gf}])=>{setViajes(v||[]);setGastos(g||[]);setGastosFijosRes(gf||[]);});
+      sb.from("perfiles").select("id,nombre"),
+    ]).then(([{data:v},{data:g},{data:gf},{data:p}])=>{
+      setViajes(v||[]);setGastos(g||[]);setGastosFijosRes(gf||[]);
+      const m={};(p||[]).forEach(x=>m[x.id]=x.nombre);setNombresUsr(m);
+    });
   },[]);
 
   const exportarExcel=()=>{
     const esAno=expPeriodo.length===4;
-    const vFilt=viajes.filter(v=>esAno?v.fecha?.startsWith(expPeriodo):v.fecha?.startsWith(expPeriodo));
-    const gFilt=gastos.filter(g=>esAno?g.ano===expPeriodo:g.mes===expPeriodo);
+    let vFilt=viajes.filter(v=>esAno?v.fecha?.startsWith(expPeriodo):v.fecha?.startsWith(expPeriodo));
+    let gFilt=gastos.filter(g=>esAno?g.ano===expPeriodo:g.mes===expPeriodo);
+    if(expTruck){
+      vFilt=vFilt.filter(v=>v.truck_id===expTruck);
+      gFilt=gFilt.filter(g=>g.vehicle_id===expTruck);
+    }
     const sep=";";
     const eur=n=>n?(parseFloat(n)||0).toFixed(2).replace(".",",")+"€":"0,00€";
     const fec=d=>d?d.split("-").reverse().join("/"):"";
     let csv="\uFEFF";
     if(expTipo==="viajes"||expTipo==="todo"){
-      csv+=`VIAJES${sep}${sep}${sep}${sep}${sep}${sep}${sep}${sep}\n`;
-      csv+=`Fecha${sep}Origen${sep}Destino${sep}Cliente${sep}Km${sep}Precio cobrado${sep}Peajes${sep}Tractora${sep}Semirremolque\n`;
+      csv+=`VIAJES${Array(15).fill(sep).join("")}\n`;
+      csv+=`Fecha${sep}Origen${sep}Punto de carga${sep}Destino${sep}Km${sep}Km vacio${sep}Km vuelta${sep}Precio cobrado${sep}Base imponible${sep}IVA${sep}Peajes${sep}Tractora${sep}Semirremolque${sep}Cliente${sep}Indicaciones${sep}Anadido por\n`;
       vFilt.forEach(v=>{
         const t=tractoras.find(x=>x.id===v.truck_id);
         const s=semis.find(x=>x.id===v.semi_id);
-        csv+=`${fec(v.fecha)}${sep}${v.origen||""}${sep}${v.destino||""}${sep}${v.cliente||""}${sep}${v.km||0}${sep}${eur(v.precio)}${sep}${eur(v.peaje)}${sep}${t?.matricula||""}${sep}${s?.matricula||""}\n`;
+        csv+=`${fec(v.fecha)}${sep}${v.origen||""}${sep}${v.lugar_carga||""}${sep}${v.destino||""}${sep}${v.km||0}${sep}${v.km_vacio||0}${sep}${v.km_vuelta||0}${sep}${eur(v.precio)}${sep}${v.tiene_iva?eur(v.base_imponible):""}${sep}${v.tiene_iva?eur(v.iva_amount):""}${sep}${eur(v.peaje)}${sep}${t?.matricula||""}${sep}${s?.matricula||""}${sep}${v.cliente||""}${sep}${v.indicaciones||""}${sep}${nombresUsr[v.user_id]||""}\n`;
       });
-      csv+=`${sep}${sep}${sep}TOTAL${sep}${vFilt.reduce((s,v)=>s+(parseFloat(v.km)||0),0)}${sep}${eur(vFilt.reduce((s,v)=>s+(parseFloat(v.precio)||0),0))}\n`;
+      csv+=`${Array(4).fill(sep).join("")}TOTAL${sep}${vFilt.reduce((s,v)=>s+(parseFloat(v.km)||0),0)}${sep}${vFilt.reduce((s,v)=>s+(parseFloat(v.km_vacio)||0),0)}${sep}${vFilt.reduce((s,v)=>s+(parseFloat(v.km_vuelta)||0),0)}${sep}${eur(vFilt.reduce((s,v)=>s+(parseFloat(v.precio)||0),0))}${sep}${eur(vFilt.reduce((s,v)=>s+(parseFloat(v.base_imponible)||0),0))}${sep}${eur(vFilt.reduce((s,v)=>s+(parseFloat(v.iva_amount)||0),0))}${sep}${eur(vFilt.reduce((s,v)=>s+(parseFloat(v.peaje)||0),0))}\n`;
     }
     if(expTipo==="todo")csv+="\n";
     if(expTipo==="gastos"||expTipo==="todo"){
-      csv+=`GASTOS VARIABLES${sep}${sep}${sep}${sep}\n`;
+      csv+=`GASTOS VARIABLES${Array(6).fill(sep).join("")}\n`;
       csv+=`Fecha${sep}Tipo${sep}Importe${sep}Vehiculo${sep}Litros${sep}E/Litro${sep}Nota\n`;
       gFilt.forEach(g=>{
         const veh=[...tractoras,...semis].find(x=>x.id===g.vehicle_id);
@@ -53,10 +63,33 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
       });
       csv+=`${sep}${sep}TOTAL${sep}${eur(gFilt.reduce((s,g)=>s+(parseFloat(g.importe)||0),0))}\n`;
     }
+    if(expTipo==="gestoria"){
+      const meses=esAno?Array.from({length:12},(_,i)=>`${expPeriodo}-${String(i+1).padStart(2,"0")}`):[expPeriodo];
+      csv+=`RESUMEN PARA GESTORIA${Array(6).fill(sep).join("")}\n`;
+      csv+=`Mes${sep}Ingresos (con IVA)${sep}Base imponible${sep}IVA repercutido${sep}Gastos variables${sep}Gastos fijos${sep}Beneficio antes de impuestos\n`;
+      let totIng=0,totBase=0,totIva=0,totVar=0,totFijo=0;
+      const totalFijoMes=gastosFijosRes.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
+      meses.forEach(m=>{
+        let vM=viajes.filter(v=>v.fecha?.startsWith(m));
+        let gM=gastos.filter(g=>g.mes===m);
+        if(expTruck){vM=vM.filter(v=>v.truck_id===expTruck);gM=gM.filter(g=>g.vehicle_id===expTruck);}
+        const ing=vM.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
+        const base=vM.reduce((s,v)=>s+(v.tiene_iva?(parseFloat(v.base_imponible)||0):(parseFloat(v.precio)||0)),0);
+        const iva=vM.reduce((s,v)=>s+(parseFloat(v.iva_amount)||0),0);
+        const gVar=gM.reduce((s,g)=>s+gastoProrrateadoEnMes(g,m),0);
+        const fijo=expTruck?0:totalFijoMes;
+        const ben=ing-gVar-fijo;
+        csv+=`${MESES_ES[parseInt(m.split("-")[1])-1]} ${m.split("-")[0]}${sep}${eur(ing)}${sep}${eur(base)}${sep}${eur(iva)}${sep}${eur(gVar)}${sep}${eur(fijo)}${sep}${eur(ben)}\n`;
+        totIng+=ing;totBase+=base;totIva+=iva;totVar+=gVar;totFijo+=fijo;
+      });
+      csv+=`TOTAL${sep}${eur(totIng)}${sep}${eur(totBase)}${sep}${eur(totIva)}${sep}${eur(totVar)}${sep}${eur(totFijo)}${sep}${eur(totIng-totVar-totFijo)}\n`;
+      if(expTruck)csv+=`\nNota: gastos fijos de empresa no incluidos al filtrar por una tractora concreta.\n`;
+    }
     const periodo=esAno?expPeriodo:MESES_ES[parseInt(expPeriodo.split("-")[1])-1]+"_"+expPeriodo.split("-")[0];
+    const matSuf=expTruck?`_${(tractoras.find(x=>x.id===expTruck)?.matricula||"").replace(/\s/g,"")}`:"";
     const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
     const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");a.href=url;a.download=`FlotaRentable_${expTipo}_${periodo}.csv`;a.click();
+    const a=document.createElement("a");a.href=url;a.download=`FlotaRentable_${expTipo}_${periodo}${matSuf}.csv`;a.click();
     setModalExport(false);
   };
 
@@ -567,7 +600,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
             <div className="mtitle">Exportar a Excel</div>
             <div className="fld"><label className="lbl">Que quieres exportar?</label>
               <div style={{display:"flex",flexDirection:"column",gap:"0.5rem",marginTop:"0.25rem"}}>
-                {[["todo","Viajes + Gastos"],["viajes","Solo viajes"],["gastos","Solo gastos"]].map(([v,l])=>(
+                {[["todo","Viajes + Gastos"],["viajes","Solo viajes"],["gastos","Solo gastos"],["gestoria","Resumen para gestoria (mensual + IVA)"]].map(([v,l])=>(
                   <div key={v} style={{display:"flex",alignItems:"center",gap:"0.75rem",padding:"0.75rem",background:expTipo===v?"#ffffff10":"var(--s2)",border:`1px solid ${expTipo===v?"var(--a1)":"var(--border2)"}`,borderRadius:"var(--r2)",cursor:"pointer"}} onClick={()=>setExpTipo(v)}>
                     <div style={{width:16,height:16,borderRadius:"50%",border:`2px solid ${expTipo===v?"var(--a1)":"var(--muted)"}`,background:expTipo===v?"var(--a1)":"transparent",flexShrink:0}}/>
                     <span style={{fontSize:"0.875rem",fontWeight:500}}>{l}</span>
@@ -583,6 +616,12 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
                 <optgroup label="Por ano">
                   {[nowAno(),String(parseInt(nowAno())-1)].map(a=><option key={a} value={a}>{a} (ano completo)</option>)}
                 </optgroup>
+              </select>
+            </div>
+            <div className="fld"><label className="lbl">Vehiculo (opcional)</label>
+              <select className="inp sel" value={expTruck} onChange={e=>setExpTruck(e.target.value)}>
+                <option value="">Toda la flota</option>
+                {tractoras.map(t=><option key={t.id} value={t.id}>{t.matricula||t.nombre||"Tractora"}</option>)}
               </select>
             </div>
             <div className="mact">
