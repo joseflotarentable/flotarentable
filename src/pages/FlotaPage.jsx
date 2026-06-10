@@ -37,14 +37,14 @@ export function FlotaPage({userId,perfil,updatePerfil,tractoras,semis,setTractor
   return(
     <div className="page fu">
       <div className="ptitle">Flota</div>
-      <div>
+      <div className="flota-wrap">
         <div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.5rem"}}>
             <span style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>🚛 Tractoras</span>
             <button className="btn bg bsm" onClick={()=>setEditT({subtipo:"Tractora",conjunto_fijo:false})}><Icon d={I.plus} size={13}/> Añadir</button>
           </div>
           {tractoras.filter(t=>t.activa!==false).length===0&&<div className="empty" style={{padding:"1rem"}}><div className="ei"><Icon d={I.truck} size={18} color="var(--muted)"/></div><span style={{fontSize:"0.8rem"}}>Sin tractoras</span><button className="btn bp bsm" style={{marginTop:"0.5rem"}} onClick={()=>setEditT({subtipo:"Tractora",conjunto_fijo:false})}><Icon d={I.plus} size={13}/> Añadir tractora</button></div>}
-          <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
+          <div className="vcard-grid" style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
             {tractoras.filter(t=>t.activa!==false).map(t=>{const semi=semis.find(s=>s.id===t.semi_habitual_id);
               const consumo=parseFloat(t.consumo_estimado)||32;
               const precioG=parseFloat(t.precio_gasoil_inicial)||1.65;
@@ -87,7 +87,7 @@ export function FlotaPage({userId,perfil,updatePerfil,tractoras,semis,setTractor
             <button className="btn bg bsm" onClick={()=>setEditS({subtipo:"Tautliner"})}><Icon d={I.plus} size={13}/> Añadir</button>
           </div>
           {semis.length===0&&<div className="empty" style={{padding:"1rem"}}><div className="ei"><Icon d={I.truck} size={18} color="var(--muted)"/></div><span style={{fontSize:"0.8rem"}}>Sin semirremolques</span><button className="btn bp bsm" style={{marginTop:"0.5rem"}} onClick={()=>setEditS({subtipo:"Tautliner"})}><Icon d={I.plus} size={13}/> Añadir semirremolque</button></div>}
-          <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
+          <div className="vcard-grid" style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
             {semis.map(s=><div key={s.id} className="vcard" onClick={()=>setEditS(s)}>
               <div className="vcard-foto">{s.foto?<img src={s.foto} alt="" style={{width:42,height:42,objectFit:"cover"}}/>:<Icon d={I.truck} size={18} color="#06D6A0"/>}</div>
               <div style={{flex:1}}><div style={{fontWeight:700,fontSize:"0.875rem"}}>{s.matricula||"Sin matrícula"}</div><div style={{fontSize:"0.7rem",color:"var(--muted)",marginTop:1}}>{s.subtipo}</div>{s.apodo&&<div style={{fontSize:"0.7rem",color:"var(--a2)",marginTop:1,fontWeight:600}}>"{s.apodo}"</div>}</div>
