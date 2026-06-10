@@ -94,8 +94,8 @@ export function LandingPage({accent,onLogin,onRegister}) {
       <header className="lp-hero">
         <div className="lp-glow"/>
         <div className="lp-glow2"/>
-        <div className="lp-tag">🚛 Hecho para transportistas autónomos y flotas</div>
-        <h1 className="lp-h1">Sabe exactamente<br/><span>cuánto ganas</span> en cada kilómetro</h1>
+        <div className="lp-tag">Software de gestión para transporte por carretera</div>
+        <h1 className="lp-h1">Descubre exactamente<br/><span>cuánto ganas</span> en cada kilómetro</h1>
         <p className="lp-sub">FlotaRentable calcula la rentabilidad real de tu flota: combustible, peajes, gastos fijos e IVA, viaje a viaje y mes a mes. Todo desde el móvil.</p>
         <div className="lp-ctas">
           <button className="lp-btn lp-btn-pri" onClick={onRegister}>Empezar gratis 7 días <Icon d={I.arrow} size={15} color="#fff"/></button>
