@@ -233,28 +233,66 @@ function cargarTesseract(){
 function parsearTextoFactura(texto){
   const t=texto.replace(/,/g,".");
   const out={};
-  // Importe total: busca "TOTAL" seguido de un número, o el número más grande con € cerca
-  let m=t.match(/TOTAL[^\d]{0,12}(\d{1,4}(?:\.\d{1,2})?)/i);
-  if(!m)m=t.match(/IMPORTE[^\d]{0,12}(\d{1,4}(?:\.\d{1,2})?)/i);
-  if(m)out.importe=parseFloat(m[1]);
+  // Importe total: busca todas las apariciones de TOTAL/IMPORTE seguidas de un número
+  // y nos quedamos con la ÚLTIMA (suele ser el "TOTAL A PAGAR" final, después de subtotales/IVA)
+  const totalMatches=[...t.matchAll(/(?:TOTAL|IMPORTE)[^\n\d€]{0,15}(\d{1,4}(?:\.\d{1,2})?)\s*€?/gi)];
+  if(totalMatches.length>0)out.importe=parseFloat(totalMatches[totalMatches.length-1][1]);
   // Litros (combustible)
   let l=t.match(/(\d{1,3}[.,]?\d{0,3})\s*(?:litros|litro|l\.?\b|lts)/i);
   if(l)out.litros=parseFloat(l[1]);
   // Precio por litro
-  let pl=t.match(/(\d[.,]\d{2,3})\s*(?:€\s*\/\s*l|€\/litro|eur\/l)/i);
+  let pl=t.match(/(\d[.,]\d{2,3})\s*(?:€\s*\/\s*l|€\/litro|eur\/l|\/l\b)/i);
   if(pl)out.precio_litro=parseFloat(pl[1]);
-  // Fecha dd/mm/aaaa o dd-mm-aaaa
-  let f=t.match(/(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/);
-  if(f)out.fecha=`${f[3]}-${f[2]}-${f[1]}`;
-  // Si hay litros y precio pero no importe, lo calculamos
-  if(!out.importe&&out.litros&&out.precio_litro)out.importe=Math.round(out.litros*out.precio_litro*100)/100;
+  // Fecha dd/mm/aaaa o dd-mm-aaaa (acepta separador / - .)
+  let f=t.match(/(\d{2})[\/\-.](\d{2})[\/\-.](\d{4}|\d{2})/);
+  if(f){const anio=f[3].length===2?`20${f[3]}`:f[3];out.fecha=`${anio}-${f[2]}-${f[1]}`;}
+  // Si hay litros y precio pero no importe (o el importe parece poco fiable), lo calculamos
+  if(out.litros&&out.precio_litro){
+    const calculado=Math.round(out.litros*out.precio_litro*100)/100;
+    if(!out.importe||Math.abs(out.importe-calculado)>5)out.importe=calculado;
+  }
+  // Último recurso: si no hay importe, usar el número con € más grande del ticket
+  if(!out.importe){
+    const euros=[...t.matchAll(/(\d{1,4}[.,]\d{2})\s*€/g)].map(x=>parseFloat(x[1].replace(",",".")));
+    if(euros.length>0)out.importe=Math.max(...euros);
+  }
   return out;
+}
+
+// Reduce y mejora el contraste de la foto antes del OCR: acelera el reconocimiento
+// y mejora mucho la precisión en fotos de móvil grandes/oscuras.
+function preprocesarImagen(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const maxW=1600;
+      const escala=img.width>maxW?maxW/img.width:1;
+      const w=Math.round(img.width*escala),h=Math.round(img.height*escala);
+      const canvas=document.createElement("canvas");
+      canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext("2d");
+      ctx.drawImage(img,0,0,w,h);
+      const imgData=ctx.getImageData(0,0,w,h);
+      const d=imgData.data;
+      for(let i=0;i<d.length;i+=4){
+        // escala de grises + aumento de contraste
+        const gris=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+        const contraste=Math.min(255,Math.max(0,(gris-128)*1.5+128));
+        d[i]=d[i+1]=d[i+2]=contraste;
+      }
+      ctx.putImageData(imgData,0,0);
+      resolve(canvas.toDataURL("image/jpeg",0.92));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
 }
 
 // Devuelve {importe, litros, precio_litro, fecha, raw} a partir de una imagen en base64 (dataURL)
 export async function extraerDatosFactura(dataUrl, onProgress){
   const Tesseract=await cargarTesseract();
-  const{data}=await Tesseract.recognize(dataUrl,"spa",{
+  const imagenLista=await preprocesarImagen(dataUrl);
+  const{data}=await Tesseract.recognize(imagenLista,"spa",{
     logger:m=>{if(onProgress&&m.status==="recognizing text")onProgress(Math.round((m.progress||0)*100));}
   });
   const campos=parsearTextoFactura(data.text||"");
