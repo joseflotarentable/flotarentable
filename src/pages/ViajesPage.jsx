@@ -19,7 +19,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
   useEffect(()=>{if(esGerente)sb.from("perfiles").select("id,nombre").then(({data})=>{const m={};(data||[]).forEach(p=>m[p.id]=p.nombre);setNombres(m);});},[esGerente]);
 
   const getAutoSemi=tid=>{const t=tractoras.find(x=>x.id===tid);return t?.conjunto_fijo&&t?.semi_habitual_id?t.semi_habitual_id:"";};
-  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||""),cmr_foto:"",indicaciones:"",lugar_carga:"",km_vacio:"",ubicacion_maps:"",cobrado:false,fecha_cobro:"",destino2:""};
+  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||""),cmr_foto:"",indicaciones:"",lugar_carga:"",km_vacio:"",ubicacion_maps:"",ubicacion_maps_carga:"",ubicacion_maps_destino2:"",cobrado:false,fecha_cobro:"",destino2:""};
 
   const handleCliente=val=>{
     const cliente=(clientesTodos||[]).find(c=>c.nombre.toLowerCase()===val.trim().toLowerCase());
@@ -52,11 +52,13 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
     setModal(f=>({...f,km:String(Math.round(km))}));
   };
   const handleD2=(val,coords)=>{setD2Coords(coords);setModal(f=>({...f,destino2:val}));if(coords&&oCoords&&dCoords)recalcRuta(oCoords,dCoords,coords);};
-  const mapsLink=(coords,nombre)=>coords?`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lon}`:nombre?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nombre)}`:null;
-  const MapsBtn=({coords,nombre})=>{
-    const href=mapsLink(coords,nombre);
-    if(!href)return null;
-    return <a href={href} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:"0.25rem",fontSize:"0.72rem",color:"var(--a2)",textDecoration:"none",marginTop:"0.3rem"}}>🗺️ Cómo llegar</a>;
+  const mapsLink=(coords,nombre,enlace)=>enlace?.trim()?enlace.trim():coords?`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lon}`:nombre?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nombre)}`:null;
+  const MapsBtn=({coords,nombre,enlace,onChangeEnlace})=>{
+    const href=mapsLink(coords,nombre,enlace);
+    return <div style={{marginTop:"0.3rem"}}>
+      {(esGerente||esTrafico)&&onChangeEnlace&&<input className="inp" style={{fontSize:"0.72rem",padding:"0.35rem 0.5rem"}} placeholder="Enlace exacto de Google Maps (opcional)" value={enlace||""} onChange={e=>onChangeEnlace(e.target.value)}/>}
+      {href&&<a href={href} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:"0.25rem",fontSize:"0.72rem",color:"var(--a2)",textDecoration:"none",marginTop:"0.25rem"}}>🗺️ Cómo llegar</a>}
+    </div>;
   };
   const swapDestinos=()=>{
     const newDestino=modal.destino2.trim(),newDestino2=modal.destino;
@@ -90,8 +92,8 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
     return{coste,ben:precio-coste,margen:precio>0?((precio-coste)/precio)*100:0};
   };
 
-  const openEdit=v=>{setEditando(v);setVuelta(!!v.km_vuelta);setOCoords(null);setDCoords(null);setLCoords(null);setModal({...emptyForm,...v,tiene_iva:v.tiene_iva||false,tipo_iva:v.tipo_iva||"21"});};
-  const openNew=()=>{setEditando(null);setVuelta(false);setOCoords(null);setDCoords(null);setLCoords(null);setModal({...emptyForm,semi_id:getAutoSemi(defaultT?.id||"")});};
+  const openEdit=v=>{setEditando(v);setVuelta(!!v.km_vuelta);setOCoords(null);setDCoords(null);setLCoords(null);setD2Coords(null);setModal({...emptyForm,...v,tiene_iva:v.tiene_iva||false,tipo_iva:v.tipo_iva||"21"});};
+  const openNew=()=>{setEditando(null);setVuelta(false);setOCoords(null);setDCoords(null);setLCoords(null);setD2Coords(null);setModal({...emptyForm,semi_id:getAutoSemi(defaultT?.id||"")});};
 
   const saveViaje=async()=>{
     if(!modal.truck_id){setToast("⚠️ Selecciona una tractora");return;}
@@ -101,7 +103,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
     if(!modal.destino){setToast("⚠️ Introduce el destino");return;}
     if(esGerente&&(!modal.precio||parseFloat(modal.precio)<=0)){setToast("⚠️ Introduce el precio");return;}
     const{base,iva}=calcIVA();
-    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,cmr_foto:modal.cmr_foto||null,indicaciones:modal.indicaciones||null,lugar_carga:modal.lugar_carga&&modal.lugar_carga.trim()?modal.lugar_carga.trim():null,km_vacio:modal.lugar_carga&&modal.lugar_carga.trim()?(parseFloat(modal.km_vacio)||0):null,ubicacion_maps:modal.ubicacion_maps?.trim()||null,cobrado:modal.cobrado||false,fecha_cobro:modal.cobrado&&modal.fecha_cobro?modal.fecha_cobro:null,destino2:modal.destino2&&modal.destino2.trim()?modal.destino2.trim():null,user_id:String(userId)};
+    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,cmr_foto:modal.cmr_foto||null,indicaciones:modal.indicaciones||null,lugar_carga:modal.lugar_carga&&modal.lugar_carga.trim()?modal.lugar_carga.trim():null,km_vacio:modal.lugar_carga&&modal.lugar_carga.trim()?(parseFloat(modal.km_vacio)||0):null,ubicacion_maps:modal.ubicacion_maps?.trim()||null,ubicacion_maps_carga:modal.ubicacion_maps_carga?.trim()||null,ubicacion_maps_destino2:modal.ubicacion_maps_destino2?.trim()||null,cobrado:modal.cobrado||false,fecha_cobro:modal.cobrado&&modal.fecha_cobro?modal.fecha_cobro:null,destino2:modal.destino2&&modal.destino2.trim()?modal.destino2.trim():null,user_id:String(userId)};
     const resumen=()=>{
       const ruta=`${payload.origen} → ${payload.destino}`;
       if(!esGerente)return ruta;
@@ -204,10 +206,10 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
             <CityInput value={modal.lugar_carga.trim()} onChange={v=>setModal(f=>({...f,lugar_carga:v}))} onSelect={s=>handleL(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo donde recoges la carga"/>
             <label className="lbl" style={{marginTop:"0.4rem"}}>Km en vacío hasta el punto de carga</label>
             <input className="inp" type="number" placeholder="0" value={modal.km_vacio} onChange={e=>setModal({...modal,km_vacio:e.target.value})}/>
-            <MapsBtn coords={lCoords} nombre={modal.lugar_carga.trim()}/>
+            <MapsBtn coords={lCoords} nombre={modal.lugar_carga.trim()} enlace={modal.ubicacion_maps_carga} onChangeEnlace={v=>setModal({...modal,ubicacion_maps_carga:v})}/>
           </div>}
           <div className="fld"><label className="lbl">Destino <span style={{color:"var(--red)"}}>*</span></label><CityInput value={modal.destino} onChange={v=>setModal(f=>({...f,destino:v}))} onSelect={s=>handleD(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo"/>
-            <MapsBtn coords={dCoords} nombre={modal.destino}/>
+            <MapsBtn coords={dCoords} nombre={modal.destino} enlace={modal.ubicacion_maps} onChangeEnlace={v=>setModal({...modal,ubicacion_maps:v})}/>
           </div>
           <div className="toggle-row"><span className="toggle-lbl">📦 Descarga también en otro destino</span><button className={`toggle ${modal.destino2?"on":""}`} onClick={()=>setModal(f=>({...f,destino2:f.destino2?"":" "}))}/></div>
           {modal.destino2&&<div className="fld">
@@ -216,7 +218,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
               {modal.destino2.trim()&&<button type="button" className="btn bg bsm" style={{padding:"0.2rem 0.5rem"}} onClick={swapDestinos}><Icon d={I.swap||I.trend} size={12}/> Invertir orden</button>}
             </div>
             <CityInput value={modal.destino2.trim()} onChange={v=>setModal(f=>({...f,destino2:v}))} onSelect={s=>handleD2(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo del segundo destino"/>
-            <MapsBtn coords={d2Coords} nombre={modal.destino2.trim()}/>
+            <MapsBtn coords={d2Coords} nombre={modal.destino2.trim()} enlace={modal.ubicacion_maps_destino2} onChangeEnlace={v=>setModal({...modal,ubicacion_maps_destino2:v})}/>
           </div>}
           <div className="fld"><label className="lbl">Km de ida <span style={{color:"var(--red)"}}>*</span> {calculandoKm?<span style={{color:"var(--a2)",fontSize:"0.68rem"}}>· calculando ruta...</span>:oCoords&&dCoords?<span style={{color:"var(--green)",fontSize:"0.68rem"}}>· ruta calculada</span>:""}</label><input className="inp" type="number" placeholder="0" value={modal.km} onChange={e=>setModal({...modal,km:e.target.value})}/>
             {oCoords&&dCoords&&!calculandoKm&&<div style={{fontSize:"0.68rem",color:"var(--muted)"}}>Estimación de ruta para camión (carreteras aptas para vehículos pesados). Ajusta el valor si conoces el km exacto.</div>}
@@ -234,14 +236,6 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
             {(esGerente||esTrafico)?
               <textarea className="inp" rows={2} placeholder="Ej: entrada por la puerta 3, preguntar por Juan..." value={modal.indicaciones||""} onChange={e=>setModal({...modal,indicaciones:e.target.value})}/>
               :<div style={{fontSize:"0.8rem",color:"var(--muted)"}}>{modal.indicaciones||"Sin indicaciones"}</div>}
-          </div>
-          <div className="fld">
-            <label className="lbl">📌 Ubicación exacta en Google Maps (opcional)</label>
-            {(esGerente||esTrafico)?<>
-              <input className="inp" placeholder="Pega aquí el enlace de Google Maps del punto exacto" value={modal.ubicacion_maps||""} onChange={e=>setModal({...modal,ubicacion_maps:e.target.value})}/>
-              <div style={{fontSize:"0.68rem",color:"var(--muted)",marginTop:"0.3rem"}}>En Google Maps: busca el sitio exacto, pulsa "Compartir" y copia el enlace aquí.</div>
-            </>:null}
-            {modal.ubicacion_maps&&<a href={modal.ubicacion_maps} target="_blank" rel="noreferrer" className="btn bd bsm" style={{marginTop:"0.4rem",display:"inline-flex",width:"auto",textDecoration:"none"}} onClick={e=>e.stopPropagation()}>🗺️ Abrir enlace exacto</a>}
           </div>
           <PhotoUpload value={modal.cmr_foto} onChange={v=>setModal({...modal,cmr_foto:v})} label="📄 CMR / albarán (opcional)" height={90}/>
           {esGerente&&(()=>{
