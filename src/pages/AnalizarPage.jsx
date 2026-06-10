@@ -234,7 +234,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
       doc.setTextColor(40,40,55);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
       const xs=[0,18,90,118,138,158];
       const vals=[v.fecha?v.fecha.split("-").reverse().join("/"):"",`${v.origen||""}${v.destino?` -> ${v.destino}`:""}`,v.cliente||"",`${((parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)).toLocaleString("es-ES")}`,eur(v.precio),eur(v.peaje)];
-      vals.forEach((val,i)=>{doc.text(String(val).substring(0,i===1?30:14),M+xs[i],y);});
+      vals.forEach((val,i)=>{doc.text(String(val).substring(0,i===1?46:14),M+xs[i],y);});
       y+=5;
     });
     if(vMes.length===0){doc.setTextColor(100,100,120);doc.setFontSize(8);doc.text("Sin viajes este mes",M,y);y+=6;}
