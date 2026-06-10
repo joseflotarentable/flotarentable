@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "FlotaRentable <notificaciones@flotarentable.com>",
+        from: "FlotaRentable <contacto@flotarentable.com>",
         to: gerente.email,
         subject: `Recuperacion de contraseña: ${perfil.nombre || username}`,
         html,
