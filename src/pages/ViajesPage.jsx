@@ -52,6 +52,12 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
     setModal(f=>({...f,km:String(Math.round(km))}));
   };
   const handleD2=(val,coords)=>{setD2Coords(coords);setModal(f=>({...f,destino2:val}));if(coords&&oCoords&&dCoords)recalcRuta(oCoords,dCoords,coords);};
+  const mapsLink=(coords,nombre)=>coords?`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lon}`:nombre?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nombre)}`:null;
+  const MapsBtn=({coords,nombre})=>{
+    const href=mapsLink(coords,nombre);
+    if(!href)return null;
+    return <a href={href} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:"0.25rem",fontSize:"0.72rem",color:"var(--a2)",textDecoration:"none",marginTop:"0.3rem"}}>🗺️ Cómo llegar</a>;
+  };
   const swapDestinos=()=>{
     const newDestino=modal.destino2.trim(),newDestino2=modal.destino;
     const newDCoords=d2Coords,newD2Coords=dCoords;
@@ -198,8 +204,11 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
             <CityInput value={modal.lugar_carga.trim()} onChange={v=>setModal(f=>({...f,lugar_carga:v}))} onSelect={s=>handleL(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo donde recoges la carga"/>
             <label className="lbl" style={{marginTop:"0.4rem"}}>Km en vacío hasta el punto de carga</label>
             <input className="inp" type="number" placeholder="0" value={modal.km_vacio} onChange={e=>setModal({...modal,km_vacio:e.target.value})}/>
+            <MapsBtn coords={lCoords} nombre={modal.lugar_carga.trim()}/>
           </div>}
-          <div className="fld"><label className="lbl">Destino <span style={{color:"var(--red)"}}>*</span></label><CityInput value={modal.destino} onChange={v=>setModal(f=>({...f,destino:v}))} onSelect={s=>handleD(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo"/></div>
+          <div className="fld"><label className="lbl">Destino <span style={{color:"var(--red)"}}>*</span></label><CityInput value={modal.destino} onChange={v=>setModal(f=>({...f,destino:v}))} onSelect={s=>handleD(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo"/>
+            <MapsBtn coords={dCoords} nombre={modal.destino}/>
+          </div>
           <div className="toggle-row"><span className="toggle-lbl">📦 Descarga también en otro destino</span><button className={`toggle ${modal.destino2?"on":""}`} onClick={()=>setModal(f=>({...f,destino2:f.destino2?"":" "}))}/></div>
           {modal.destino2&&<div className="fld">
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -207,6 +216,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
               {modal.destino2.trim()&&<button type="button" className="btn bg bsm" style={{padding:"0.2rem 0.5rem"}} onClick={swapDestinos}><Icon d={I.swap||I.trend} size={12}/> Invertir orden</button>}
             </div>
             <CityInput value={modal.destino2.trim()} onChange={v=>setModal(f=>({...f,destino2:v}))} onSelect={s=>handleD2(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo del segundo destino"/>
+            <MapsBtn coords={d2Coords} nombre={modal.destino2.trim()}/>
           </div>}
           <div className="fld"><label className="lbl">Km de ida <span style={{color:"var(--red)"}}>*</span> {calculandoKm?<span style={{color:"var(--a2)",fontSize:"0.68rem"}}>· calculando ruta...</span>:oCoords&&dCoords?<span style={{color:"var(--green)",fontSize:"0.68rem"}}>· ruta calculada</span>:""}</label><input className="inp" type="number" placeholder="0" value={modal.km} onChange={e=>setModal({...modal,km:e.target.value})}/>
             {oCoords&&dCoords&&!calculandoKm&&<div style={{fontSize:"0.68rem",color:"var(--muted)"}}>Estimación de ruta para camión (carreteras aptas para vehículos pesados). Ajusta el valor si conoces el km exacto.</div>}
@@ -231,7 +241,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
               <input className="inp" placeholder="Pega aquí el enlace de Google Maps del punto exacto" value={modal.ubicacion_maps||""} onChange={e=>setModal({...modal,ubicacion_maps:e.target.value})}/>
               <div style={{fontSize:"0.68rem",color:"var(--muted)",marginTop:"0.3rem"}}>En Google Maps: busca el sitio exacto, pulsa "Compartir" y copia el enlace aquí.</div>
             </>:null}
-            {(modal.ubicacion_maps||modal.destino)&&<a href={modal.ubicacion_maps||`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(modal.destino)}`} target="_blank" rel="noreferrer" className="btn bd bsm" style={{marginTop:"0.4rem",display:"inline-flex",width:"auto",textDecoration:"none"}} onClick={e=>e.stopPropagation()}>🗺️ Abrir en Google Maps</a>}
+            {modal.ubicacion_maps&&<a href={modal.ubicacion_maps} target="_blank" rel="noreferrer" className="btn bd bsm" style={{marginTop:"0.4rem",display:"inline-flex",width:"auto",textDecoration:"none"}} onClick={e=>e.stopPropagation()}>🗺️ Abrir enlace exacto</a>}
           </div>
           <PhotoUpload value={modal.cmr_foto} onChange={v=>setModal({...modal,cmr_foto:v})} label="📄 CMR / albarán (opcional)" height={90}/>
           {esGerente&&(()=>{
