@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
-import { euros, eurosKm, pct, fmtDate, calcConsumoHistorico, precioGasoilDe, calcKmRutaCamion } from "../lib/helpers.js";
+import { euros, eurosKm, pct, fmtDate, calcConsumoHistorico, precioGasoilDe, calcKmRutaCamion, calcCosteFijoKm } from "../lib/helpers.js";
 import { CityInput, ConfirmModal, Toast, PhotoUpload } from "../components/ui.jsx";
 
-export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTodos,viajesTodos,setViajesTodos}) {
+export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTodos,gastosFijos,viajesTodos,setViajesTodos}) {
   const[viajes,setViajes]=useState(viajesTodos||[]);
   const[modal,setModal]=useState(false);
   const[editando,setEditando]=useState(null);
@@ -110,8 +110,11 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
       {tractoras.length===0&&<div className="alert ay"><Icon d={I.alert} size={14} color="var(--yellow)"/><span>Añade una tractora en <strong>Flota</strong> para registrar viajes.</span></div>}
       {viajes.length===0?<div className="empty"><div className="ei"><Icon d={I.truck} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin viajes</strong><span style={{fontSize:"0.8rem"}}>Registra tu primera ruta para empezar a ver tu rentabilidad</span></div><button className="btn bp bsm" style={{marginTop:"0.75rem"}} onClick={openNew}><Icon d={I.plus} size={13}/> Añadir mi primer viaje</button></div>
       :<div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
-        {viajes.map(v=>{
+        {(()=>{const costeFijoKm=esGerente?calcCosteFijoKm(tractoras,gastosFijos||[],gastosTodos,viajesTodos):0;return viajes.map(v=>{
           const{coste,ben,margen}=calcV(v);
+          const kmTotalV=(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)+(parseFloat(v.km_vacio)||0);
+          const costeFijo=costeFijoKm*kmTotalV;
+          const benNeto=ben-costeFijo;
           const ok=margen>=15,warn=margen>=0&&margen<15,bad=margen<0;
           const t=tractoras.find(x=>x.id===v.truck_id);
           const s=semis.find(x=>x.id===v.semi_id);
@@ -129,13 +132,16 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
                 {(v.ubicacion_maps||v.destino)&&<a href={v.ubicacion_maps||`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.destino)}`} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{color:"var(--a2)",textDecoration:"none"}}>🗺️ Maps</a>}
               </div>
               {v.indicaciones&&<div style={{fontSize:"0.73rem",color:"var(--muted)",marginTop:"0.2rem"}}>📍 {v.indicaciones}</div>}
-              {esGerente&&<div className="tfoot">
-                <span style={{fontSize:"0.73rem",color:"var(--muted)"}}>Gasoil est. + peajes: {euros(coste)} · <span style={{color:ben>=0?"var(--green)":"var(--red)"}}>{ben>=0?"+":""}{euros(ben)}</span></span>
-                <span className={`badge ${ok?"bg-g":warn?"bg-y":"bg-r"}`} title="Margen sobre gasoil y peajes; no incluye gastos fijos de la flota">{bad?"🔴":warn?"🟡":"🟢"} {pct(margen)} <span style={{opacity:0.7,fontWeight:400}}>(sin fijos)</span></span>
+              {esGerente&&<div className="tfoot" style={{flexDirection:"column",alignItems:"flex-start",gap:"0.2rem"}}>
+                <div style={{display:"flex",justifyContent:"space-between",width:"100%",alignItems:"center"}}>
+                  <span style={{fontSize:"0.73rem",color:"var(--muted)"}}>Gasoil est. + peajes: {euros(coste)} · <span style={{color:ben>=0?"var(--green)":"var(--red)"}}>{ben>=0?"+":""}{euros(ben)}</span></span>
+                  <span className={`badge ${ok?"bg-g":warn?"bg-y":"bg-r"}`} title="Margen sobre gasoil y peajes; no incluye gastos fijos de la flota">{bad?"🔴":warn?"🟡":"🟢"} {pct(margen)} <span style={{opacity:0.7,fontWeight:400}}>(sin fijos)</span></span>
+                </div>
+                {costeFijoKm>0&&<span style={{fontSize:"0.73rem",color:"var(--muted)"}}>Con fijos prorrateados (-{euros(costeFijo)}): beneficio neto <span style={{fontWeight:700,color:benNeto>=0?"var(--green)":"var(--red)"}}>{benNeto>=0?"+":""}{euros(benNeto)}</span></span>}
               </div>}
             </div>
           );
-        })}
+        });})()}
       </div>}
 
     </div>

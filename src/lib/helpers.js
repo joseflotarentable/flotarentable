@@ -201,6 +201,21 @@ export function calcCosteKmEmpresa(tractoras, gastosFijos, gastosVar, viajes) {
   return (totalFijos+totalVar+totalCombustible)/kmTotal;
 }
 
+// Coste fijo + gastos variables (sin combustible, que ya se calcula aparte por viaje) repartido por km de la empresa.
+// Sirve para estimar un "beneficio neto" por viaje sumando esta parte a los costes de gasoil/peajes ya calculados.
+export function calcCosteFijoKm(tractoras, gastosFijos, gastosVar, viajes) {
+  const mesFiltro=nowMes();
+  const flota=(tractoras||[]).filter(t=>t.activa!==false);
+  const kmTotal=flota.reduce((s,t)=>{
+    const kmT=viajes.filter(v=>v.truck_id===t.id&&v.fecha?.startsWith(mesFiltro)).reduce((a,v)=>a+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)+(parseFloat(v.km_vacio)||0),0);
+    return s+(kmT||parseFloat(t.km_mensuales)||0);
+  },0);
+  if(!kmTotal)return 0;
+  const totalFijos=gastosFijos.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
+  const totalVar=gastosVar.filter(g=>g.tipo!=="Combustible").reduce((s,g)=>s+gastoProrrateadoEnMes(g,mesFiltro),0);
+  return (totalFijos+totalVar)/kmTotal;
+}
+
 // Bug #13: aviso de salto de odómetro poco realista entre repostajes (>2000km/día implícito)
 export function consumoHistoricoConAviso(gastos, truckId) {
   const repos = gastos.filter(g=>g.vehicle_id===truckId&&g.tipo==="Combustible"&&g.odometro&&g.litros).sort((a,b)=>parseFloat(a.odometro)-parseFloat(b.odometro));
