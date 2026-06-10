@@ -124,7 +124,7 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
   .nb.on{background:var(--s2)}
   .nb.on::after{display:none}
   .page{max-width:1400px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));grid-auto-flow:dense;align-content:flex-start;align-items:start;gap:0.875rem}
-  .page>.ptitle,.page>.alert,.page>.empty{grid-column:1/-1}
+  .page>.ptitle,.page>.alert,.page>.empty,.page>.g3{grid-column:1/-1}
   .page>.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:0.625rem}
   .modal{max-width:480px;margin:2rem auto;border-radius:var(--r);padding-bottom:2rem;flex:none;max-height:calc(100vh - 4rem);overflow-y:auto}
   .ov{align-items:flex-start;justify-content:center;background:#000a}
