@@ -206,9 +206,12 @@ export function calcCosteKmEmpresa(tractoras, gastosFijos, gastosVar, viajes) {
 export function calcCosteFijoKm(tractoras, gastosFijos, gastosVar, viajes) {
   const mesFiltro=nowMes();
   const flota=(tractoras||[]).filter(t=>t.activa!==false);
+  // Usamos los km mensuales previstos/habituales de cada tractora (configurados en Flota) como base
+  // del reparto, no los km acumulados "hasta hoy" — si no, a principio de mes el coste fijo/km
+  // saldría artificialmente alto (pocos km todavía) y se iría abaratando según avanza el mes.
   const kmTotal=flota.reduce((s,t)=>{
     const kmT=viajes.filter(v=>v.truck_id===t.id&&v.fecha?.startsWith(mesFiltro)).reduce((a,v)=>a+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)+(parseFloat(v.km_vacio)||0),0);
-    return s+(kmT||parseFloat(t.km_mensuales)||0);
+    return s+(parseFloat(t.km_mensuales)||kmT||0);
   },0);
   if(!kmTotal)return 0;
   const totalFijos=gastosFijos.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
