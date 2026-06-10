@@ -203,14 +203,25 @@ export function calcCosteKmEmpresa(tractoras, gastosFijos, gastosVar, viajes) {
 
 // Coste fijo + gastos variables (sin combustible, que ya se calcula aparte por viaje) repartido por km de la empresa.
 // Sirve para estimar un "beneficio neto" por viaje sumando esta parte a los costes de gasoil/peajes ya calculados.
-export function calcCosteFijoKm(tractoras, gastosFijos, gastosVar, viajes) {
-  const mesFiltro=nowMes();
+export function calcCosteFijoKm(tractoras, gastosFijos, gastosVar, viajes, mesFiltro) {
+  mesFiltro=mesFiltro||nowMes();
   const flota=(tractoras||[]).filter(t=>t.activa!==false);
-  // Usamos los km mensuales previstos/habituales de cada tractora (configurados en Flota) como base
-  // del reparto, no los km acumulados "hasta hoy" — si no, a principio de mes el coste fijo/km
-  // saldría artificialmente alto (pocos km todavía) y se iría abaratando según avanza el mes.
+  // Base del reparto, en este orden de preferencia para cada tractora:
+  // 1) Si el mes ya ha terminado (no es el mes actual), se usa lo REAL de ese mes (cierre).
+  // 2) Si es el mes en curso: media de km reales de meses anteriores ya completados (cuantos más
+  //    meses de histórico haya, más precisa); si no hay histórico, los "km mensuales" estimados
+  //    configurados en Flota; si tampoco hay eso, lo acumulado en lo que va de mes actual.
+  const kmDelMes=(t,mes)=>viajes.filter(v=>v.truck_id===t.id&&v.fecha?.startsWith(mes)).reduce((a,v)=>a+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)+(parseFloat(v.km_vacio)||0),0);
+  const esMesActual=mesFiltro===nowMes();
   const kmTotal=flota.reduce((s,t)=>{
-    const kmT=viajes.filter(v=>v.truck_id===t.id&&v.fecha?.startsWith(mesFiltro)).reduce((a,v)=>a+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)+(parseFloat(v.km_vacio)||0),0);
+    const kmT=kmDelMes(t,mesFiltro);
+    if(!esMesActual)return s+(kmT||parseFloat(t.km_mensuales)||0); // mes cerrado: usar lo real
+    // mes en curso: media de meses anteriores completados con datos
+    const mesesPrevios=[...new Set(viajes.filter(v=>v.truck_id===t.id&&v.fecha&&v.fecha.slice(0,7)<mesFiltro).map(v=>v.fecha.slice(0,7)))];
+    if(mesesPrevios.length>0){
+      const media=mesesPrevios.reduce((a,m)=>a+kmDelMes(t,m),0)/mesesPrevios.length;
+      return s+(media||kmT||parseFloat(t.km_mensuales)||0);
+    }
     return s+(parseFloat(t.km_mensuales)||kmT||0);
   },0);
   if(!kmTotal)return 0;
