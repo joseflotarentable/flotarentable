@@ -45,11 +45,11 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     let csv="\uFEFF";
     if(expTipo==="viajes"||expTipo==="todo"){
       csv+=`VIAJES${Array(15).fill(sep).join("")}\n`;
-      csv+=`Fecha${sep}Origen${sep}Punto de carga${sep}Destino${sep}Km${sep}Km vacio${sep}Km vuelta${sep}Precio cobrado${sep}Base imponible${sep}IVA${sep}Peajes${sep}Tractora${sep}Semirremolque${sep}Cliente${sep}Indicaciones${sep}Anadido por\n`;
+      csv+=`Fecha${sep}Origen${sep}Punto de carga${sep}Destino${sep}Segundo destino${sep}Km${sep}Km vacio${sep}Km vuelta${sep}Precio cobrado${sep}Base imponible${sep}IVA${sep}Peajes${sep}Tractora${sep}Semirremolque${sep}Cliente${sep}Indicaciones${sep}Anadido por\n`;
       vFilt.forEach(v=>{
         const t=tractoras.find(x=>x.id===v.truck_id);
         const s=semis.find(x=>x.id===v.semi_id);
-        csv+=`${fec(v.fecha)}${sep}${v.origen||""}${sep}${v.lugar_carga||""}${sep}${v.destino||""}${sep}${v.km||0}${sep}${v.km_vacio||0}${sep}${v.km_vuelta||0}${sep}${eur(v.precio)}${sep}${v.tiene_iva?eur(v.base_imponible):""}${sep}${v.tiene_iva?eur(v.iva_amount):""}${sep}${eur(v.peaje)}${sep}${t?.matricula||""}${sep}${s?.matricula||""}${sep}${v.cliente||""}${sep}${v.indicaciones||""}${sep}${nombresUsr[v.user_id]||""}\n`;
+        csv+=`${fec(v.fecha)}${sep}${v.origen||""}${sep}${v.lugar_carga||""}${sep}${v.destino||""}${sep}${v.destino2||""}${sep}${v.km||0}${sep}${v.km_vacio||0}${sep}${v.km_vuelta||0}${sep}${eur(v.precio)}${sep}${v.tiene_iva?eur(v.base_imponible):""}${sep}${v.tiene_iva?eur(v.iva_amount):""}${sep}${eur(v.peaje)}${sep}${t?.matricula||""}${sep}${s?.matricula||""}${sep}${v.cliente||""}${sep}${v.indicaciones||""}${sep}${nombresUsr[v.user_id]||""}\n`;
       });
       csv+=`${Array(4).fill(sep).join("")}TOTAL${sep}${vFilt.reduce((s,v)=>s+(parseFloat(v.km)||0),0)}${sep}${vFilt.reduce((s,v)=>s+(parseFloat(v.km_vacio)||0),0)}${sep}${vFilt.reduce((s,v)=>s+(parseFloat(v.km_vuelta)||0),0)}${sep}${eur(vFilt.reduce((s,v)=>s+(parseFloat(v.precio)||0),0))}${sep}${eur(vFilt.reduce((s,v)=>s+(parseFloat(v.base_imponible)||0),0))}${sep}${eur(vFilt.reduce((s,v)=>s+(parseFloat(v.iva_amount)||0),0))}${sep}${eur(vFilt.reduce((s,v)=>s+(parseFloat(v.peaje)||0),0))}\n`;
     }
@@ -233,7 +233,8 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
       if(y>270){doc.addPage();y=14;}
       doc.setTextColor(40,40,55);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
       const xs=[0,18,90,118,138,158];
-      const vals=[v.fecha?v.fecha.split("-").reverse().join("/"):"",`${v.origen||""}${v.destino?` -> ${v.destino}`:""}`,v.cliente||"",`${((parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)).toLocaleString("es-ES")}`,eur(v.precio),eur(v.peaje)];
+      const ruta=[v.origen,v.lugar_carga,v.destino,v.destino2].filter(Boolean).join(" -> ");
+      const vals=[v.fecha?v.fecha.split("-").reverse().join("/"):"",ruta,v.cliente||"",`${((parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)).toLocaleString("es-ES")}`,eur(v.precio),eur(v.peaje)];
       vals.forEach((val,i)=>{doc.text(String(val).substring(0,i===1?46:14),M+xs[i],y);});
       y+=5;
     });

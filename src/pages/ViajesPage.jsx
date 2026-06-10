@@ -19,7 +19,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
   useEffect(()=>{if(esGerente)sb.from("perfiles").select("id,nombre").then(({data})=>{const m={};(data||[]).forEach(p=>m[p.id]=p.nombre);setNombres(m);});},[esGerente]);
 
   const getAutoSemi=tid=>{const t=tractoras.find(x=>x.id===tid);return t?.conjunto_fijo&&t?.semi_habitual_id?t.semi_habitual_id:"";};
-  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||""),cmr_foto:"",indicaciones:"",lugar_carga:"",km_vacio:"",ubicacion_maps:"",cobrado:false,fecha_cobro:""};
+  const emptyForm={fecha:new Date().toISOString().slice(0,10),cliente:"",origen:"",destino:"",pais:"España",km:"",km_vuelta:"",peaje:"",precio:"",tiene_iva:false,tipo_iva:"21",truck_id:defaultT?.id||"",semi_id:getAutoSemi(defaultT?.id||""),cmr_foto:"",indicaciones:"",lugar_carga:"",km_vacio:"",ubicacion_maps:"",cobrado:false,fecha_cobro:"",destino2:""};
 
   const handleCliente=val=>{
     const cliente=(clientesTodos||[]).find(c=>c.nombre.toLowerCase()===val.trim().toLowerCase());
@@ -78,7 +78,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
     if(!modal.destino){setToast("⚠️ Introduce el destino");return;}
     if(esGerente&&(!modal.precio||parseFloat(modal.precio)<=0)){setToast("⚠️ Introduce el precio");return;}
     const{base,iva}=calcIVA();
-    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,cmr_foto:modal.cmr_foto||null,indicaciones:modal.indicaciones||null,lugar_carga:modal.lugar_carga&&modal.lugar_carga.trim()?modal.lugar_carga.trim():null,km_vacio:modal.lugar_carga&&modal.lugar_carga.trim()?(parseFloat(modal.km_vacio)||0):null,ubicacion_maps:modal.ubicacion_maps?.trim()||null,cobrado:modal.cobrado||false,fecha_cobro:modal.cobrado&&modal.fecha_cobro?modal.fecha_cobro:null,user_id:String(userId)};
+    const payload={fecha:modal.fecha,cliente:modal.cliente||"",origen:modal.origen||"",destino:modal.destino||"",pais:modal.pais||"España",km:parseFloat(modal.km)||0,km_vuelta:vuelta?(parseFloat(modal.km_vuelta)||0):null,peaje:parseFloat(modal.peaje)||0,precio:parseFloat(modal.precio)||0,tiene_iva:modal.tiene_iva||false,tipo_iva:modal.tipo_iva||"21",base_imponible:modal.tiene_iva?parseFloat(base):null,iva_amount:modal.tiene_iva?parseFloat(iva):null,truck_id:modal.truck_id||null,semi_id:modal.semi_id||null,cmr_foto:modal.cmr_foto||null,indicaciones:modal.indicaciones||null,lugar_carga:modal.lugar_carga&&modal.lugar_carga.trim()?modal.lugar_carga.trim():null,km_vacio:modal.lugar_carga&&modal.lugar_carga.trim()?(parseFloat(modal.km_vacio)||0):null,ubicacion_maps:modal.ubicacion_maps?.trim()||null,cobrado:modal.cobrado||false,fecha_cobro:modal.cobrado&&modal.fecha_cobro?modal.fecha_cobro:null,destino2:modal.destino2&&modal.destino2.trim()?modal.destino2.trim():null,user_id:String(userId)};
     const resumen=()=>{
       const ruta=`${payload.origen} → ${payload.destino}`;
       if(!esGerente)return ruta;
@@ -133,7 +133,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
           return(
             <div className="trip" key={v.id} onClick={()=>openEdit(v)}>
               <div className="ttop">
-                <div style={{minWidth:0,flex:1}}><div className="troute" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.origen||"—"}{v.lugar_carga?` ⇢ ${v.lugar_carga}`:""} → {v.destino||"—"}{v.pais&&v.pais!=="España"?" 🌍":""}{v.cmr_foto?" 📄":""}</div><div className="tdate" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{fmtDate(v.fecha)}{v.cliente?` · ${v.cliente}`:""}{esGerente&&v.user_id&&nombres[v.user_id]?` · añadido por ${nombres[v.user_id]}`:""}</div></div>
+                <div style={{minWidth:0,flex:1}}><div className="troute" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.origen||"—"}{v.lugar_carga?` ⇢ ${v.lugar_carga}`:""} → {v.destino||"—"}{v.destino2?` → ${v.destino2}`:""}{v.pais&&v.pais!=="España"?" 🌍":""}{v.cmr_foto?" 📄":""}</div><div className="tdate" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{fmtDate(v.fecha)}{v.cliente?` · ${v.cliente}`:""}{esGerente&&v.user_id&&nombres[v.user_id]?` · añadido por ${nombres[v.user_id]}`:""}</div></div>
                 <button className="btn bd bsm" style={{padding:"0.3rem 0.4rem"}} onClick={e=>{e.stopPropagation();setConfirm({id:v.id,cerrar:false});}}><Icon d={I.trash} size={12}/></button>
               </div>
               <div className="trow">
@@ -183,6 +183,11 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
             <input className="inp" type="number" placeholder="0" value={modal.km_vacio} onChange={e=>setModal({...modal,km_vacio:e.target.value})}/>
           </div>}
           <div className="fld"><label className="lbl">Destino <span style={{color:"var(--red)"}}>*</span></label><CityInput value={modal.destino} onChange={v=>setModal(f=>({...f,destino:v}))} onSelect={s=>handleD(s.label.split(",")[0].trim(),s)} placeholder="Ciudad o pueblo"/></div>
+          <div className="toggle-row"><span className="toggle-lbl">📦 Descarga también en otro destino</span><button className={`toggle ${modal.destino2?"on":""}`} onClick={()=>setModal(f=>({...f,destino2:f.destino2?"":" "}))}/></div>
+          {modal.destino2&&<div className="fld">
+            <label className="lbl">Segundo destino</label>
+            <CityInput value={modal.destino2.trim()} onChange={v=>setModal(f=>({...f,destino2:v}))} placeholder="Ciudad o pueblo del segundo destino"/>
+          </div>}
           <div className="fld"><label className="lbl">Km de ida <span style={{color:"var(--red)"}}>*</span> {calculandoKm?<span style={{color:"var(--a2)",fontSize:"0.68rem"}}>· calculando ruta...</span>:oCoords&&dCoords?<span style={{color:"var(--green)",fontSize:"0.68rem"}}>· ruta calculada</span>:""}</label><input className="inp" type="number" placeholder="0" value={modal.km} onChange={e=>setModal({...modal,km:e.target.value})}/>
             {oCoords&&dCoords&&!calculandoKm&&<div style={{fontSize:"0.68rem",color:"var(--muted)"}}>Estimación de ruta para camión (carreteras aptas para vehículos pesados). Ajusta el valor si conoces el km exacto.</div>}
           </div>
