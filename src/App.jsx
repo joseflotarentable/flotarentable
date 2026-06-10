@@ -128,6 +128,8 @@ export default function App() {
   return(
     <><style>{makeCSS(accent)}</style>
     <div className="app">
+      <nav className="nav">{tabs.map(t=><button key={t.id} className={`nb ${tab===t.id?"on":""}`} onClick={()=>setTab(t.id)}><Icon d={t.icon} size={17}/>{t.lbl}</button>)}</nav>
+      <div className="main">
       <div className="hdr">
         <div className="hdr-left">
           {(()=>{const logo=esGerente?perfil.logo:logoGerente||perfil.logo;return logo?<img src={logo} alt="" className="hdr-logo"/>:<div className="hdr-logo-ph"><svg width="20" height="20" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M 18 80 Q 18 48 48 48 Q 78 48 78 16" stroke="white" strokeWidth="7" strokeLinecap="round"/><circle cx="78" cy="16" r="13" fill="#F5C842"/><circle cx="78" cy="16" r="5" fill="#E8490F"/><circle cx="18" cy="80" r="13" fill="#1A1A1A" stroke="white" strokeWidth="2"/><path d="M 22 74.5 A 6.5 6.5 0 1 0 22 85.5" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none"/><line x1="11" y1="78" x2="20" y2="78" stroke="white" strokeWidth="2.2" strokeLinecap="round"/><line x1="11" y1="82" x2="20" y2="82" stroke="white" strokeWidth="2.2" strokeLinecap="round"/></svg></div>;})()}
@@ -147,8 +149,7 @@ export default function App() {
       {tab==="gastos"&&<GastosPage key={`gastos-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} esGerente={esGerente} accentIdx={perfil.accent_idx||0} gastosFijos={gastosFijos} setGastosFijos={setGastosFijos} gastosTodos={gastosVisibles} setGastosTodos={setGastosTodos}/>}
       {tab==="analizar"&&esGerente&&<AnalizarPage key={`analizar-${tractoras.length}-${semis.length}`} userId={user.id} tractoras={tractoras} semis={semis} gastosTodos={gastosTodos} viajesTodos={viajesTodos} gastosFijos={gastosFijos}/>}
       {tab==="analizar"&&!esGerente&&<div className="page"><div className="alert ay"><Icon d={I.lock} size={14} color="var(--yellow)"/><span>Esta seccion solo esta disponible para el gerente.</span></div></div>}
-
-      <nav className="nav">{tabs.map(t=><button key={t.id} className={`nb ${tab===t.id?"on":""}`} onClick={()=>setTab(t.id)}><Icon d={t.icon} size={17}/>{t.lbl}</button>)}</nav>
+      </div>
     </div></>
   );
 }
