@@ -24,7 +24,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   const[reseteando,setReseteando]=useState(false);
 
   const cargarEmpleados=async(empresaId)=>{
-    const{data}=await sb.from("perfiles").select("id,nombre,rol,truck_id").eq("empresa_id",empresaId).neq("id",userId);
+    const{data}=await sb.from("perfiles").select("id,nombre,rol,truck_id,email").eq("empresa_id",empresaId).neq("id",userId);
     setEmpleados(data||[]);
   };
   const planLimite=perfil.plan==="empresa"?999:perfil.plan==="flota"?11:4;
@@ -80,7 +80,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
       if(error){setEmpMsg(error.message.includes("registered")?"Ese usuario ya existe":"Error: "+error.message);setCreandoEmp(false);return;}
       const newId=data.user?.id;
       if(!newId){setEmpMsg("No se pudo crear el usuario");setCreandoEmp(false);return;}
-      await temp.from("perfiles").upsert({id:newId,nombre:nuevoEmp.nombre,rol:nuevoEmp.rol,empresa_id:perfil.empresa_id,truck_id:nuevoEmp.rol==="chofer"?(nuevoEmp.truck_id||null):null});
+      await temp.from("perfiles").upsert({id:newId,nombre:nuevoEmp.nombre,rol:nuevoEmp.rol,empresa_id:perfil.empresa_id,truck_id:nuevoEmp.rol==="chofer"?(nuevoEmp.truck_id||null):null,email});
       const{data:emp}=await sb.from("empresas").select("miembros").eq("id",perfil.empresa_id).single();
       const miembros=[...(emp?.miembros||[]),newId];
       await sb.from("empresas").update({miembros}).eq("id",perfil.empresa_id);
@@ -200,6 +200,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
                   <div>
                     <div style={{fontWeight:700,fontSize:"0.88rem"}}>{e.nombre}</div>
                     <div style={{fontSize:"0.7rem",color:"var(--muted)"}}>{e.rol==="chofer"?`🚛 ${t?.matricula||"sin tractora"}`:"📋 Tráfico (ve todos los viajes)"}</div>
+                    {e.email&&<div style={{fontSize:"0.68rem",color:"var(--muted)",marginTop:1}}>👤 {e.email.split("@")[0]}</div>}
                   </div>
                   <select className="inp" style={{width:"auto",padding:"0.25rem 0.5rem",fontSize:"0.75rem"}} value={e.rol} onChange={ev=>actualizarEmpleado(e.id,{rol:ev.target.value,...(ev.target.value!=="chofer"?{truck_id:null}:{})})}>
                     <option value="chofer">Chófer</option>
