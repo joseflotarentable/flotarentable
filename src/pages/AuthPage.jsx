@@ -225,7 +225,7 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
           {PLANES.map(pl=>(
             <div key={pl.id} className={`role-card ${form.plan===pl.id?"sel":""}`} onClick={()=>setForm({...form,plan:pl.id})}>
               <div style={{width:40,height:40,borderRadius:10,background:form.plan===pl.id?`${accent.a1}20`:"var(--s3)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon d={I.truck} size={20} color={form.plan===pl.id?accent.a1:"var(--muted)"}/></div>
-              <div><div style={{fontWeight:700,fontSize:"0.9rem"}}>{pl.nombre} — {pl.rango}</div><div style={{fontSize:"0.73rem",color:"var(--muted)",marginTop:2}}>{pl.precio}</div></div>
+              <div><div style={{fontWeight:700,fontSize:"0.9rem"}}>{pl.nombre} — {pl.rango}</div><div style={{fontSize:"0.73rem",color:"var(--muted)",marginTop:2}}><strong style={{color:"var(--text)"}}>0€ durante 7 días</strong>, después {pl.precio}</div></div>
             </div>
           ))}</>}
         {step===passStep&&<><div style={{fontFamily:"'Bebas Neue'",fontSize:"1.8rem",letterSpacing:"0.04em"}}>Contraseña</div>
