@@ -65,7 +65,7 @@ export function LandingPage({accent,onLogin,onRegister}) {
     {icon:I.truck,col:"#06D6A0",t:"Gestión de flota completa",s:"Tractoras, semirremolques y conjuntos, con consumo histórico, ITV, seguros y mantenimiento al día."},
     {icon:I.coin,col:"#FFD166",t:"Gastos al día",s:"Registra combustible, peajes, dietas y reparaciones en segundos, escaneando el ticket con la cámara."},
     {icon:I.chart,col:"#5B8CFF",t:"Resumen mensual y anual",s:"Informes listos para tu gestoría, con IVA desglosado y exportación a Excel."},
-    {icon:I.clock,col:"#FF3D5A",t:"Alertas inteligentes",s:"Avisa de anomalías de consumo, ITV próximas a caducar y vencimientos importantes."},
+    {icon:I.clock,col:"#FF3D5A",t:"0 multas por despiste",s:"¿Cuántas sanciones llevas por una ITV caducada o un cambio de aceite que se te pasó? Nosotros te avisamos antes, para que la respuesta siga siendo cero."},
     {icon:I.user,col:"#06D6A0",t:"Equipo conectado",s:"Gerentes, tráfico y choferes ven la información que necesitan, en tiempo real, desde el móvil."},
   ];
 
