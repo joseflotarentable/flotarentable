@@ -57,7 +57,7 @@ function LegalPage({page,onBack}) {
   );
 }
 
-export function LandingPage({accent,onLogin,onRegister}) {
+export function LandingPage({accent,onLogin,onRegister,onBlog}) {
   const[legalView,setLegalView]=useState(null);
   if(legalView)return<LegalPage page={legalView} onBack={()=>setLegalView(null)}/>;
   const feats=[
@@ -166,6 +166,7 @@ export function LandingPage({accent,onLogin,onRegister}) {
           <a href="#precios">Precios</a>
           <a href="#nosotros">Quiénes somos</a>
           <a href="#contacto">Contacto</a>
+          <a onClick={onBlog} style={{cursor:"pointer"}}>Blog</a>
         </div>
         <div className="lp-navbtns">
           <button className="lp-btn lp-btn-ghost" onClick={onLogin}>Acceder</button>
@@ -308,6 +309,7 @@ export function LandingPage({accent,onLogin,onRegister}) {
 
       <footer className="lp-foot">
         <div className="lp-foot-links">
+          <span onClick={onBlog}>Blog</span>
           <span onClick={()=>setLegalView("aviso")}>Aviso legal</span>
           <span onClick={()=>setLegalView("privacidad")}>Política de privacidad</span>
           <span onClick={()=>setLegalView("terminos")}>Términos y condiciones</span>

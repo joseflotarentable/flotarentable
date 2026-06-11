@@ -14,6 +14,7 @@ import { ViajesPage } from "./pages/ViajesPage.jsx";
 import { GastosPage } from "./pages/GastosPage.jsx";
 import { AnalizarPage } from "./pages/AnalizarPage.jsx";
 import { PaywallPage } from "./pages/PaywallPage.jsx";
+import { BlogPage, BlogPostPage } from "./pages/BlogPage.jsx";
 
 export default function App() {
   const[user,setUser]=useState(null);
@@ -33,6 +34,14 @@ export default function App() {
   const[theme,setTheme]=useState(()=>localStorage.getItem("fr-theme")||"dark");
   const[showAuth,setShowAuth]=useState(false);
   const[authMode,setAuthMode]=useState("welcome");
+  const[path,setPath]=useState(()=>window.location.pathname);
+
+  useEffect(()=>{
+    const onPop=()=>setPath(window.location.pathname);
+    window.addEventListener("popstate",onPop);
+    return()=>window.removeEventListener("popstate",onPop);
+  },[]);
+  const navigate=to=>{window.history.pushState({},"",to);setPath(to);window.scrollTo(0,0);};
 
   useEffect(()=>{
     localStorage.setItem("fr-theme",theme);
@@ -136,8 +145,11 @@ export default function App() {
   const esTrafico=perfil.rol==="trafico";
   const days=getDaysLeft(trialStart||perfil.trial_start);
 
+  if(path==="/blog")return(<BlogPage accent={accent} onHome={()=>navigate("/")} onLogin={()=>{setAuthMode("login");setShowAuth(true);navigate("/");}} onRegister={()=>{setAuthMode("register");setShowAuth(true);navigate("/");}} onOpenPost={slug=>navigate(`/blog/${slug}`)}/>);
+  if(path.startsWith("/blog/"))return(<BlogPostPage slug={path.slice(6)} accent={accent} onHome={()=>navigate("/")} onLogin={()=>{setAuthMode("login");setShowAuth(true);navigate("/");}} onRegister={()=>{setAuthMode("register");setShowAuth(true);navigate("/");}} onBack={()=>navigate("/blog")}/>);
+
   if(loading)return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#08080F"}}><div className="spinner" style={{width:32,height:32,borderColor:"rgba(255,61,90,0.3)",borderTopColor:"#FF3D5A"}}/></div>);
-  if(!user&&!showAuth)return(<LandingPage accent={accent} onLogin={()=>{setAuthMode("login");setShowAuth(true);}} onRegister={()=>{setAuthMode("register");setShowAuth(true);}}/>);
+  if(!user&&!showAuth)return(<LandingPage accent={accent} onLogin={()=>{setAuthMode("login");setShowAuth(true);}} onRegister={()=>{setAuthMode("register");setShowAuth(true);}} onBlog={()=>navigate("/blog")}/>);
   if(!user)return(<><style>{makeCSS(accent)}</style><div className="app"><AuthPage onAuth={handleAuth} accent={accent} initialMode={authMode} onBack={()=>setShowAuth(false)}/></div></>);
   if(user&&!perfil.rol)return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#08080F"}}><div className="spinner" style={{width:32,height:32,borderColor:"rgba(255,61,90,0.3)",borderTopColor:"#FF3D5A"}}/></div>);
 
