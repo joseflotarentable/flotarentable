@@ -16,9 +16,9 @@ export function UsuariosModal({userId,perfil,tractoras,onClose}) {
   const[resetOtp,setResetOtp]=useState("");
 
   const plan=PLANES.find(p=>p.id===perfil.plan)||PLANES[0];
-  const limiteChofer=plan.maxTractoras;
-  const limiteTrafico=limiteChofer===Infinity?Infinity:Math.ceil(limiteChofer/2);
-  const limite=limiteChofer===Infinity?Infinity:limiteChofer+limiteTrafico;
+  const limiteChofer=plan.id==="flota"?(perfil.tractoras_contratadas||10):plan.maxTractoras;
+  const limiteTrafico=Math.ceil(limiteChofer/2);
+  const limite=limiteChofer+limiteTrafico;
   const numTrafico=empleados.filter(e=>e.rol==="trafico").length;
   const numChofer=empleados.length-numTrafico;
   const limiteAlcanzado=empleados.length>=limite;

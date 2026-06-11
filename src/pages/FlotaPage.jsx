@@ -10,10 +10,11 @@ export function FlotaPage({userId,perfil,updatePerfil,tractoras,semis,setTractor
   const[confirmFlota,setConfirmFlota]=useState(null);
   const[errorFlota,setErrorFlota]=useState("");
   const plan=PLANES.find(p=>p.id===perfil.plan)||PLANES[0];
+  const maxTractoras=plan.id==="flota"?(perfil.tractoras_contratadas||10):plan.maxTractoras;
   const tractorasActivas=tractoras.filter(t=>t.activa!==false);
-  const limiteAlcanzado=tractorasActivas.length>=plan.maxTractoras;
+  const limiteAlcanzado=tractorasActivas.length>=maxTractoras;
   const intentarAnadirT=()=>{
-    if(limiteAlcanzado){setErrorFlota(`Tu plan ${plan.nombre} permite hasta ${plan.maxTractoras} tractora${plan.maxTractoras===1?"":"s"}. Cambia de plan en Ajustes para añadir más.`);return;}
+    if(limiteAlcanzado){setErrorFlota(`Tu plan ${plan.nombre} permite hasta ${maxTractoras} tractora${maxTractoras===1?"":"s"} contratada${maxTractoras===1?"":"s"}. Añade más tractoras desde Gestionar cuenta para poder dar de alta más vehículos.`);return;}
     setEditT({subtipo:"Tractora",conjunto_fijo:false});
   };
 

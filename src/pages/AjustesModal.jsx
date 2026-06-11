@@ -20,7 +20,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   const[showUsuarios,setShowUsuarios]=useState(false);
 
   const plan=PLANES.find(p=>p.id===perfil.plan)||PLANES[0];
-  const planLimite=plan.maxTractoras;
+  const planLimite=plan.id==="flota"?(perfil.tractoras_contratadas||10):plan.maxTractoras;
   const tractorasActivas=(tractoras||[]).filter(t=>t.activa!==false).length;
 
   useEffect(()=>{
