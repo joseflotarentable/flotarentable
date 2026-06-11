@@ -11,6 +11,7 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
   const[loading,setLoading]=useState(false);
   const[err,setErr]=useState("");
   const[showPass,setShowPass]=useState(false);
+  const[showSentModal,setShowSentModal]=useState(false);
   const[form,setForm]=useState({nombre:"",empresa:"",email:"",telefono:"",rol:"gerente",codigoEmpresa:"",plan:"",password:"",confirmPass:""});
   const passStep=form.rol==="gerente"?4:3;
   const totalSteps=form.rol==="gerente"?4:3;
@@ -87,7 +88,7 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
     const{error}=await sb.auth.resetPasswordForEmail(form.email,{redirectTo:"https://kmrentable.vercel.app"});
     setLoading(false);
     if(error){setErr("Error al enviar el email. Verifica la dirección.");return;}
-    setErr("");setMode("forgotSent");
+    setErr("");setMode("login");setShowSentModal(true);
   };
 
   const handleForgotUser=async()=>{
@@ -97,17 +98,6 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
     setLoading(false);
     setErr("");setMode("forgotUserSent");
   };
-
-  if(mode==="forgotSent")return(
-    <div className="auth-wrap fu">
-      <div style={{padding:"3rem 1.5rem 1.5rem",display:"flex",flexDirection:"column",gap:"1rem",alignItems:"center",textAlign:"center"}}>
-        <div style={{fontSize:"3rem"}}>📧</div>
-        <div style={{fontFamily:"'Bebas Neue'",fontSize:"1.8rem",letterSpacing:"0.04em"}}>Email enviado</div>
-        <p style={{fontSize:"0.88rem",color:"var(--muted)",lineHeight:1.6}}>Hemos enviado un enlace a <strong style={{color:"var(--text)"}}>{form.email}</strong>. Revisa tu bandeja de entrada y sigue las instrucciones.</p>
-        <button className="btn bp" style={{width:"100%",marginTop:"0.5rem"}} onClick={()=>setMode("login")}>Volver al inicio de sesión</button>
-      </div>
-    </div>
-  );
 
   if(mode==="forgotSentGerente")return(
     <div className="auth-wrap fu">
@@ -191,6 +181,15 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
         {err&&<p style={{fontSize:"0.8rem",color:"var(--red)"}}>{err}</p>}
         <button className="btn bp" onClick={handleLogin} disabled={loading}>{loading?<span className="spinner"/>:"Entrar"}</button>
       </div>
+      {showSentModal&&(
+        <div style={{position:"fixed",inset:0,background:"#000000a0",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:"1.5rem"}} onClick={()=>setShowSentModal(false)}>
+          <div className="card fu" style={{maxWidth:360,width:"100%",textAlign:"center",display:"flex",flexDirection:"column",gap:"1rem",alignItems:"center"}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:"2.5rem"}}>📧</div>
+            <p style={{fontSize:"0.9rem",lineHeight:1.6}}>Se ha enviado un correo electrónico para recuperar tu contraseña.</p>
+            <button className="btn bp" style={{width:"100%"}} onClick={()=>setShowSentModal(false)}>Aceptar</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 
