@@ -16,7 +16,11 @@ export function UsuariosModal({userId,perfil,tractoras,onClose}) {
   const[resetOtp,setResetOtp]=useState("");
 
   const plan=PLANES.find(p=>p.id===perfil.plan)||PLANES[0];
-  const limite=plan.maxTractoras;
+  const limiteChofer=plan.maxTractoras;
+  const limiteTrafico=limiteChofer===Infinity?Infinity:Math.ceil(limiteChofer/2);
+  const limite=limiteChofer===Infinity?Infinity:limiteChofer+limiteTrafico;
+  const numTrafico=empleados.filter(e=>e.rol==="trafico").length;
+  const numChofer=empleados.length-numTrafico;
   const limiteAlcanzado=empleados.length>=limite;
 
   const cargarEmpleados=async()=>{
@@ -28,6 +32,8 @@ export function UsuariosModal({userId,perfil,tractoras,onClose}) {
   const crearEmpleado=async()=>{
     setEmpMsg("");
     if(limiteAlcanzado){setEmpMsg(`Tu plan ${plan.nombre} permite hasta ${limite===Infinity?"∞":limite} usuario${limite===1?"":"s"}. Cambia de plan para añadir más.`);return;}
+    if(nuevoEmp.rol==="chofer"&&numChofer>=limiteChofer){setEmpMsg(`Tu plan ${plan.nombre} permite hasta ${limiteChofer===Infinity?"∞":limiteChofer} chófer${limiteChofer===1?"":"es"}. Cambia de plan para añadir más.`);return;}
+    if(nuevoEmp.rol==="trafico"&&numTrafico>=limiteTrafico){setEmpMsg(`Tu plan ${plan.nombre} permite hasta ${limiteTrafico===Infinity?"∞":limiteTrafico} usuario${limiteTrafico===1?"":"s"} de tráfico. Cambia de plan para añadir más.`);return;}
     if(!nuevoEmp.nombre||!nuevoEmp.usuario||!nuevoEmp.password){setEmpMsg("Rellena nombre, usuario y contraseña");return;}
     if(nuevoEmp.password.length<6){setEmpMsg("La contraseña debe tener al menos 6 caracteres");return;}
     setCreandoEmp(true);
@@ -94,7 +100,7 @@ export function UsuariosModal({userId,perfil,tractoras,onClose}) {
           <div style={{height:4,background:"var(--s3)",borderRadius:2,overflow:"hidden"}}>
             <div style={{height:"100%",width:`${Math.min((empleados.length/Math.max(limite===Infinity?empleados.length||1:limite,1))*100,100)}%`,background:limiteAlcanzado?"var(--red)":"var(--a1)",borderRadius:2,transition:"width 0.3s"}}/>
           </div>
-          <div style={{fontSize:"0.7rem",color:"var(--muted)",marginTop:"0.25rem"}}>Plan {plan.nombre} · {limite===Infinity?"usuarios ilimitados":`hasta ${limite} usuario${limite===1?"":"s"}`}</div>
+          <div style={{fontSize:"0.7rem",color:"var(--muted)",marginTop:"0.25rem"}}>Plan {plan.nombre} · {limite===Infinity?"usuarios ilimitados":`hasta ${limiteChofer} chófer${limiteChofer===1?"":"es"} y ${limiteTrafico} de tráfico (${limite} en total)`}</div>
         </div>
         <div className="card">
           <div className="chd">👤 Chóferes y tráfico</div>
