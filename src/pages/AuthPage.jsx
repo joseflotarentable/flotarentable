@@ -24,8 +24,8 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
     if(step===2){
       if(form.rol==="chofer"&&!form.codigoEmpresa){setErr("El codigo de empresa es obligatorio para choferes");return;}
       if(form.rol==="chofer"){
-        const{data:emp}=await sb.from("empresas").select("id").eq("codigo",form.codigoEmpresa.toUpperCase()).single();
-        if(!emp){setErr("Codigo incorrecto. Pidele el codigo FR-XXXX a tu gerente.");return;}
+        const{data:emp}=await sb.rpc("empresa_por_codigo",{p_codigo:form.codigoEmpresa.toUpperCase()});
+        if(!emp||emp.length===0){setErr("Codigo incorrecto. Pidele el codigo FR-XXXX a tu gerente.");return;}
       }
       setErr("");setStep(3);return;
     }
@@ -42,14 +42,8 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
           const{data:emp}=await sb.from("empresas").insert({nombre:form.empresa||form.nombre,codigo:genCode(),gerente_id:data.user.id,miembros:[data.user.id]}).select().single();
           empresaId=emp?.id;
         }else if(form.codigoEmpresa){
-          const{data:emp}=await sb.from("empresas").select("id,miembros").eq("codigo",form.codigoEmpresa.toUpperCase()).single();
-          empresaId=emp?.id;
-          if(emp?.id){
-            const miembrosActuales=emp.miembros||[];
-            if(!miembrosActuales.includes(data.user.id)){
-              await sb.from("empresas").update({miembros:[...miembrosActuales,data.user.id]}).eq("id",emp.id);
-            }
-          }
+          const{data:empId}=await sb.rpc("unirse_empresa_por_codigo",{p_codigo:form.codigoEmpresa.toUpperCase()});
+          empresaId=empId;
         }
         await sb.from("perfiles").upsert({id:data.user.id,nombre:form.nombre,empresa:form.empresa,email:form.email,telefono:form.telefono,rol:form.rol,accent_idx:0,trial_start:new Date().toISOString(),empresa_id:empresaId});
         const{data:p}=await sb.from("perfiles").select("*").eq("id",data.user.id).single();

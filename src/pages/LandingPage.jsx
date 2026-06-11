@@ -21,7 +21,7 @@ Legitimación: ejecución del contrato de prestación de servicios y consentimie
 
 Conservación: tus datos se conservan mientras mantengas tu cuenta activa y, posteriormente, durante los plazos legalmente exigibles.
 
-Destinatarios: tus datos se almacenan en infraestructura de terceros proveedores (hosting y base de datos) que actúan como encargados del tratamiento bajo contrato, sin cederse a terceros para fines comerciales.
+Destinatarios: tus datos se almacenan en infraestructura de terceros proveedores (hosting y base de datos) que actúan como encargados del tratamiento bajo contrato, sin cederse a terceros para fines comerciales. Los pagos de la suscripción son gestionados por Stripe, que recibe los datos necesarios para procesar el cobro (Stripe Payments Europe, Ltd.) bajo sus propias condiciones y política de privacidad.
 
 Derechos: puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a soporte@kmrentable.com.`},
   terminos:{title:"Términos y condiciones",body:`El uso de FlotaRentable implica la aceptación de estos términos.
@@ -30,7 +30,7 @@ Derechos: puedes ejercer tus derechos de acceso, rectificación, supresión, opo
 
 2. Periodo de prueba: se ofrece un periodo de prueba gratuito de 7 días desde el registro. Transcurrido este periodo, el acceso al servicio requiere una suscripción de pago.
 
-3. Suscripción: la suscripción tiene un coste de 14,99€/mes, se renueva automáticamente y puede cancelarse en cualquier momento desde los ajustes de la cuenta, sin permanencia.
+3. Suscripción: tras el periodo de prueba, el acceso requiere una suscripción mensual cuyo precio depende del tamaño de la flota: plan Starter (1-3 camiones) 19,99€/mes, plan Pro (4-10 camiones) 39,99€/mes, y plan Flota (más de 10 camiones) 49,99€/mes más 2€/mes por cada camión adicional. La suscripción se renueva automáticamente y puede cancelarse en cualquier momento desde los ajustes de la cuenta, sin permanencia.
 
 4. Uso del servicio: el usuario es responsable de la veracidad de los datos introducidos (viajes, gastos, vehículos, usuarios). FlotaRentable no se hace responsable de las decisiones tomadas en base a los cálculos generados, que son orientativos.
 
@@ -129,6 +129,14 @@ export function LandingPage({accent,onLogin,onRegister}) {
   .lp-price-sub{color:#8A8AA2;font-size:0.85rem;margin-bottom:1.5rem}
   .lp-pricing ul{list-style:none;padding:0;margin:1.5rem 0;text-align:left;display:flex;flex-direction:column;gap:0.7rem}
   .lp-pricing li{display:flex;align-items:flex-start;gap:0.6rem;font-size:0.88rem;color:#EEEDF5}
+  .lp-plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.1rem;max-width:980px;margin:0 auto}
+  .lp-plan{background:linear-gradient(160deg,#15151F,#0B0B14);border:1px solid #ffffff14;border-radius:24px;padding:1.75rem 1.5rem;text-align:center;display:flex;flex-direction:column}
+  .lp-plan.lp-plan-hl{border-color:${accent.a1}66;box-shadow:0 0 0 1px ${accent.a1}33}
+  .lp-plan-tag{font-size:0.75rem;font-weight:700;color:${accent.a1};text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem}
+  .lp-plan-range{font-size:0.85rem;color:#8A8AA2;margin-bottom:0.75rem}
+  .lp-plan-price{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:0.02em;background:linear-gradient(135deg,${accent.a1},#FFD166);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .lp-plan-price span{font-family:inherit;font-size:0.95rem;color:#8A8AA2;-webkit-text-fill-color:#8A8AA2}
+  .lp-plan-extra{font-size:0.78rem;color:#8A8AA2;margin:0.4rem 0 1.25rem}
   .lp-rev{background:#15151F;border:1px solid #ffffff10;border-radius:18px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem}
   .lp-rev-stars{color:#FFD166;font-size:0.95rem;letter-spacing:0.15em}
   .lp-rev p{font-size:0.9rem;color:#C7C7DA;line-height:1.65}
@@ -209,17 +217,37 @@ export function LandingPage({accent,onLogin,onRegister}) {
           <h2>Precio simple, sin sorpresas</h2>
           <p>Prueba gratis, sin tarjeta. Cancela cuando quieras.</p>
         </div>
-        <div className="lp-pricing">
-          <div className="lp-price">14,99€<span style={{fontSize:"1rem",color:"#8A8AA2"}}>/mes</span></div>
-          <div className="lp-price-sub">Por empresa, tractoras y usuarios ilimitados</div>
-          <ul>
+        <div className="lp-plans">
+          <div className="lp-plan">
+            <div className="lp-plan-tag">Starter</div>
+            <div className="lp-plan-range">1-3 camiones</div>
+            <div className="lp-plan-price">19,99€<span>/mes</span></div>
+            <div className="lp-plan-extra">Usuarios ilimitados</div>
+            <button className="lp-btn lp-btn-ghost" style={{width:"100%"}} onClick={onRegister}>Empezar 7 días gratis</button>
+          </div>
+          <div className="lp-plan lp-plan-hl">
+            <div className="lp-plan-tag">Pro</div>
+            <div className="lp-plan-range">4-10 camiones</div>
+            <div className="lp-plan-price">39,99€<span>/mes</span></div>
+            <div className="lp-plan-extra">Usuarios ilimitados</div>
+            <button className="lp-btn lp-btn-pri" style={{width:"100%"}} onClick={onRegister}>Empezar 7 días gratis</button>
+          </div>
+          <div className="lp-plan">
+            <div className="lp-plan-tag">Flota</div>
+            <div className="lp-plan-range">+10 camiones</div>
+            <div className="lp-plan-price">49,99€<span>/mes</span></div>
+            <div className="lp-plan-extra">+ 2€/mes por cada camión adicional</div>
+            <button className="lp-btn lp-btn-ghost" style={{width:"100%"}} onClick={onRegister}>Empezar 7 días gratis</button>
+          </div>
+        </div>
+        <div className="lp-pricing" style={{marginTop:"1.5rem",maxWidth:"100%"}}>
+          <ul style={{margin:0}}>
             <li>✅ Gestión completa de flota y viajes</li>
             <li>✅ Cálculo de rentabilidad por km y por viaje</li>
             <li>✅ Control de gastos con escaneo de tickets</li>
             <li>✅ Exportación para tu gestoría con IVA</li>
             <li>✅ Acceso para chóferes y tráfico</li>
           </ul>
-          <button className="lp-btn lp-btn-pri" style={{width:"100%"}} onClick={onRegister}>Empezar 7 días gratis</button>
         </div>
       </section>
 
