@@ -141,8 +141,10 @@ export default function App() {
   if(!user)return(<><style>{makeCSS(accent)}</style><div className="app"><AuthPage onAuth={handleAuth} accent={accent} initialMode={authMode} onBack={()=>setShowAuth(false)}/></div></>);
   if(user&&!perfil.rol)return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#08080F"}}><div className="spinner" style={{width:32,height:32,borderColor:"rgba(255,61,90,0.3)",borderTopColor:"#FF3D5A"}}/></div>);
 
-  const suscrito=subStatus==="active";
-  if((days<=0&&!suscrito)||showPaywall)return(<><style>{makeCSS(accent)}</style><div className="app"><PaywallPage userId={esGerente?user.id:null} esGerente={esGerente} expired={days<=0&&!suscrito} onLogout={handleLogout} onClose={days>0?()=>setShowPaywall(false):null}/></div></>);
+  const accesoExtendido=perfil.acceso_hasta&&new Date(perfil.acceso_hasta)>new Date();
+  const cuentaIlimitada=user?.email==="jimenezaguilera96@gmail.com";
+  const suscrito=subStatus==="active"||accesoExtendido||cuentaIlimitada;
+  if((days<=0&&!suscrito)||showPaywall)return(<><style>{makeCSS(accent)}</style><div className="app"><PaywallPage userId={esGerente?user.id:null} perfil={perfil} updatePerfil={updatePerfil} esGerente={esGerente} expired={days<=0&&!suscrito} onLogout={handleLogout} onClose={days>0?()=>setShowPaywall(false):null}/></div></>);
 
   const tabs=[{id:"inicio",lbl:"Inicio",icon:I.dash},...(esGerente?[{id:"flota",lbl:"Vehículos",icon:I.truck}]:[]),{id:"viajes",lbl:"Viajes",icon:I.trend},{id:"gastos",lbl:"Gastos",icon:I.coin},...(esGerente?[{id:"analizar",lbl:"Analizar",icon:I.analyze}]:[])];
   // El chofer solo ve su tractora asignada (perfil.truck_id); gerente y trafico ven toda la flota.
