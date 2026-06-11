@@ -1,0 +1,41 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#08080F"/>
+      <stop offset="100%" stop-color="#15151F"/>
+    </linearGradient>
+    <linearGradient id="acc" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF3D5A"/>
+      <stop offset="100%" stop-color="#FFD166"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="0%" r="70%">
+      <stop offset="0%" stop-color="#FF3D5A" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#FF3D5A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- logo mark -->
+  <g transform="translate(80,80)">
+    <rect width="84" height="84" rx="20" fill="url(#acc)"/>
+    <g transform="translate(14,14)">
+      <path d="M 9 56 Q 9 28 36 28 Q 63 28 63 9" stroke="white" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <circle cx="63" cy="9" r="10" fill="#F5C842"/>
+      <circle cx="63" cy="9" r="4" fill="#E8490F"/>
+      <circle cx="9" cy="56" r="10" fill="#1A1A1A" stroke="white" stroke-width="2"/>
+    </g>
+  </g>
+
+  <text x="184" y="138" font-family="'Bebas Neue', sans-serif" font-size="48" letter-spacing="2" fill="#EEEDF5">FlotaRentable</text>
+
+  <text x="80" y="280" font-family="'Bebas Neue', sans-serif" font-size="84" letter-spacing="1" fill="#EEEDF5">Si no sabes tu coste</text>
+  <text x="80" y="372" font-family="'Bebas Neue', sans-serif" font-size="84" letter-spacing="1" fill="url(#acc)">por kilometro,</text>
+  <text x="80" y="464" font-family="'Bebas Neue', sans-serif" font-size="84" letter-spacing="1" fill="url(#acc)">vas a ciegas</text>
+
+  <text x="80" y="540" font-family="'Plus Jakarta Sans', sans-serif" font-size="30" fill="#C7C7DA">Gestion de flotas, gastos y rentabilidad real</text>
+  <text x="80" y="580" font-family="'Plus Jakarta Sans', sans-serif" font-size="30" fill="#C7C7DA">para transportistas. Prueba gratis 7 dias.</text>
+
+  <text x="1120" y="580" font-family="'Plus Jakarta Sans', sans-serif" font-size="26" fill="#5A5A72" text-anchor="end">flotarentable.com</text>
+</svg>

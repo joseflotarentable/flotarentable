@@ -52,7 +52,12 @@
       "PowerShell(scoop which supabase 2>&1; & \"$env:USERPROFILE\\\\scoop\\\\shims\\\\supabase.exe\" --version 2>&1)",
       "WebFetch(domain:flotarentable.com)",
       "Bash(ls public/)",
-      "Bash(ls src/assets)"
+      "Bash(ls src/assets)",
+      "Bash(curl -sI https://www.flotarentable.com/sitemap.xml)",
+      "Bash(curl -sI https://flotarentable.com/sitemap.xml)",
+      "Bash(npx -y @resvg/resvg-cli public/og-image.svg public/og-image.png --width 1200)",
+      "Bash(npx -y resvg-cli public/og-image.svg public/og-image.png --width 1200)",
+      "Bash(npx -y resvg-cli public/og-image.svg public/og-image.png)"
     ]
   }
 }
