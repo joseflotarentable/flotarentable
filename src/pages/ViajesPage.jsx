@@ -232,7 +232,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
             <div className="fld"><label className="lbl">Peajes (€)</label><input className="inp" type="number" placeholder="0" value={modal.peaje} onChange={e=>setModal({...modal,peaje:e.target.value})}/></div>
             {esGerente&&<div className="fld"><label className="lbl">Precio cobrado (€) <span style={{fontSize:"0.68rem",color:"var(--muted)",fontWeight:400}}>(IVA incluido)</span></label><input className="inp" type="number" placeholder="0" value={modal.precio} onChange={e=>setModal({...modal,precio:e.target.value})}/></div>}
           </div>
-          {esGerente&&<div className="toggle-row"><span className="toggle-lbl">💶 Pago del cliente cobrado</span><button className={`toggle ${modal.cobrado?"on":""}`} onClick={()=>setModal(f=>({...f,cobrado:!f.cobrado,fecha_cobro:!f.cobrado?(f.fecha_cobro||new Date().toISOString().slice(0,10)):f.fecha_cobro}))}/></div>}
+          {esGerente&&<div className="toggle-row"><span className="toggle-lbl">💶 ¿Ya has cobrado este viaje?</span><button className={`toggle ${modal.cobrado?"on":""}`} onClick={()=>setModal(f=>({...f,cobrado:!f.cobrado,fecha_cobro:!f.cobrado?(f.fecha_cobro||new Date().toISOString().slice(0,10)):f.fecha_cobro}))}/></div>}
           {esGerente&&modal.cobrado&&<div className="fld"><label className="lbl">Fecha de cobro</label><input type="date" className="inp" value={modal.fecha_cobro||""} onChange={e=>setModal({...modal,fecha_cobro:e.target.value})}/></div>}
           <div className="fld">
             <label className="lbl">📍 Indicaciones de destino (opcional)</label>
