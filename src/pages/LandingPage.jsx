@@ -75,7 +75,7 @@ export function LandingPage({accent,onLogin,onRegister}) {
     {n:"Manuel Ortega",r:"Chófer, ruta nacional",t:"Desde el móvil registro el viaje, la carga y el ticket de gasoil con la cámara. Mi jefe ve todo en tiempo real y a mí me ahorra muchísimo papeleo.",init:"MO",col:"#5B8CFF"},
     {n:"Lucía Navarro",r:"Tráfico, flota de 12 camiones",t:"Lo que más nos ha cambiado es la alerta de consumo: detectó una tractora gastando un 15% más de lo normal y resultó ser una avería que no habíamos visto.",init:"LN",col:"#FFD166"},
     {n:"Javier Molina",r:"Autónomo",t:"Se me había caducado la ITV un par de veces sin darme cuenta. Ahora me avisa con semanas de antelación y no he vuelto a tener ese susto.",init:"JM",col:"#5B8CFF"},
-    {n:"Carmen Iglesias",r:"Gerente de flota",t:"Antes cada chófer apuntaba los gastos a su manera y al final de mes era un caos cuadrar todo. Ahora todo entra igual y yo solo reviso.",init:"CI",col:"#FF3D5A"},
+    {n:"Carmen Iglesias",r:"Gerente de flota",t:"Antes cada chófer apuntaba los gastos a su manera y al final de mes era un caos cuadrar todo. Ahora cada uno los registra desde el móvil con el mismo formato y yo solo tengo que revisarlos.",init:"CI",col:"#FF3D5A"},
   ];
 
   const css=`
