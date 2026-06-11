@@ -3,12 +3,9 @@ import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
 import { PLANES } from "../lib/constants.js";
 
-export function PaywallPage({ userId, perfil, updatePerfil, esGerente, onLogout, onClose, expired }) {
+export function PaywallPage({ userId, perfil, esGerente, onLogout, onClose, expired }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [promoCodigo, setPromoCodigo] = useState("");
-  const [promoMsg, setPromoMsg] = useState("");
-  const [aplicandoPromo, setAplicandoPromo] = useState(false);
 
   const [planId, setPlanId] = useState(perfil?.plan || PLANES[0].id);
   const plan = PLANES.find(p => p.id === planId) || PLANES[0];
@@ -19,19 +16,6 @@ export function PaywallPage({ userId, perfil, updatePerfil, esGerente, onLogout,
     setLoading(false);
     if (error || !data?.url) { setError("No se ha podido iniciar el pago. Intentalo de nuevo."); return; }
     window.location.href = data.url;
-  };
-
-  const canjearPromo = async () => {
-    setPromoMsg("");
-    if (!promoCodigo.trim()) { setPromoMsg("Introduce un codigo"); return; }
-    setAplicandoPromo(true);
-    const { data, error } = await sb.rpc("canjear_codigo_promo", { p_codigo: promoCodigo.trim().toUpperCase() });
-    setAplicandoPromo(false);
-    const res = Array.isArray(data) ? data[0] : data;
-    if (error || !res?.ok) { setPromoMsg(res?.mensaje || "No se pudo aplicar el codigo"); return; }
-    setPromoMsg(`✅ ${res.mensaje}: ${res.meses} mes${res.meses === 1 ? "" : "es"} gratis`);
-    if (updatePerfil) updatePerfil({ acceso_hasta: new Date(Date.now() + res.meses * 30 * 24 * 60 * 60 * 1000).toISOString() });
-    setTimeout(() => window.location.reload(), 1500);
   };
 
   return (
@@ -71,13 +55,6 @@ export function PaywallPage({ userId, perfil, updatePerfil, esGerente, onLogout,
           <button className="btn bp" onClick={suscribirse} disabled={loading}>
             {loading?<span className="spinner"/>:"Suscribirme"}
           </button>
-          <div style={{height:1,background:"var(--border)",margin:"1rem 0"}}/>
-          <div style={{fontSize:"0.8rem",fontWeight:700,marginBottom:"0.4rem"}}>¿Tienes un codigo promocional?</div>
-          <div style={{display:"flex",gap:"0.5rem"}}>
-            <input className="inp" placeholder="Codigo" value={promoCodigo} onChange={e=>setPromoCodigo(e.target.value)} style={{flex:1}}/>
-            <button className="btn bg" style={{width:"auto"}} onClick={canjearPromo} disabled={aplicandoPromo}>{aplicandoPromo?<span className="spinner"/>:"Canjear"}</button>
-          </div>
-          {promoMsg && <p style={{fontSize:"0.78rem",color:promoMsg.startsWith("✅")?"var(--green)":"var(--red)",marginTop:"0.5rem"}}>{promoMsg}</p>}
         </>) : (
           <p style={{fontSize:"0.85rem",color:"var(--muted)",marginBottom:"1rem"}}>
             El periodo de prueba de tu empresa ha terminado. Pide a tu gerente que active un plan para poder seguir usando FlotaRentable.
