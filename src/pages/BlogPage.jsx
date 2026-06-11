@@ -84,19 +84,21 @@ export function BlogPage({ accent, onHome, onLogin, onRegister, onOpenPost }) {
     <div className="lp">
       <style>{css(accent)}</style>
       <NavBar accent={accent} onHome={onHome} onLogin={onLogin} onRegister={onRegister} />
+      <main>
       <section className="blog-section">
         <h1 className="blog-h1">Blog de FlotaRentable</h1>
         <p className="blog-sub">Consejos, normativa y trucos para transportistas y empresas de flota.</p>
         <div className="blog-list">
           {BLOG_POSTS.map((p) => (
-            <div className="blog-card" key={p.slug} onClick={() => onOpenPost(p.slug)}>
+            <a className="blog-card" key={p.slug} href={`/blog/${p.slug}`} style={{display:"block",textDecoration:"none",color:"inherit"}} onClick={e=>{e.preventDefault();onOpenPost(p.slug);}}>
               <div className="blog-card-date">{new Date(p.date).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}</div>
               <h2>{p.title}</h2>
               <p>{p.description}</p>
-            </div>
+            </a>
           ))}
         </div>
       </section>
+      </main>
       <footer className="lp-foot">© {new Date().getFullYear()} FlotaRentable · Hecho para el transporte por carretera en España</footer>
     </div>
   );
@@ -113,10 +115,12 @@ export function BlogPostPage({ slug, accent, onHome, onLogin, onRegister, onBack
       <div className="lp">
         <style>{css(accent)}</style>
         <NavBar accent={accent} onHome={onHome} onLogin={onLogin} onRegister={onRegister} />
+        <main>
         <section className="blog-section">
           <h1 className="blog-h1">Artículo no encontrado</h1>
           <button className="lp-btn lp-btn-ghost" onClick={onBack}><Icon d={I.arrow} size={14} color="#EEEDF5" />Volver al blog</button>
         </section>
+        </main>
       </div>
     );
   }
@@ -124,6 +128,7 @@ export function BlogPostPage({ slug, accent, onHome, onLogin, onRegister, onBack
     <div className="lp">
       <style>{css(accent)}</style>
       <NavBar accent={accent} onHome={onHome} onLogin={onLogin} onRegister={onRegister} />
+      <main>
       <section className="blog-section">
         <button className="lp-btn lp-btn-ghost" style={{ marginBottom: "1.5rem" }} onClick={onBack}>← Volver al blog</button>
         <h1 className="blog-h1">{post.title}</h1>
@@ -137,14 +142,15 @@ export function BlogPostPage({ slug, accent, onHome, onLogin, onRegister, onBack
           <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "1.4rem", letterSpacing: "0.02em", marginBottom: "1rem" }}>Sigue leyendo</h2>
           <div className="blog-list">
             {BLOG_POSTS.filter((p) => p.slug !== slug).slice(0, 2).map((p) => (
-              <div className="blog-card" key={p.slug} onClick={() => onOpenPost(p.slug)}>
+              <a className="blog-card" key={p.slug} href={`/blog/${p.slug}`} style={{display:"block",textDecoration:"none",color:"inherit"}} onClick={e=>{e.preventDefault();onOpenPost(p.slug);}}>
                 <h2>{p.title}</h2>
                 <p>{p.description}</p>
-              </div>
+              </a>
             ))}
           </div>
         </div>
       </section>
+      </main>
       <footer className="lp-foot">© {new Date().getFullYear()} FlotaRentable · Hecho para el transporte por carretera en España</footer>
     </div>
   );

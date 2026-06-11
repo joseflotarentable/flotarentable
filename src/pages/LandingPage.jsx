@@ -172,7 +172,7 @@ export function LandingPage({accent,onLogin,onRegister,onBlog,onOpenPost}) {
           <a href="#precios">Precios</a>
           <a href="#nosotros">Quiénes somos</a>
           <a href="#contacto">Contacto</a>
-          <a onClick={onBlog} style={{cursor:"pointer"}}>Blog</a>
+          <a href="/blog" onClick={e=>{e.preventDefault();onBlog();}}>Blog</a>
         </div>
         <div className="lp-navbtns">
           <button className="lp-btn lp-btn-ghost" onClick={onLogin}>Acceder</button>
@@ -180,6 +180,7 @@ export function LandingPage({accent,onLogin,onRegister,onBlog,onOpenPost}) {
         </div>
       </nav>
 
+      <main>
       <header className="lp-hero">
         <div className="lp-glow"/>
         <div className="lp-glow2"/>
@@ -287,15 +288,15 @@ export function LandingPage({accent,onLogin,onRegister,onBlog,onOpenPost}) {
         </div>
         <div className="lp-grid">
           {[BLOG_POSTS_PREVIEW.itv,BLOG_POSTS_PREVIEW.coste].map((p)=>(
-            <div className="lp-feat" key={p.slug} style={{cursor:"pointer"}} onClick={()=>onOpenPost(p.slug)}>
+            <a className="lp-feat" key={p.slug} href={`/blog/${p.slug}`} style={{cursor:"pointer",display:"block",textDecoration:"none",color:"inherit"}} onClick={e=>{e.preventDefault();onOpenPost(p.slug);}}>
               <h3>{p.title}</h3>
               <p>{p.description}</p>
-            </div>
+            </a>
           ))}
-          <div className="lp-feat" style={{cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"flex-start",justifyContent:"center"}} onClick={onBlog}>
+          <a className="lp-feat" href="/blog" style={{cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"flex-start",justifyContent:"center",textDecoration:"none",color:"inherit"}} onClick={e=>{e.preventDefault();onBlog();}}>
             <h3>Ver todos los artículos</h3>
             <p>Visita el blog de FlotaRentable para más guías sobre rentabilidad, fiscalidad y gestión de flotas.</p>
-          </div>
+          </a>
         </div>
       </section>
 
@@ -331,10 +332,11 @@ export function LandingPage({accent,onLogin,onRegister,onBlog,onOpenPost}) {
           <button className="lp-btn lp-btn-pri" style={{width:"100%"}} onClick={onRegister}>Empezar 7 días gratis</button>
         </div>
       </section>
+      </main>
 
       <footer className="lp-foot">
         <div className="lp-foot-links">
-          <span onClick={onBlog}>Blog</span>
+          <a href="/blog" style={{color:"inherit",textDecoration:"none"}} onClick={e=>{e.preventDefault();onBlog();}}>Blog</a>
           <span onClick={()=>setLegalView("aviso")}>Aviso legal</span>
           <span onClick={()=>setLegalView("privacidad")}>Política de privacidad</span>
           <span onClick={()=>setLegalView("terminos")}>Términos y condiciones</span>
