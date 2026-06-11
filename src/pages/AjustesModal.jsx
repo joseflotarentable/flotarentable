@@ -10,10 +10,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   const[clienteMsg,setClienteMsg]=useState("");
   const[codigo,setCodigo]=useState("");
   const[copied,setCopied]=useState(false);
-  const[passForm,setPassForm]=useState({nueva:"",confirmar:""});
   const[passMsg,setPassMsg]=useState("");
-  const[passOtpSent,setPassOtpSent]=useState(false);
-  const[passOtp,setPassOtp]=useState("");
   const[enviandoOtp,setEnviandoOtp]=useState(false);
   const[numMiembros,setNumMiembros]=useState(1);
   const[empresaGerente,setEmpresaGerente]=useState(null);
@@ -64,28 +61,14 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   },[]);
 
   const saveAjustes=async patch=>{await sb.from("perfiles").update(patch).eq("id",userId);updatePerfil(patch);};
-  const enviarOtpPass=async()=>{
+  const pedirCambioPass=async()=>{
     setPassMsg("");
-    if(passForm.nueva.length<6){setPassMsg("Mínimo 6 caracteres");return;}
-    if(passForm.nueva!==passForm.confirmar){setPassMsg("Las contraseñas no coinciden");return;}
     if(!perfil.email){setPassMsg("Tu cuenta no tiene un email asociado");return;}
     setEnviandoOtp(true);
-    const{error}=await sb.auth.signInWithOtp({email:perfil.email,options:{shouldCreateUser:false}});
+    const{error}=await sb.auth.resetPasswordForEmail(perfil.email);
     setEnviandoOtp(false);
-    if(error){setPassMsg("Error al enviar el código: "+error.message);return;}
-    setPassOtpSent(true);
-    setPassMsg(`✅ Te hemos enviado un código de confirmación a ${perfil.email}`);
-  };
-  const cambiarPass=async()=>{
-    if(passOtp.length<6){setPassMsg("Introduce el código de 6 dígitos");return;}
-    setEnviandoOtp(true);
-    const{error:errOtp}=await sb.auth.verifyOtp({email:perfil.email,token:passOtp,type:"email"});
-    if(errOtp){setEnviandoOtp(false);setPassMsg("Código incorrecto o caducado");return;}
-    const{error}=await sb.auth.updateUser({password:passForm.nueva});
-    setEnviandoOtp(false);
-    if(error){setPassMsg("Error al cambiar la contraseña");return;}
-    setPassMsg("✅ Contraseña cambiada correctamente.");
-    setPassForm({nueva:"",confirmar:""});setPassOtp("");setPassOtpSent(false);
+    if(error){setPassMsg("Error al enviar el correo: "+error.message);return;}
+    setPassMsg(`✅ Te hemos enviado un correo a ${perfil.email} con un enlace para cambiar tu contraseña.`);
   };
 
   const crearEmpleado=async()=>{
@@ -320,18 +303,9 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
         </div>
         {perfil.rol==="gerente"&&<div className="card">
           <div className="chd">Cambiar contrasena</div>
-          <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
-            <input className="inp" type="password" placeholder="Nueva contrasena" value={passForm.nueva} onChange={e=>setPassForm({...passForm,nueva:e.target.value})} disabled={passOtpSent}/>
-            <input className="inp" type="password" placeholder="Confirmar contrasena" value={passForm.confirmar} onChange={e=>setPassForm({...passForm,confirmar:e.target.value})} disabled={passOtpSent}/>
-            {passOtpSent&&<input className="inp" type="text" placeholder="Código de 6 dígitos recibido por email" value={passOtp} onChange={e=>setPassOtp(e.target.value)}/>}
-            {passMsg&&<p style={{fontSize:"0.78rem",color:passMsg.startsWith("✅")?"var(--green)":"var(--red)"}}>{passMsg}</p>}
-            {!passOtpSent?
-              <button className="btn bg" onClick={enviarOtpPass} disabled={enviandoOtp}>{enviandoOtp?<span className="spinner"/>:"Enviar código de confirmación"}</button>
-              :<div style={{display:"flex",gap:"0.5rem"}}>
-                <button className="btn bp" style={{flex:1}} onClick={cambiarPass} disabled={enviandoOtp}>{enviandoOtp?<span className="spinner"/>:"Confirmar cambio"}</button>
-                <button className="btn bg" style={{flex:1}} onClick={()=>{setPassOtpSent(false);setPassOtp("");setPassMsg("");}}>Cancelar</button>
-              </div>}
-          </div>
+          <p style={{fontSize:"0.8rem",color:"var(--muted)",marginBottom:"0.5rem"}}>Por seguridad, la contraseña del gerente solo puede cambiarse a través de un enlace que te enviaremos por email.</p>
+          {passMsg&&<p style={{fontSize:"0.78rem",color:passMsg.startsWith("✅")?"var(--green)":"var(--red)",marginBottom:"0.5rem"}}>{passMsg}</p>}
+          <button className="btn bg" onClick={pedirCambioPass} disabled={enviandoOtp}>{enviandoOtp?<span className="spinner"/>:"Enviarme enlace para cambiar contraseña"}</button>
         </div>}
         {(perfil.rol==="chofer"||perfil.rol==="trafico")&&<div className="card">
           <div className="chd">Contrasena</div>
