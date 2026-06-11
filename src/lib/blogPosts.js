@@ -167,4 +167,121 @@ Centralizar el registro de gastos no es solo una cuestión de comodidad. Reduce 
 FlotaRentable está pensado precisamente para esto: que cada chófer registre sus gastos y viajes desde el móvil con el mismo formato, y que el gerente tenga toda la flota organizada y lista para la gestoría sin tener que pedir nada a nadie.
 `,
   },
+  {
+    slug: "como-saber-si-un-porte-es-rentable",
+    title: "Cómo saber si un porte es rentable antes de aceptarlo",
+    description: "Aceptar un porte sin calcular antes su rentabilidad es uno de los errores más caros del transporte. Te explicamos qué tener en cuenta antes de decir que sí.",
+    date: "2026-05-08",
+    content: `
+Es una situación muy habitual: te llega una oferta de carga, el precio parece razonable y, con la presión de tener el camión parado, se acepta. Días después, al revisar los números, el porte apenas ha dejado margen o, directamente, ha sido a pérdidas.
+
+## Por qué un precio "razonable" no siempre es rentable
+
+El precio de un porte solo tiene sentido si lo comparas con tu coste real para hacerlo. Y ese coste depende de varios factores que cambian en cada viaje:
+
+- Kilómetros totales, incluyendo el trayecto en vacío hasta la carga.
+- Combustible estimado según la ruta y el tipo de carga.
+- Peajes de las vías que vas a utilizar.
+- Tiempo de conducción y descanso, que también es coste si implica jornadas extra.
+- Desgaste del vehículo (neumáticos, mantenimiento) prorrateado por kilómetro.
+
+Si el precio ofrecido no cubre, como mínimo, estos costes más un margen razonable, ese porte te está costando dinero, aunque a simple vista parezca que "se cubren gastos".
+
+## El kilómetro en vacío, el gran olvidado
+
+Uno de los errores más frecuentes es calcular la rentabilidad solo con los kilómetros cargados, olvidando el trayecto que hay que hacer en vacío para llegar al punto de carga o para volver a una zona con más demanda. Ese kilómetro en vacío también consume combustible, peajes y tiempo, y debe repartirse entre los ingresos del viaje.
+
+## Qué hacer antes de aceptar un porte
+
+Antes de confirmar un porte, conviene tener claro:
+
+- Cuál es tu coste por kilómetro actualizado (no uno calculado hace meses).
+- Cuántos kilómetros totales implica el viaje, incluido el trayecto en vacío.
+- Si el precio ofrecido deja margen suficiente una vez descontados estos costes.
+- Si aceptar este porte te impide encajar otro más rentable en esos mismos días.
+
+## Decidir con datos, no con la sensación de "no dejar el camión parado"
+
+Un camión parado tiene un coste, sí, pero un porte que da pérdidas también lo tiene, y además consume horas de conducción y desgaste del vehículo que podrías haber dedicado a un viaje rentable.
+
+En FlotaRentable, cada vez que registras un viaje, calculamos automáticamente su rentabilidad real (ingresos menos combustible, peajes y gastos fijos prorrateados), para que puedas comparar ofertas con datos y no a ojo.
+`,
+  },
+  {
+    slug: "digitalizar-empresa-transporte-por-donde-empezar",
+    title: "Digitalizar tu empresa de transporte: por dónde empezar sin complicarte",
+    description: "Digitalizar la gestión de una empresa de transporte no significa cambiarlo todo de golpe. Te contamos por dónde empezar y qué beneficios notarás antes.",
+    date: "2026-05-25",
+    content: `
+"Digitalizar la empresa" suena a un proyecto grande, caro y que requiere meses de implantación. En el transporte por carretera, sin embargo, la digitalización suele empezar por algo mucho más sencillo: dejar de depender del papel, las hojas de Excel sueltas y los grupos de WhatsApp para gestionar gastos, viajes y documentación de la flota.
+
+## Las señales de que toca digitalizar
+
+Hay algunas señales claras de que la gestión "manual" se ha quedado pequeña:
+
+- Cada mes dedicas horas a juntar tickets, facturas y notas para mandárselo a la gestoría.
+- No sabes con seguridad cuál es la rentabilidad real de cada vehículo o de cada viaje.
+- La información de cada chófer está dispersa: unos la apuntan, otros no, y cada uno a su manera.
+- Te enteras de que la ITV o el seguro de un vehículo está a punto de caducar casi por casualidad.
+
+Si te identificas con dos o más de estos puntos, no necesitas un ERP enorme: necesitas centralizar la información básica de tu flota en un solo sitio.
+
+## Por dónde empezar
+
+No hace falta digitalizarlo todo a la vez. Un buen punto de partida es:
+
+- Dar de alta tus vehículos (tractoras y semirremolques) con sus datos básicos: matrícula, ITV, seguro.
+- Empezar a registrar los gastos variables (combustible, peajes, mantenimiento) según se producen, en lugar de acumular tickets.
+- Registrar los viajes con sus ingresos, para poder calcular la rentabilidad real.
+- Si tienes chóferes o personal de tráfico, darles acceso para que registren ellos mismos su parte, sin que todo pase por una sola persona.
+
+## Beneficios que se notan desde el primer mes
+
+A diferencia de proyectos de digitalización más complejos, este tipo de cambios dan resultados casi inmediatos:
+
+- Menos tiempo perdido reconstruyendo gastos a final de mes.
+- Avisos automáticos antes de que caduque la ITV o el seguro de un vehículo.
+- Visibilidad real de qué vehículos y qué viajes son rentables y cuáles no.
+- Información siempre lista para enviar a la gestoría, sin trabajo extra.
+
+FlotaRentable está diseñado para esto: una herramienta sencilla, pensada para empresas de transporte de cualquier tamaño, que centraliza vehículos, gastos, viajes y rentabilidad sin necesidad de formación previa ni implantaciones complejas.
+`,
+  },
+  {
+    slug: "alertas-itv-seguro-caducidad-flota",
+    title: "Por qué controlar las fechas de ITV y seguro de tu flota te ahorra dinero",
+    description: "Una ITV o un seguro caducado puede dejar un camión parado o suponer una sanción importante. Te explicamos cómo evitar estos descuidos en flotas de varios vehículos.",
+    date: "2026-06-09",
+    content: `
+Cuando se gestiona un solo vehículo, es relativamente fácil acordarse de cuándo toca la ITV o cuándo vence el seguro. El problema aparece cuando la flota crece: con cinco, diez o veinte vehículos, cada uno con sus propias fechas de ITV, seguro, y a veces leasing o financiación, confiar en la memoria deja de ser una opción.
+
+## El coste real de un descuido
+
+Un vehículo circulando con la ITV caducada no es solo una multa. Implica:
+
+- Sanciones económicas que pueden ser elevadas según el tiempo transcurrido.
+- Riesgo de que el seguro no cubra un siniestro si la ITV está caducada.
+- Inmovilización del vehículo hasta regularizar la situación, con la pérdida de ingresos que eso supone.
+
+Lo mismo ocurre con un seguro vencido: además de la sanción, un accidente sin seguro en vigor puede suponer un coste muy superior al de la propia póliza.
+
+## Por qué pasa, incluso en empresas organizadas
+
+No es un problema de falta de organización, sino de volumen de información. Cada vehículo tiene varias fechas que vigilar (ITV, seguro, a veces tarjeta de transporte o revisiones periódicas), y cuando esa información vive en agendas distintas, calendarios personales o, simplemente, en la cabeza de una persona, es cuestión de tiempo que algo se escape.
+
+## La solución: centralizar y automatizar los avisos
+
+La forma más sencilla de evitar estos descuidos es:
+
+- Tener todas las fechas clave de cada vehículo (ITV, seguro, etc.) en un único lugar, asociadas a su matrícula.
+- Recibir avisos automáticos con antelación suficiente para gestionar la renovación con calma.
+- Que esta información esté disponible para quien gestiona la flota, sin depender de que una persona concreta se acuerde.
+
+## Tranquilidad para quien gestiona la flota
+
+Más allá del ahorro directo en sanciones, controlar estas fechas de forma centralizada da tranquilidad: se elimina una fuente constante de "y si se nos pasa algo" que, en flotas grandes, genera bastante estrés a quien está al frente.
+
+En FlotaRentable, cada vehículo guarda sus fechas de ITV y seguro, y el sistema avisa con antelación cuando se acercan los vencimientos, para que renovar documentación deje de ser una carrera de última hora.
+`,
+  },
 ];
