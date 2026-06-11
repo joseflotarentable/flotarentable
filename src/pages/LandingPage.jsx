@@ -149,7 +149,7 @@ export function LandingPage({accent,onLogin,onRegister,onBlog,onOpenPost}) {
   .lp-rev-stars{color:#FFD166;font-size:0.95rem;letter-spacing:0.15em}
   .lp-rev p{font-size:0.9rem;color:#C7C7DA;line-height:1.65}
   .lp-rev-who{display:flex;align-items:center;gap:0.7rem;margin-top:0.25rem}
-  .lp-rev-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fff;flex-shrink:0}
+  .lp-rev-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#08080F;flex-shrink:0}
   .lp-rev-name{font-size:0.85rem;font-weight:700}
   .lp-rev-role{font-size:0.72rem;color:#8A8AA2}
   .lp-foot{text-align:center;padding:2.5rem 1.5rem;color:#9595AC;font-size:0.8rem;border-top:1px solid #ffffff0D;margin-top:1rem}
