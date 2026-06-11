@@ -15,6 +15,7 @@ import { GastosPage } from "./pages/GastosPage.jsx";
 import { AnalizarPage } from "./pages/AnalizarPage.jsx";
 import { PaywallPage } from "./pages/PaywallPage.jsx";
 import { BlogPage, BlogPostPage } from "./pages/BlogPage.jsx";
+import { HelpWidget } from "./components/HelpWidget.jsx";
 
 export default function App() {
   const[user,setUser]=useState(null);
@@ -194,6 +195,8 @@ export default function App() {
       </div>
 
       {showAjustes&&<AjustesModal userId={user.id} perfil={perfil} updatePerfil={updatePerfil} onClose={()=>setShowAjustes(false)} onLogout={handleLogout} tractoras={tractoras} theme={theme} setTheme={setTheme} clientesTodos={clientesTodos} setClientesTodos={setClientesTodos}/>}
+
+      <HelpWidget/>
 
       {tab==="inicio"&&<InicioPage key={`inicio-${tractorasActivas.length}-${semisActivas.length}`} userId={user.id} tractoras={tractorasActivas} semis={semisActivas} perfil={perfil} esGerente={esGerente} gastosTodos={gastosVisibles} viajesTodos={viajesVisibles} setViajesTodos={setViajesTodos} gastosFijos={gastosFijos} setTab={setTab}/>}
       {tab==="flota"&&<FlotaPage userId={user.id} perfil={perfil} updatePerfil={updatePerfil} tractoras={tractoras} semis={semis} setTractoras={setTractoras} setSemis={setSemis}/>}
