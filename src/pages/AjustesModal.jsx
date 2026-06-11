@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { sb, crearClienteTemporal, DOMINIO_USUARIO } from "../lib/supabase.js";
+import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
-import { ACCENTS } from "../lib/constants.js";
+import { ACCENTS, PLANES } from "../lib/constants.js";
 import { genCode } from "../lib/helpers.js";
 import { InputGuardado, PhotoUpload } from "../components/ui.jsx";
+import { UsuariosModal } from "./UsuariosModal.jsx";
 
 export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tractoras,theme,setTheme,clientesTodos,setClientesTodos}) {
   const[nuevoCliente,setNuevoCliente]=useState({nombre:"",cif:"",contacto:"",tarifa_km:""});
@@ -14,24 +15,12 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   const[enviandoOtp,setEnviandoOtp]=useState(false);
   const[numMiembros,setNumMiembros]=useState(1);
   const[empresaGerente,setEmpresaGerente]=useState(null);
-  const[empleados,setEmpleados]=useState([]);
-  const[nuevoEmp,setNuevoEmp]=useState({nombre:"",usuario:"",password:"",rol:"chofer",truck_id:""});
-  const[empMsg,setEmpMsg]=useState("");
-  const[creandoEmp,setCreandoEmp]=useState(false);
-  const[resetEmp,setResetEmp]=useState(null);
-  const[resetPass,setResetPass]=useState("");
-  const[resetMsg,setResetMsg]=useState("");
-  const[reseteando,setReseteando]=useState(false);
-  const[resetOtpSent,setResetOtpSent]=useState(false);
-  const[resetOtp,setResetOtp]=useState("");
   const[abriendoPortal,setAbriendoPortal]=useState(false);
   const[portalMsg,setPortalMsg]=useState("");
+  const[showUsuarios,setShowUsuarios]=useState(false);
 
-  const cargarEmpleados=async(empresaId)=>{
-    const{data}=await sb.from("perfiles").select("id,nombre,rol,truck_id,email").eq("empresa_id",empresaId).neq("id",userId);
-    setEmpleados(data||[]);
-  };
-  const planLimite=perfil.plan==="empresa"?999:perfil.plan==="flota"?11:4;
+  const plan=PLANES.find(p=>p.id===perfil.plan)||PLANES[0];
+  const planLimite=plan.maxTractoras;
   const tractorasActivas=(tractoras||[]).filter(t=>t.activa!==false).length;
 
   useEffect(()=>{
@@ -48,7 +37,6 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
         if(data?.codigo)setCodigo(data.codigo);
         if(data?.miembros)setNumMiembros(data.miembros.length);
       });
-      cargarEmpleados(perfil.empresa_id);
     } else {
       sb.from("empresas").select("id,codigo,miembros").eq("gerente_id",userId).single().then(async({data:emp})=>{
         if(emp){
@@ -56,7 +44,6 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
           updatePerfil({empresa_id:emp.id});
           setCodigo(emp.codigo);
           if(emp.miembros)setNumMiembros(emp.miembros.length);
-          cargarEmpleados(emp.id);
         }
       });
     }
@@ -71,59 +58,6 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
     setEnviandoOtp(false);
     if(error){setPassMsg("Error al enviar el correo: "+error.message);return;}
     setPassMsg(`✅ Te hemos enviado un correo a ${perfil.email} con un enlace para cambiar tu contraseña.`);
-  };
-
-  const crearEmpleado=async()=>{
-    setEmpMsg("");
-    if(!nuevoEmp.nombre||!nuevoEmp.usuario||!nuevoEmp.password){setEmpMsg("Rellena nombre, usuario y contraseña");return;}
-    if(nuevoEmp.password.length<6){setEmpMsg("La contraseña debe tener al menos 6 caracteres");return;}
-    setCreandoEmp(true);
-    try{
-      const email=`${nuevoEmp.usuario.trim().toLowerCase()}@${DOMINIO_USUARIO}`;
-      const temp=crearClienteTemporal();
-      const{data,error}=await temp.auth.signUp({email,password:nuevoEmp.password});
-      if(error){setEmpMsg(error.message.includes("registered")?"Ese usuario ya existe":"Error: "+error.message);setCreandoEmp(false);return;}
-      const newId=data.user?.id;
-      if(!newId){setEmpMsg("No se pudo crear el usuario");setCreandoEmp(false);return;}
-      await temp.from("perfiles").upsert({id:newId,nombre:nuevoEmp.nombre,rol:nuevoEmp.rol,empresa_id:perfil.empresa_id,truck_id:nuevoEmp.rol==="chofer"?(nuevoEmp.truck_id||null):null,email});
-      const{data:emp}=await sb.from("empresas").select("miembros").eq("id",perfil.empresa_id).single();
-      const miembros=[...(emp?.miembros||[]),newId];
-      await sb.from("empresas").update({miembros}).eq("id",perfil.empresa_id);
-      setNumMiembros(miembros.length);
-      setEmpMsg("✅ Empleado creado correctamente");
-      setNuevoEmp({nombre:"",usuario:"",password:"",rol:"chofer",truck_id:""});
-      cargarEmpleados(perfil.empresa_id);
-    }catch(e){setEmpMsg("Error: "+e.message);}
-    setCreandoEmp(false);
-  };
-
-  const actualizarEmpleado=async(id,patch)=>{
-    await sb.from("perfiles").update(patch).eq("id",id);
-    setEmpleados(emps=>emps.map(e=>e.id===id?{...e,...patch}:e));
-  };
-
-  const enviarOtpReset=async()=>{
-    setResetMsg("");
-    if(resetPass.length<6){setResetMsg("Mínimo 6 caracteres");return;}
-    if(!perfil.email){setResetMsg("Tu cuenta no tiene un email asociado");return;}
-    setReseteando(true);
-    const{error}=await sb.auth.signInWithOtp({email:perfil.email,options:{shouldCreateUser:false}});
-    setReseteando(false);
-    if(error){setResetMsg("Error al enviar el código: "+error.message);return;}
-    setResetOtpSent(true);
-    setResetMsg(`✅ Código enviado a ${perfil.email}`);
-  };
-  const resetearPassword=async()=>{
-    if(resetOtp.length<6){setResetMsg("Introduce el código de 6 dígitos");return;}
-    setReseteando(true);
-    const{error:errOtp}=await sb.auth.verifyOtp({email:perfil.email,token:resetOtp,type:"email"});
-    if(errOtp){setReseteando(false);setResetMsg("Código incorrecto o caducado");return;}
-    const{data,error}=await sb.functions.invoke("admin-reset-password",{body:{requesterId:userId,targetUserId:resetEmp.id,newPassword:resetPass}});
-    setReseteando(false);
-    if(error||data?.error){setResetMsg("Error: "+(data?.error||error.message));return;}
-    setResetMsg("✅ Contraseña actualizada");
-    setResetPass("");setResetOtp("");setResetOtpSent(false);
-    setTimeout(()=>{setResetEmp(null);setResetMsg("");},1200);
   };
 
   const crearCliente=async()=>{
@@ -173,12 +107,12 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
               <div style={{height:1,background:"var(--border)"}}/>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <span style={{fontSize:"0.78rem",color:"var(--muted)"}}>Tractoras activas</span>
-                <span style={{fontSize:"0.78rem",fontWeight:700,color:tractorasActivas>=(planLimite-1)?"var(--red)":"var(--text)"}}>{tractorasActivas} / {planLimite===999?"∞":planLimite-1}</span>
+                <span style={{fontSize:"0.78rem",fontWeight:700,color:tractorasActivas>=planLimite?"var(--red)":"var(--text)"}}>{tractorasActivas} / {planLimite===Infinity?"∞":planLimite}</span>
               </div>
               <div style={{height:4,background:"var(--s3)",borderRadius:2,overflow:"hidden"}}>
-                <div style={{height:"100%",width:`${Math.min((tractorasActivas/Math.max(planLimite===999?tractorasActivas||1:planLimite-1,1))*100,100)}%`,background:tractorasActivas>=(planLimite-1)?"var(--red)":"var(--a1)",borderRadius:2,transition:"width 0.3s"}}/>
+                <div style={{height:"100%",width:`${Math.min((tractorasActivas/Math.max(planLimite===Infinity?tractorasActivas||1:planLimite,1))*100,100)}%`,background:tractorasActivas>=planLimite?"var(--red)":"var(--a1)",borderRadius:2,transition:"width 0.3s"}}/>
               </div>
-              <div style={{fontSize:"0.7rem",color:"var(--muted)"}}>Plan {planLimite<=4?"Starter":planLimite<=11?"Flota":"Empresa"} · {planLimite===999?"Tractoras ilimitadas":`${planLimite-1} tractora${planLimite-1!==1?"s":""} incluidas`}</div>
+              <div style={{fontSize:"0.7rem",color:"var(--muted)"}}>Plan {plan.nombre} · {planLimite===Infinity?"tractoras ilimitadas":`hasta ${planLimite} tractora${planLimite!==1?"s":""}`}</div>
             </div>
           </div>
         )}
@@ -195,16 +129,6 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
               if(emp){await sb.from("perfiles").update({empresa_id:emp.id}).eq("id",userId);updatePerfil({empresa_id:emp.id});setCodigo(emp.codigo);setNumMiembros(1);}
             }}>Generar codigo</button>
           }
-          {codigo&&<div style={{marginTop:"0.75rem"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.3rem"}}>
-              <span style={{fontSize:"0.75rem",color:"var(--muted)"}}>Choferes activos</span>
-              <span style={{fontSize:"0.75rem",fontWeight:700,color:(numMiembros-1)>=(planLimite-1)?"var(--red)":"var(--text)"}}>{Math.max(numMiembros-1,0)} / {planLimite-1}</span>
-            </div>
-            <div style={{height:4,background:"var(--s3)",borderRadius:2,overflow:"hidden"}}>
-              <div style={{height:"100%",width:`${Math.min((Math.max(numMiembros-1,0)/Math.max(planLimite-1,1))*100,100)}%`,background:(numMiembros-1)>=(planLimite-1)?"var(--red)":"var(--a1)",borderRadius:2,transition:"width 0.3s"}}/>
-            </div>
-            <div style={{fontSize:"0.7rem",color:"var(--muted)",marginTop:"0.25rem"}}>Plan {planLimite<=4?"Starter":planLimite<=11?"Flota":"Empresa"} · {planLimite-1} chófer{planLimite-1!==1?"es":""} incluidos</div>
-          </div>}
         </div>}
         {perfil.rol==="gerente"&&perfil.subscription_status==="active"&&<div className="card">
           <div className="chd">Suscripcion</div>
@@ -219,62 +143,10 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
         </div>}
         {perfil.rol==="gerente"&&<div className="card">
           <div className="chd">👤 Usuarios (chóferes y tráfico)</div>
-          {empleados.length>0?<div style={{display:"flex",flexDirection:"column",gap:"0.5rem",marginBottom:"1rem"}}>
-            {empleados.map(e=>{
-              const t=(tractoras||[]).find(x=>x.id===e.truck_id);
-              return(
-              <div key={e.id} style={{display:"flex",flexDirection:"column",gap:"0.4rem",padding:"0.6rem",background:"var(--s3)",borderRadius:8}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <div>
-                    <div style={{fontWeight:700,fontSize:"0.88rem"}}>{e.nombre}</div>
-                    <div style={{fontSize:"0.7rem",color:"var(--muted)"}}>{e.rol==="chofer"?`🚛 ${t?.matricula||"sin tractora"}`:"📋 Tráfico (ve todos los viajes)"}</div>
-                    {e.email&&<div style={{fontSize:"0.68rem",color:"var(--muted)",marginTop:1}}>👤 {e.email.split("@")[0]}</div>}
-                  </div>
-                  <select className="inp" style={{width:"auto",padding:"0.25rem 0.5rem",fontSize:"0.75rem"}} value={e.rol} onChange={ev=>actualizarEmpleado(e.id,{rol:ev.target.value,...(ev.target.value!=="chofer"?{truck_id:null}:{})})}>
-                    <option value="chofer">Chófer</option>
-                    <option value="trafico">Tráfico</option>
-                  </select>
-                </div>
-                {e.rol==="chofer"&&<select className="inp" style={{fontSize:"0.75rem"}} value={e.truck_id||""} onChange={ev=>actualizarEmpleado(e.id,{truck_id:ev.target.value||null})}>
-                  <option value="">Sin tractora asignada</option>
-                  {(tractoras||[]).map(t=><option key={t.id} value={t.id}>{t.matricula}</option>)}
-                </select>}
-                {resetEmp?.id===e.id?<div style={{display:"flex",flexDirection:"column",gap:"0.4rem",marginTop:"0.2rem"}}>
-                  <input className="inp" type="text" style={{fontSize:"0.75rem"}} placeholder="Nueva contraseña (mín. 6 caracteres)" value={resetPass} onChange={ev=>setResetPass(ev.target.value)} disabled={resetOtpSent}/>
-                  {resetOtpSent&&<input className="inp" type="text" style={{fontSize:"0.75rem"}} placeholder="Código de 6 dígitos recibido por email" value={resetOtp} onChange={ev=>setResetOtp(ev.target.value)}/>}
-                  {resetMsg&&<div style={{fontSize:"0.7rem",color:resetMsg.startsWith("✅")?"var(--green)":"var(--red)"}}>{resetMsg}</div>}
-                  <div style={{display:"flex",gap:"0.4rem"}}>
-                    {!resetOtpSent?
-                      <button className="btn bp bsm" style={{flex:1}} onClick={enviarOtpReset} disabled={reseteando}>{reseteando?<span className="spinner"/>:"Enviar código"}</button>
-                      :<button className="btn bp bsm" style={{flex:1}} onClick={resetearPassword} disabled={reseteando}>{reseteando?<span className="spinner"/>:"Confirmar"}</button>}
-                    <button className="btn bg bsm" style={{flex:1}} onClick={()=>{setResetEmp(null);setResetPass("");setResetOtp("");setResetOtpSent(false);setResetMsg("");}}>Cancelar</button>
-                  </div>
-                </div>:<button className="btn bg bsm" style={{fontSize:"0.72rem",alignSelf:"flex-start"}} onClick={()=>{setResetEmp(e);setResetPass("");setResetOtp("");setResetOtpSent(false);setResetMsg("");}}>🔑 Restablecer contraseña</button>}
-              </div>
-            );})}
-          </div>:<p style={{fontSize:"0.78rem",color:"var(--muted)",marginBottom:"0.75rem"}}>Aún no has creado ningún usuario.</p>}
-          <div style={{height:1,background:"var(--border)",marginBottom:"0.75rem"}}/>
-          <div style={{fontWeight:700,fontSize:"0.85rem",marginBottom:"0.5rem"}}>➕ Crear nuevo usuario</div>
-          <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
-            <div className="fld"><label className="lbl">Nombre</label><input className="inp" placeholder="Ej: Juan Pérez" value={nuevoEmp.nombre} onChange={e=>setNuevoEmp({...nuevoEmp,nombre:e.target.value})}/></div>
-            <div className="fld"><label className="lbl">Tipo</label>
-              <select className="inp" value={nuevoEmp.rol} onChange={e=>setNuevoEmp({...nuevoEmp,rol:e.target.value})}>
-                <option value="chofer">Chófer (ve solo su tractora)</option>
-                <option value="trafico">Tráfico (ve todos los viajes)</option>
-              </select>
-            </div>
-            {nuevoEmp.rol==="chofer"&&<div className="fld"><label className="lbl">Tractora asignada</label>
-              <select className="inp" value={nuevoEmp.truck_id} onChange={e=>setNuevoEmp({...nuevoEmp,truck_id:e.target.value})}>
-                <option value="">Sin asignar</option>
-                {(tractoras||[]).map(t=><option key={t.id} value={t.id}>{t.matricula}</option>)}
-              </select>
-            </div>}
-            <div className="fld"><label className="lbl">Usuario para iniciar sesión</label><input className="inp" placeholder="Ej: 1111MMM (la matrícula es fácil de recordar)" value={nuevoEmp.usuario} onChange={e=>setNuevoEmp({...nuevoEmp,usuario:e.target.value})}/></div>
-            <div className="fld"><label className="lbl">Contraseña</label><input className="inp" type="password" placeholder="Mínimo 6 caracteres" value={nuevoEmp.password} onChange={e=>setNuevoEmp({...nuevoEmp,password:e.target.value})}/></div>
-            {empMsg&&<p style={{fontSize:"0.78rem",color:empMsg.includes("✅")?"var(--green)":"var(--red)"}}>{empMsg}</p>}
-            <button className="btn bp" onClick={crearEmpleado} disabled={creandoEmp}>{creandoEmp?"Creando...":"Crear usuario"}</button>
-          </div>
+          <p style={{fontSize:"0.82rem",color:"var(--muted)",marginBottom:"0.75rem"}}>Gestiona los usuarios de tu equipo: crea cuentas, asigna tractoras y restablece contraseñas.</p>
+          <button className="btn bp" onClick={()=>setShowUsuarios(true)}><Icon d={I.user} size={15}/> Gestionar usuarios</button>
         </div>}
+        {showUsuarios&&<UsuariosModal userId={userId} perfil={perfil} tractoras={tractoras} onClose={()=>setShowUsuarios(false)}/>}
         {perfil.rol==="gerente"&&<div className="card">
           <div className="chd">🧾 Clientes</div>
           {(clientesTodos||[]).length>0?<div style={{display:"flex",flexDirection:"column",gap:"0.5rem",marginBottom:"1rem"}}>
