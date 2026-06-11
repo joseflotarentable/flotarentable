@@ -13,3 +13,8 @@ export const MESES_SHORT = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep
 export const TIPOS_GASTO_VAR = ["Combustible","Peaje","Mantenimiento","Neumáticos","Avería","ITV","Lavado","Seguro","Impuesto","Otros"];
 export const CONCEPTOS_EMPRESA = ["Gestoría","Autónomo","Asesoría","Seguro empresa","Otros"];
 export const CONCEPTOS_VEHICULO = ["Parking","Leasing / Renting","Préstamo / activo","Nómina chófer","Autónomo","Seguro anual","ITV","Otros"];
+export const PLANES = [
+  {id:"starter",nombre:"Starter",rango:"1-3 camiones",precio:"19,99€/mes",maxTractoras:3},
+  {id:"pro",nombre:"Pro",rango:"4-10 camiones",precio:"39,99€/mes",maxTractoras:10},
+  {id:"flota",nombre:"Flota",rango:"+10 camiones",precio:"49,99€/mes + 2€/camión extra",maxTractoras:Infinity},
+];

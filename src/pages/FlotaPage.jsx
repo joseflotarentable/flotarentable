@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { sb } from "../lib/supabase.js";
 import { Icon, I } from "../lib/icons.jsx";
-import { TIPOS_T, TIPOS_S } from "../lib/constants.js";
+import { TIPOS_T, TIPOS_S, PLANES } from "../lib/constants.js";
 import { ConfirmModal, PhotoUpload, Toast } from "../components/ui.jsx";
 
 export function FlotaPage({userId,perfil,updatePerfil,tractoras,semis,setTractoras,setSemis}) {
@@ -9,6 +9,13 @@ export function FlotaPage({userId,perfil,updatePerfil,tractoras,semis,setTractor
   const[editS,setEditS]=useState(null);
   const[confirmFlota,setConfirmFlota]=useState(null);
   const[errorFlota,setErrorFlota]=useState("");
+  const plan=PLANES.find(p=>p.id===perfil.plan)||PLANES[0];
+  const tractorasActivas=tractoras.filter(t=>t.activa!==false);
+  const limiteAlcanzado=tractorasActivas.length>=plan.maxTractoras;
+  const intentarAnadirT=()=>{
+    if(limiteAlcanzado){setErrorFlota(`Tu plan ${plan.nombre} permite hasta ${plan.maxTractoras} tractora${plan.maxTractoras===1?"":"s"}. Cambia de plan en Ajustes para añadir más.`);return;}
+    setEditT({subtipo:"Tractora",conjunto_fijo:false});
+  };
 
   const saveT=async(t,onError)=>{
     const p={...t,user_id:userId};
@@ -41,9 +48,10 @@ export function FlotaPage({userId,perfil,updatePerfil,tractoras,semis,setTractor
         <div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.5rem"}}>
             <span style={{fontSize:"0.72rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>🚛 Tractoras</span>
-            <button className="btn bg bsm" onClick={()=>setEditT({subtipo:"Tractora",conjunto_fijo:false})}><Icon d={I.plus} size={13}/> Añadir</button>
+            <button className="btn bg bsm" onClick={intentarAnadirT}><Icon d={I.plus} size={13}/> Añadir</button>
           </div>
-          {tractoras.filter(t=>t.activa!==false).length===0&&<div className="empty" style={{padding:"1rem"}}><div className="ei"><Icon d={I.truck} size={18} color="var(--muted)"/></div><span style={{fontSize:"0.8rem"}}>Sin tractoras</span><button className="btn bp bsm" style={{marginTop:"0.5rem"}} onClick={()=>setEditT({subtipo:"Tractora",conjunto_fijo:false})}><Icon d={I.plus} size={13}/> Añadir tractora</button></div>}
+          {errorFlota&&<div className="alert ay" style={{marginBottom:"0.5rem"}}><Icon d={I.lock} size={14} color="var(--yellow)"/><span style={{fontSize:"0.8rem"}}>{errorFlota}</span></div>}
+          {tractoras.filter(t=>t.activa!==false).length===0&&<div className="empty" style={{padding:"1rem"}}><div className="ei"><Icon d={I.truck} size={18} color="var(--muted)"/></div><span style={{fontSize:"0.8rem"}}>Sin tractoras</span><button className="btn bp bsm" style={{marginTop:"0.5rem"}} onClick={intentarAnadirT}><Icon d={I.plus} size={13}/> Añadir tractora</button></div>}
           <div className="vcard-grid" style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
             {tractoras.filter(t=>t.activa!==false).map(t=>{const semi=semis.find(s=>s.id===t.semi_habitual_id);
               const consumo=parseFloat(t.consumo_estimado)||32;
