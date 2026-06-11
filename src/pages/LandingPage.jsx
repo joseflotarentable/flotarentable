@@ -70,8 +70,8 @@ export function LandingPage({accent,onLogin,onRegister}) {
   ];
 
   const reviews=[
-    {n:"Antonio Ramírez",r:"Autónomo, tractora 1330MMM",t:"Llevaba años apuntando los gastos en una libreta y nunca sabía si un viaje merecía la pena. Con FlotaRentable veo el beneficio neto al momento, descontando hasta los gastos fijos.",init:"AR",col:"#FF3D5A"},
-    {n:"Rocío Fernández",r:"Gerente, Transportes Fernández S.L.",t:"Tengo 6 tractoras y antes perdía media tarde cada mes haciendo el Excel para la gestoría. Ahora exporto el resumen con el IVA desglosado en dos clics.",init:"RF",col:"#06D6A0"},
+    {n:"Antonio Ramírez",r:"Autónomo",t:"Llevaba años apuntando los gastos en una libreta y nunca sabía si un viaje merecía la pena. Con FlotaRentable veo el beneficio neto al momento, descontando hasta los gastos fijos.",init:"AR",col:"#FF3D5A"},
+    {n:"Rocío Fernández",r:"Gerente de flota",t:"Tengo 6 tractoras y antes perdía media tarde cada mes haciendo el Excel para la gestoría. Ahora exporto el resumen con el IVA desglosado en dos clics.",init:"RF",col:"#06D6A0"},
     {n:"Manuel Ortega",r:"Chófer, ruta nacional",t:"Desde el móvil registro el viaje, la carga y el ticket de gasoil con la cámara. Mi jefe ve todo en tiempo real y a mí me ahorra muchísimo papeleo.",init:"MO",col:"#5B8CFF"},
     {n:"Lucía Navarro",r:"Tráfico, flota de 12 camiones",t:"Lo que más nos ha cambiado es la alerta de consumo: detectó una tractora gastando un 15% más de lo normal y resultó ser una avería que no habíamos visto.",init:"LN",col:"#FFD166"},
   ];
