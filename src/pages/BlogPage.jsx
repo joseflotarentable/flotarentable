@@ -102,7 +102,7 @@ export function BlogPage({ accent, onHome, onLogin, onRegister, onOpenPost }) {
   );
 }
 
-export function BlogPostPage({ slug, accent, onHome, onLogin, onRegister, onBack }) {
+export function BlogPostPage({ slug, accent, onHome, onLogin, onRegister, onBack, onOpenPost }) {
   const post = BLOG_POSTS.find((p) => p.slug === slug);
   useMeta(
     post ? `${post.title} — FlotaRentable` : "Artículo no encontrado — FlotaRentable",
@@ -132,6 +132,17 @@ export function BlogPostPage({ slug, accent, onHome, onLogin, onRegister, onBack
         <div style={{ marginTop: "2.5rem", padding: "1.5rem", background: "#15151F", border: "1px solid #ffffff10", borderRadius: 18, textAlign: "center" }}>
           <div style={{ fontWeight: 700, marginBottom: "0.75rem" }}>¿Quieres controlar la rentabilidad de tu flota?</div>
           <button className="lp-btn lp-btn-pri" onClick={onRegister}>Empezar 7 días gratis</button>
+        </div>
+        <div style={{ marginTop: "2.5rem" }}>
+          <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "1.4rem", letterSpacing: "0.02em", marginBottom: "1rem" }}>Sigue leyendo</h2>
+          <div className="blog-list">
+            {BLOG_POSTS.filter((p) => p.slug !== slug).slice(0, 2).map((p) => (
+              <div className="blog-card" key={p.slug} onClick={() => onOpenPost(p.slug)}>
+                <h2>{p.title}</h2>
+                <p>{p.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
       <footer className="lp-foot">© {new Date().getFullYear()} FlotaRentable · Hecho para el transporte por carretera en España</footer>

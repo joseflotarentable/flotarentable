@@ -1,5 +1,11 @@
 import { useState } from "react";
 import { Icon, I } from "../lib/icons.jsx";
+import { BLOG_POSTS } from "../lib/blogPosts.js";
+
+const BLOG_POSTS_PREVIEW = {
+  itv: BLOG_POSTS.find(p=>p.slug==="itv-camiones-plazos-y-sanciones"),
+  coste: BLOG_POSTS.find(p=>p.slug==="coste-real-por-kilometro-camion"),
+};
 
 const LEGAL_TEXT={
   aviso:{title:"Aviso legal",body:`En cumplimiento de la Ley 34/2002, de Servicios de la Sociedad de la Información y Comercio Electrónico (LSSI-CE), se informa de los datos identificativos del titular de este sitio web.
@@ -57,7 +63,7 @@ function LegalPage({page,onBack}) {
   );
 }
 
-export function LandingPage({accent,onLogin,onRegister,onBlog}) {
+export function LandingPage({accent,onLogin,onRegister,onBlog,onOpenPost}) {
   const[legalView,setLegalView]=useState(null);
   if(legalView)return<LegalPage page={legalView} onBack={()=>setLegalView(null)}/>;
   const feats=[
@@ -271,6 +277,25 @@ export function LandingPage({accent,onLogin,onRegister,onBlog}) {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="lp-section">
+        <div className="lp-section-h">
+          <h2>Del blog</h2>
+          <p>Consejos y novedades para transportistas y empresas de flota.</p>
+        </div>
+        <div className="lp-grid">
+          {[BLOG_POSTS_PREVIEW.itv,BLOG_POSTS_PREVIEW.coste].map((p)=>(
+            <div className="lp-feat" key={p.slug} style={{cursor:"pointer"}} onClick={()=>onOpenPost(p.slug)}>
+              <h3>{p.title}</h3>
+              <p>{p.description}</p>
+            </div>
+          ))}
+          <div className="lp-feat" style={{cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"flex-start",justifyContent:"center"}} onClick={onBlog}>
+            <h3>Ver todos los artículos</h3>
+            <p>Visita el blog de FlotaRentable para más guías sobre rentabilidad, fiscalidad y gestión de flotas.</p>
+          </div>
         </div>
       </section>
 
