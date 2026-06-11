@@ -1,5 +1,20 @@
+import { useEffect } from "react";
 import { Icon, I } from "../lib/icons.jsx";
 import { BLOG_POSTS } from "../lib/blogPosts.js";
+
+function useMeta(title, description) {
+  useEffect(() => {
+    const prevTitle = document.title;
+    document.title = title;
+    let meta = document.querySelector('meta[name="description"]');
+    const prevDesc = meta?.getAttribute("content");
+    if (meta) meta.setAttribute("content", description);
+    return () => {
+      document.title = prevTitle;
+      if (meta && prevDesc != null) meta.setAttribute("content", prevDesc);
+    };
+  }, [title, description]);
+}
 
 const css = (accent) => `
 *{box-sizing:border-box}
@@ -61,6 +76,10 @@ function NavBar({ accent, onHome, onLogin, onRegister }) {
 }
 
 export function BlogPage({ accent, onHome, onLogin, onRegister, onOpenPost }) {
+  useMeta(
+    "Blog de FlotaRentable — Consejos para transportistas y empresas de flota",
+    "Artículos sobre rentabilidad por kilómetro, ITV, fiscalidad y gestión de gastos para transportistas y empresas de transporte por carretera."
+  );
   return (
     <div className="lp">
       <style>{css(accent)}</style>
@@ -85,6 +104,10 @@ export function BlogPage({ accent, onHome, onLogin, onRegister, onOpenPost }) {
 
 export function BlogPostPage({ slug, accent, onHome, onLogin, onRegister, onBack }) {
   const post = BLOG_POSTS.find((p) => p.slug === slug);
+  useMeta(
+    post ? `${post.title} — FlotaRentable` : "Artículo no encontrado — FlotaRentable",
+    post ? post.description : "El artículo que buscas no existe."
+  );
   if (!post) {
     return (
       <div className="lp">
