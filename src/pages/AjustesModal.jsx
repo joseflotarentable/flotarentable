@@ -283,7 +283,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
           <div className="chd">Color de la app</div>
           <div style={{display:"flex",gap:"0.625rem"}}>{ACCENTS.map((a,i)=><div key={i} className={`accent-dot ${(perfil.accent_idx||0)===i?"sel":""}`} style={{background:`linear-gradient(135deg,${a.a1},${a.a2})`}} onClick={()=>saveAjustes({accent_idx:i})}/>)}</div>
         </div>
-        <div className="card">
+        {perfil.rol==="gerente"&&<div className="card">
           <div className="chd">Cambiar contrasena</div>
           <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
             <input className="inp" type="password" placeholder="Nueva contrasena" value={passForm.nueva} onChange={e=>setPassForm({...passForm,nueva:e.target.value})}/>
@@ -291,7 +291,11 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
             {passMsg&&<p style={{fontSize:"0.78rem",color:passMsg.includes("correcta")?"var(--green)":"var(--red)"}}>{passMsg}</p>}
             <button className="btn bg" onClick={cambiarPass}>Cambiar contrasena</button>
           </div>
-        </div>
+        </div>}
+        {(perfil.rol==="chofer"||perfil.rol==="trafico")&&<div className="card">
+          <div className="chd">Contrasena</div>
+          <p style={{fontSize:"0.8rem",color:"var(--muted)"}}>Si necesitas cambiar tu contrasena, pidesela a tu gerente desde la pantalla de inicio de sesion ("¿Olvidaste tu contraseña?") o directamente.</p>
+        </div>}
         <button className="btn bd" onClick={onLogout}><Icon d={I.logout} size={15}/>Cerrar sesion</button>
         <button className="btn bg" onClick={onClose}>Cerrar</button>
       </div>
