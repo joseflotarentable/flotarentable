@@ -169,7 +169,8 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
   const tendencia=tendenciaKm();
   const maxCoste=Math.max(...tendencia.map(t=>t.costeKm),0.01);
 
-  const generarPDF=async(tractora,mes)=>{
+  // tractora=null -> informe de toda la flota. meses = array de claves "YYYY-MM".
+  const generarPDF=async(tractora,meses,periodoLabel)=>{
     const script=document.createElement("script");
     script.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
     document.head.appendChild(script);
@@ -178,14 +179,23 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
     const W=210;const M=14;const CW=W-M*2;
     const eur=n=>(parseFloat(n)||0).toLocaleString("es-ES",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
-    const mesLabel=`${MESES_ES[parseInt(mes.split("-")[1])-1]} ${mes.split("-")[0]}`;
-    const vMes=viajesTodos.filter(v=>v.fecha?.startsWith(mes)&&v.truck_id===tractora.id);
-    const gVar=gastosTodos.filter(g=>g.mes===mes&&(g.vehicle_id===tractora.id||g.vehicle_tipo==="tractora"&&g.vehicle_id===tractora.id));
-    const gFijosT=gastosFijos.filter(g=>g.entidad_id===tractora.id);
-    const gFijosE=gastosFijos.filter(g=>g.entidad_id==="empresa");
-    const totalFijosT=gFijosT.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
-    const totalFijosE=gFijosE.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0)/Math.max(tractoras.filter(x=>x.activa!==false).length,1);
-    const totalFijos=totalFijosT+totalFijosE;
+    const mesLabel=periodoLabel;
+    const numActivas=Math.max(tractoras.filter(x=>x.activa!==false).length,1);
+    const vMes=viajesTodos.filter(v=>meses.includes(v.fecha?.slice(0,7))&&(!tractora||v.truck_id===tractora.id));
+    const gVar=gastosTodos.filter(g=>meses.includes(g.mes)&&(!tractora||g.vehicle_id===tractora.id));
+    let totalFijos;
+    let gFijosMostrar;
+    if(tractora){
+      const gFijosT=gastosFijos.filter(g=>g.entidad_id===tractora.id);
+      const gFijosE=gastosFijos.filter(g=>g.entidad_id==="empresa");
+      const totalFijosT=gFijosT.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0);
+      const totalFijosE=gFijosE.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0)/numActivas;
+      totalFijos=(totalFijosT+totalFijosE)*meses.length;
+      gFijosMostrar=[...gFijosT,...gFijosE.map(g=>({...g,concepto:g.concepto+" (empresa)",importe:(parseFloat(g.importe)||0)/numActivas}))];
+    }else{
+      totalFijos=gastosFijos.reduce((s,g)=>{const imp=parseFloat(g.importe)||0;return s+(g.periodo==="anual"?imp/12:imp);},0)*meses.length;
+      gFijosMostrar=gastosFijos.map(g=>g.entidad_id==="empresa"?{...g,concepto:g.concepto+" (empresa)"}:{...g,concepto:`${g.concepto} (${tractoras.find(t=>t.id===g.entidad_id)?.matricula||semis.find(s=>s.id===g.entidad_id)?.matricula||"vehículo"})`});
+    }
     const totalVar=gVar.reduce((s,g)=>s+(parseFloat(g.importe)||0),0);
     const totalIngresos=vMes.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
     const totalKm=vMes.reduce((s,v)=>s+(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0),0);
@@ -197,9 +207,9 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     doc.setTextColor(232,73,15);doc.setFontSize(18);doc.setFont("helvetica","bold");
     doc.text("FLOTARENTABLE",M,10);
     doc.setTextColor(200,200,200);doc.setFontSize(9);doc.setFont("helvetica","normal");
-    doc.text("Informe mensual de tractora",M,16);
+    doc.text(tractora?"Informe de tractora":"Informe de flota completa",M,16);
     doc.setTextColor(245,200,66);doc.setFontSize(11);doc.setFont("helvetica","bold");
-    doc.text(`${tractora.matricula||"Sin matrícula"}${tractora.apodo?` · "${tractora.apodo}"`:""}`,M,23);
+    doc.text(tractora?`${tractora.matricula||"Sin matrícula"}${tractora.apodo?` · "${tractora.apodo}"`:""}`:"Toda la flota",M,23);
     doc.setTextColor(200,200,200);doc.setFontSize(9);doc.setFont("helvetica","normal");
     doc.text(mesLabel,W-M,23,"right");
     y=36;
@@ -233,7 +243,8 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
       if(y>270){doc.addPage();y=14;}
       doc.setTextColor(40,40,55);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
       const xs=[0,18,90,118,138,158];
-      const ruta=[v.origen,v.lugar_carga,v.destino,v.destino2].filter(Boolean).join(" -> ");
+      let ruta=[v.origen,v.lugar_carga,v.destino,v.destino2].filter(Boolean).join(" -> ");
+      if(!tractora){const t=tractoras.find(x=>x.id===v.truck_id);if(t)ruta=`[${t.matricula||"?"}] ${ruta}`;}
       const vals=[v.fecha?v.fecha.split("-").reverse().join("/"):"",ruta,v.cliente||"",`${((parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)).toLocaleString("es-ES")}`,eur(v.precio),eur(v.peaje)];
       vals.forEach((val,i)=>{doc.text(String(val).substring(0,i===1?46:14),M+xs[i],y);});
       y+=5;
@@ -263,18 +274,17 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     doc.setTextColor(120,120,140);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
     ["Concepto","Periodo","Importe mensual"].forEach((h,i)=>{doc.text(h,M+[0,100,152][i],y);});y+=4;
     doc.setDrawColor(40,40,55);doc.line(M,y,M+CW,y);y+=3;
-    [...gFijosT,...gFijosE.map(g=>({...g,concepto:g.concepto+" (empresa)"}))].forEach(g=>{
+    gFijosMostrar.forEach(g=>{
       if(y>270){doc.addPage();y=14;}
       const imp=parseFloat(g.importe)||0;
       const mensual=g.periodo==="anual"?imp/12:imp;
-      const mensualReal=g.entidad_id==="empresa"?mensual/Math.max(tractoras.filter(x=>x.activa!==false).length,1):mensual;
       doc.setTextColor(40,40,55);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
       doc.text(String(g.concepto||"").substring(0,40),M,y);
       doc.text(g.periodo==="anual"?"Anual":"Mensual",M+100,y);
-      doc.text(eur(mensualReal),M+152,y);
+      doc.text(eur(mensual),M+152,y);
       y+=5;
     });
-    if(gastosFijos.length===0){doc.setTextColor(100,100,120);doc.setFontSize(8);doc.text("Sin gastos fijos configurados",M,y);y+=6;}
+    if(gFijosMostrar.length===0){doc.setTextColor(100,100,120);doc.setFontSize(8);doc.text("Sin gastos fijos configurados",M,y);y+=6;}
     y+=6;
     // Total final
     if(y>265){doc.addPage();y=14;}
@@ -286,7 +296,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     // Footer
     doc.setTextColor(80,80,100);doc.setFontSize(7);doc.setFont("helvetica","normal");
     doc.text(`Generado por FlotaRentable · ${new Date().toLocaleDateString("es-ES")}`,W/2,290,"center");
-    doc.save(`FlotaRentable_${tractora.matricula||"tractora"}_${mes}.pdf`);
+    doc.save(`FlotaRentable_${tractora?tractora.matricula||"tractora":"Flota"}_${meses[0]}${meses.length>1?`_${meses[meses.length-1]}`:""}.pdf`);
   };
 
   return(
@@ -633,30 +643,80 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
         </div>}
       </>}
 
-      {subtab==="informes"&&<>
-        <div className="card">
-          <div className="chd">Informe PDF mensual por tractora</div>
-          <p style={{fontSize:"0.82rem",color:"var(--muted)",marginBottom:"0.75rem"}}>Descarga un PDF con viajes, gastos variables, gastos fijos prorrateados y beneficio neto.</p>
-          {tractoras.length===0&&<div style={{fontSize:"0.85rem",color:"var(--muted)"}}>Sin tractoras activas</div>}
-          {tractoras.filter(t=>t.activa!==false).map(t=>(
-            <div key={t.id} style={{display:"flex",flexDirection:"column",gap:"0.5rem",marginBottom:"1rem"}}>
-              <div style={{fontWeight:700,fontSize:"0.9rem"}}>{t.matricula||"Sin matrícula"}{t.apodo?` · "${t.apodo}"`:"" }</div>
-              <div style={{display:"flex",flexWrap:"wrap",gap:"0.4rem"}}>
-                {Array.from({length:6},(_,i)=>{
-                  const d=new Date(new Date().getFullYear(),new Date().getMonth()-i,1);
-                  const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-                  const label=`${MESES_SHORT[d.getMonth()]} ${d.getFullYear()}`;
-                  return(
-                    <button key={key} className="btn bg bsm" style={{fontSize:"0.75rem"}} onClick={()=>generarPDF(t,key)}>
-                      📄 {label}
-                    </button>
-                  );
-                })}
+      {subtab==="informes"&&(()=>{
+        const hoy=new Date();
+        const anoActual=hoy.getFullYear();
+        const trimActual=Math.floor(hoy.getMonth()/3)+1;
+        const mesesTrim=(ano,q)=>Array.from({length:3},(_,i)=>`${ano}-${String((q-1)*3+i+1).padStart(2,"0")}`);
+        const mesesAno=ano=>Array.from({length:12},(_,i)=>`${ano}-${String(i+1).padStart(2,"0")}`);
+        const trimestres=[];
+        for(let i=0;i<4;i++){
+          let q=trimActual-i,a=anoActual;
+          while(q<1){q+=4;a--;}
+          trimestres.push({a,q});
+        }
+        const anos=[anoActual,anoActual-1];
+        return<>
+          <div className="card">
+            <div className="chd">📦 Informes de toda la flota</div>
+            <p style={{fontSize:"0.82rem",color:"var(--muted)",marginBottom:"0.75rem"}}>Incluye todos los vehículos y todos los gastos fijos de la empresa, sin prorratear.</p>
+            <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
+              <div>
+                <div style={{fontSize:"0.7rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"0.3rem"}}>Por mes</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:"0.4rem"}}>
+                  {Array.from({length:6},(_,i)=>{
+                    const d=new Date(anoActual,hoy.getMonth()-i,1);
+                    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+                    const label=`${MESES_SHORT[d.getMonth()]} ${d.getFullYear()}`;
+                    return<button key={key} className="btn bg bsm" style={{fontSize:"0.75rem"}} onClick={()=>generarPDF(null,[key],`${MESES_ES[d.getMonth()]} ${d.getFullYear()}`)}>📄 {label}</button>;
+                  })}
+                </div>
+              </div>
+              <div>
+                <div style={{fontSize:"0.7rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"0.3rem"}}>Por trimestre</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:"0.4rem"}}>
+                  {trimestres.map(({a,q})=>(
+                    <button key={`${a}-${q}`} className="btn bg bsm" style={{fontSize:"0.75rem"}} onClick={()=>generarPDF(null,mesesTrim(a,q),`${a} · T${q}`)}>📄 T{q} {a}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div style={{fontSize:"0.7rem",fontWeight:700,color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"0.3rem"}}>Anual</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:"0.4rem"}}>
+                  {anos.map(a=>(
+                    <button key={a} className="btn bg bsm" style={{fontSize:"0.75rem"}} onClick={()=>generarPDF(null,mesesAno(a),`Año ${a}`)}>📄 {a}</button>
+                  ))}
+                </div>
               </div>
             </div>
-          ))}
-        </div>
-      </>}
+          </div>
+
+          <div className="card">
+            <div className="chd">🚛 Informes por tractora</div>
+            <p style={{fontSize:"0.82rem",color:"var(--muted)",marginBottom:"0.75rem"}}>Incluye los gastos fijos de la tractora más su parte proporcional de los gastos fijos de empresa.</p>
+            {tractoras.filter(t=>t.activa!==false).length===0&&<div style={{fontSize:"0.85rem",color:"var(--muted)"}}>Sin tractoras activas</div>}
+            {tractoras.filter(t=>t.activa!==false).map(t=>(
+              <div key={t.id} style={{display:"flex",flexDirection:"column",gap:"0.4rem",marginBottom:"1rem"}}>
+                <div style={{fontWeight:700,fontSize:"0.9rem"}}>{t.matricula||"Sin matrícula"}{t.apodo?` · "${t.apodo}"`:"" }</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:"0.4rem"}}>
+                  {Array.from({length:6},(_,i)=>{
+                    const d=new Date(anoActual,hoy.getMonth()-i,1);
+                    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+                    const label=`${MESES_SHORT[d.getMonth()]} ${d.getFullYear()}`;
+                    return<button key={key} className="btn bg bsm" style={{fontSize:"0.75rem"}} onClick={()=>generarPDF(t,[key],`${MESES_ES[d.getMonth()]} ${d.getFullYear()}`)}>📄 {label}</button>;
+                  })}
+                  {trimestres.map(({a,q})=>(
+                    <button key={`${a}-${q}`} className="btn bg bsm" style={{fontSize:"0.75rem"}} onClick={()=>generarPDF(t,mesesTrim(a,q),`${a} · T${q}`)}>📄 T{q} {a}</button>
+                  ))}
+                  {anos.map(a=>(
+                    <button key={a} className="btn bg bsm" style={{fontSize:"0.75rem"}} onClick={()=>generarPDF(t,mesesAno(a),`Año ${a}`)}>📄 {a}</button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>;
+      })()}
     </div>
   );
 }
