@@ -64,7 +64,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
     if(passForm.nueva!==passForm.confirmar){setPassMsg("Las contraseñas no coinciden");return;}
     const{error}=await sb.auth.updateUser({password:passForm.nueva});
     if(error){setPassMsg("Error al cambiar la contraseña");return;}
-    setPassMsg("✅ Contraseña cambiada correctamente. Supabase enviará un email de confirmación.");
+    setPassMsg("✅ Contraseña cambiada correctamente.");
     setPassForm({nueva:"",confirmar:""});
   };
 
