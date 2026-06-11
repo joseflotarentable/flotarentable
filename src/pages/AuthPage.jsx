@@ -86,6 +86,14 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
     setErr("");setMode("forgotSent");
   };
 
+  const handleForgotUser=async()=>{
+    if(!form.email||!form.email.includes("@")){setErr("Introduce tu email");return;}
+    setLoading(true);
+    await sb.functions.invoke("recuperar-usuarios",{body:{email:form.email}});
+    setLoading(false);
+    setErr("");setMode("forgotUserSent");
+  };
+
   if(mode==="forgotSent")return(
     <div className="auth-wrap fu">
       <div style={{padding:"3rem 1.5rem 1.5rem",display:"flex",flexDirection:"column",gap:"1rem",alignItems:"center",textAlign:"center"}}>
@@ -108,6 +116,30 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
     </div>
   );
 
+  if(mode==="forgotUserSent")return(
+    <div className="auth-wrap fu">
+      <div style={{padding:"3rem 1.5rem 1.5rem",display:"flex",flexDirection:"column",gap:"1rem",alignItems:"center",textAlign:"center"}}>
+        <div style={{fontSize:"3rem"}}>📧</div>
+        <div style={{fontFamily:"'Bebas Neue'",fontSize:"1.8rem",letterSpacing:"0.04em"}}>Revisa tu correo</div>
+        <p style={{fontSize:"0.88rem",color:"var(--muted)",lineHeight:1.6}}>Si ese email pertenece a una cuenta de gerente, te hemos enviado la lista de usuarios de tu equipo a <strong style={{color:"var(--text)"}}>{form.email}</strong>.</p>
+        <button className="btn bp" style={{width:"100%",marginTop:"0.5rem"}} onClick={()=>setMode("login")}>Volver al inicio de sesión</button>
+      </div>
+    </div>
+  );
+
+  if(mode==="forgotUser")return(
+    <div className="auth-wrap fu">
+      <div style={{padding:"3rem 1.5rem 1.5rem",display:"flex",flexDirection:"column",gap:"1rem"}}>
+        <button className="btn bg bsm" style={{width:"auto",alignSelf:"flex-start"}} onClick={()=>setMode("login")}><Icon d={I.back} size={14}/> Volver</button>
+        <div style={{fontFamily:"'Bebas Neue'",fontSize:"2rem",letterSpacing:"0.04em"}}>Recuperar usuario</div>
+        <p style={{fontSize:"0.85rem",color:"var(--muted)",lineHeight:1.5}}>Si eres gerente, introduce tu email y te enviaremos los nombres de usuario de tu equipo (chóferes y tráfico).</p>
+        <div className="fld"><label className="lbl">Tu email de gerente</label><input className="inp" type="email" placeholder="tu@email.com" autoFocus value={form.email} onChange={e=>setForm({...form,email:e.target.value})} onKeyDown={e=>e.key==="Enter"&&handleForgotUser()}/></div>
+        {err&&<p style={{fontSize:"0.8rem",color:"var(--red)"}}>{err}</p>}
+        <button className="btn bp" onClick={handleForgotUser} disabled={loading}>{loading?<span className="spinner"/>:"Enviar"}</button>
+      </div>
+    </div>
+  );
+
   if(mode==="forgot")return(
     <div className="auth-wrap fu">
       <div style={{padding:"3rem 1.5rem 1.5rem",display:"flex",flexDirection:"column",gap:"1rem"}}>
@@ -117,6 +149,7 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
         <div className="fld"><label className="lbl">Email o usuario</label><input className="inp" type="text" placeholder="tu@email.com o usuario" autoFocus value={form.email} onChange={e=>setForm({...form,email:e.target.value})} onKeyDown={e=>e.key==="Enter"&&handleForgot()}/></div>
         {err&&<p style={{fontSize:"0.8rem",color:"var(--red)"}}>{err}</p>}
         <button className="btn bp" onClick={handleForgot} disabled={loading}>{loading?<span className="spinner"/>:"Enviar"}</button>
+        <p style={{textAlign:"center",fontSize:"0.73rem",color:"var(--muted)"}}>¿Eres gerente y olvidaste el usuario de tu equipo? <span style={{color:"var(--a1)",cursor:"pointer"}} onClick={()=>{setErr("");setMode("forgotUser");}}>Recupéralo aquí</span></p>
       </div>
     </div>
   );

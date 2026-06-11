@@ -12,6 +12,9 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   const[copied,setCopied]=useState(false);
   const[passForm,setPassForm]=useState({nueva:"",confirmar:""});
   const[passMsg,setPassMsg]=useState("");
+  const[passOtpSent,setPassOtpSent]=useState(false);
+  const[passOtp,setPassOtp]=useState("");
+  const[enviandoOtp,setEnviandoOtp]=useState(false);
   const[numMiembros,setNumMiembros]=useState(1);
   const[empresaGerente,setEmpresaGerente]=useState(null);
   const[empleados,setEmpleados]=useState([]);
@@ -22,6 +25,8 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   const[resetPass,setResetPass]=useState("");
   const[resetMsg,setResetMsg]=useState("");
   const[reseteando,setReseteando]=useState(false);
+  const[resetOtpSent,setResetOtpSent]=useState(false);
+  const[resetOtp,setResetOtp]=useState("");
 
   const cargarEmpleados=async(empresaId)=>{
     const{data}=await sb.from("perfiles").select("id,nombre,rol,truck_id,email").eq("empresa_id",empresaId).neq("id",userId);
@@ -59,13 +64,28 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   },[]);
 
   const saveAjustes=async patch=>{await sb.from("perfiles").update(patch).eq("id",userId);updatePerfil(patch);};
-  const cambiarPass=async()=>{
+  const enviarOtpPass=async()=>{
+    setPassMsg("");
     if(passForm.nueva.length<6){setPassMsg("Mínimo 6 caracteres");return;}
     if(passForm.nueva!==passForm.confirmar){setPassMsg("Las contraseñas no coinciden");return;}
+    if(!perfil.email){setPassMsg("Tu cuenta no tiene un email asociado");return;}
+    setEnviandoOtp(true);
+    const{error}=await sb.auth.signInWithOtp({email:perfil.email,options:{shouldCreateUser:false}});
+    setEnviandoOtp(false);
+    if(error){setPassMsg("Error al enviar el código: "+error.message);return;}
+    setPassOtpSent(true);
+    setPassMsg(`✅ Te hemos enviado un código de confirmación a ${perfil.email}`);
+  };
+  const cambiarPass=async()=>{
+    if(passOtp.length<6){setPassMsg("Introduce el código de 6 dígitos");return;}
+    setEnviandoOtp(true);
+    const{error:errOtp}=await sb.auth.verifyOtp({email:perfil.email,token:passOtp,type:"email"});
+    if(errOtp){setEnviandoOtp(false);setPassMsg("Código incorrecto o caducado");return;}
     const{error}=await sb.auth.updateUser({password:passForm.nueva});
+    setEnviandoOtp(false);
     if(error){setPassMsg("Error al cambiar la contraseña");return;}
     setPassMsg("✅ Contraseña cambiada correctamente.");
-    setPassForm({nueva:"",confirmar:""});
+    setPassForm({nueva:"",confirmar:""});setPassOtp("");setPassOtpSent(false);
   };
 
   const crearEmpleado=async()=>{
@@ -97,15 +117,27 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
     setEmpleados(emps=>emps.map(e=>e.id===id?{...e,...patch}:e));
   };
 
-  const resetearPassword=async()=>{
+  const enviarOtpReset=async()=>{
     setResetMsg("");
     if(resetPass.length<6){setResetMsg("Mínimo 6 caracteres");return;}
+    if(!perfil.email){setResetMsg("Tu cuenta no tiene un email asociado");return;}
     setReseteando(true);
+    const{error}=await sb.auth.signInWithOtp({email:perfil.email,options:{shouldCreateUser:false}});
+    setReseteando(false);
+    if(error){setResetMsg("Error al enviar el código: "+error.message);return;}
+    setResetOtpSent(true);
+    setResetMsg(`✅ Código enviado a ${perfil.email}`);
+  };
+  const resetearPassword=async()=>{
+    if(resetOtp.length<6){setResetMsg("Introduce el código de 6 dígitos");return;}
+    setReseteando(true);
+    const{error:errOtp}=await sb.auth.verifyOtp({email:perfil.email,token:resetOtp,type:"email"});
+    if(errOtp){setReseteando(false);setResetMsg("Código incorrecto o caducado");return;}
     const{data,error}=await sb.functions.invoke("admin-reset-password",{body:{requesterId:userId,targetUserId:resetEmp.id,newPassword:resetPass}});
     setReseteando(false);
     if(error||data?.error){setResetMsg("Error: "+(data?.error||error.message));return;}
     setResetMsg("✅ Contraseña actualizada");
-    setResetPass("");
+    setResetPass("");setResetOtp("");setResetOtpSent(false);
     setTimeout(()=>{setResetEmp(null);setResetMsg("");},1200);
   };
 
@@ -212,13 +244,16 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
                   {(tractoras||[]).map(t=><option key={t.id} value={t.id}>{t.matricula}</option>)}
                 </select>}
                 {resetEmp?.id===e.id?<div style={{display:"flex",flexDirection:"column",gap:"0.4rem",marginTop:"0.2rem"}}>
-                  <input className="inp" type="text" style={{fontSize:"0.75rem"}} placeholder="Nueva contraseña (mín. 6 caracteres)" value={resetPass} onChange={ev=>setResetPass(ev.target.value)}/>
+                  <input className="inp" type="text" style={{fontSize:"0.75rem"}} placeholder="Nueva contraseña (mín. 6 caracteres)" value={resetPass} onChange={ev=>setResetPass(ev.target.value)} disabled={resetOtpSent}/>
+                  {resetOtpSent&&<input className="inp" type="text" style={{fontSize:"0.75rem"}} placeholder="Código de 6 dígitos recibido por email" value={resetOtp} onChange={ev=>setResetOtp(ev.target.value)}/>}
                   {resetMsg&&<div style={{fontSize:"0.7rem",color:resetMsg.startsWith("✅")?"var(--green)":"var(--red)"}}>{resetMsg}</div>}
                   <div style={{display:"flex",gap:"0.4rem"}}>
-                    <button className="btn bp bsm" style={{flex:1}} onClick={resetearPassword} disabled={reseteando}>{reseteando?<span className="spinner"/>:"Guardar"}</button>
-                    <button className="btn bg bsm" style={{flex:1}} onClick={()=>{setResetEmp(null);setResetPass("");setResetMsg("");}}>Cancelar</button>
+                    {!resetOtpSent?
+                      <button className="btn bp bsm" style={{flex:1}} onClick={enviarOtpReset} disabled={reseteando}>{reseteando?<span className="spinner"/>:"Enviar código"}</button>
+                      :<button className="btn bp bsm" style={{flex:1}} onClick={resetearPassword} disabled={reseteando}>{reseteando?<span className="spinner"/>:"Confirmar"}</button>}
+                    <button className="btn bg bsm" style={{flex:1}} onClick={()=>{setResetEmp(null);setResetPass("");setResetOtp("");setResetOtpSent(false);setResetMsg("");}}>Cancelar</button>
                   </div>
-                </div>:<button className="btn bg bsm" style={{fontSize:"0.72rem",alignSelf:"flex-start"}} onClick={()=>{setResetEmp(e);setResetPass("");setResetMsg("");}}>🔑 Restablecer contraseña</button>}
+                </div>:<button className="btn bg bsm" style={{fontSize:"0.72rem",alignSelf:"flex-start"}} onClick={()=>{setResetEmp(e);setResetPass("");setResetOtp("");setResetOtpSent(false);setResetMsg("");}}>🔑 Restablecer contraseña</button>}
               </div>
             );})}
           </div>:<p style={{fontSize:"0.78rem",color:"var(--muted)",marginBottom:"0.75rem"}}>Aún no has creado ningún usuario.</p>}
@@ -286,10 +321,16 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
         {perfil.rol==="gerente"&&<div className="card">
           <div className="chd">Cambiar contrasena</div>
           <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
-            <input className="inp" type="password" placeholder="Nueva contrasena" value={passForm.nueva} onChange={e=>setPassForm({...passForm,nueva:e.target.value})}/>
-            <input className="inp" type="password" placeholder="Confirmar contrasena" value={passForm.confirmar} onChange={e=>setPassForm({...passForm,confirmar:e.target.value})}/>
-            {passMsg&&<p style={{fontSize:"0.78rem",color:passMsg.includes("correcta")?"var(--green)":"var(--red)"}}>{passMsg}</p>}
-            <button className="btn bg" onClick={cambiarPass}>Cambiar contrasena</button>
+            <input className="inp" type="password" placeholder="Nueva contrasena" value={passForm.nueva} onChange={e=>setPassForm({...passForm,nueva:e.target.value})} disabled={passOtpSent}/>
+            <input className="inp" type="password" placeholder="Confirmar contrasena" value={passForm.confirmar} onChange={e=>setPassForm({...passForm,confirmar:e.target.value})} disabled={passOtpSent}/>
+            {passOtpSent&&<input className="inp" type="text" placeholder="Código de 6 dígitos recibido por email" value={passOtp} onChange={e=>setPassOtp(e.target.value)}/>}
+            {passMsg&&<p style={{fontSize:"0.78rem",color:passMsg.startsWith("✅")?"var(--green)":"var(--red)"}}>{passMsg}</p>}
+            {!passOtpSent?
+              <button className="btn bg" onClick={enviarOtpPass} disabled={enviandoOtp}>{enviandoOtp?<span className="spinner"/>:"Enviar código de confirmación"}</button>
+              :<div style={{display:"flex",gap:"0.5rem"}}>
+                <button className="btn bp" style={{flex:1}} onClick={cambiarPass} disabled={enviandoOtp}>{enviandoOtp?<span className="spinner"/>:"Confirmar cambio"}</button>
+                <button className="btn bg" style={{flex:1}} onClick={()=>{setPassOtpSent(false);setPassOtp("");setPassMsg("");}}>Cancelar</button>
+              </div>}
           </div>
         </div>}
         {(perfil.rol==="chofer"||perfil.rol==="trafico")&&<div className="card">
