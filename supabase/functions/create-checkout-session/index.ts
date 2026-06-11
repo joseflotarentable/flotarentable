@@ -1,5 +1,5 @@
 // Edge Function: create-checkout-session
-// Crea una sesion de Stripe Checkout para que el gerente contrate el plan mensual o anual.
+// Crea una sesion de Stripe Checkout para que el gerente contrate su plan (starter, pro o flota).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@14?target=deno";
@@ -10,9 +10,12 @@ const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY")!;
 const APP_URL = "https://www.flotarentable.com";
 
 const PRICE_IDS: Record<string, string> = {
-  mensual: "price_1Tgx5nHutHYU16KfeZHoWasq",
-  anual: "price_1TgxEPHutHYU16KfNsgt0t4l",
+  starter: Deno.env.get("STRIPE_PRICE_STARTER")!,
+  pro: Deno.env.get("STRIPE_PRICE_PRO")!,
+  flota: Deno.env.get("STRIPE_PRICE_FLOTA_BASE")!,
 };
+const PRICE_FLOTA_EXTRA = Deno.env.get("STRIPE_PRICE_FLOTA_EXTRA")!;
+const FLOTA_INCLUIDAS = 10;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,9 +37,17 @@ Deno.serve(async (req) => {
     const { data: perfil } = await admin.from("perfiles").select("email,stripe_customer_id").eq("id", userId).single();
     if (!perfil) return new Response(JSON.stringify({ error: "Usuario no encontrado" }), { status: 404, headers: corsHeaders });
 
+    const lineItems: { price: string; quantity: number }[] = [{ price: PRICE_IDS[plan], quantity: 1 }];
+
+    if (plan === "flota") {
+      const { count } = await admin.from("tractoras").select("id", { count: "exact", head: true }).eq("user_id", userId).neq("activa", false);
+      const extra = Math.max((count || 0) - FLOTA_INCLUIDAS, 0);
+      if (extra > 0) lineItems.push({ price: PRICE_FLOTA_EXTRA, quantity: extra });
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
+      line_items: lineItems,
       client_reference_id: userId,
       ...(perfil.stripe_customer_id
         ? { customer: perfil.stripe_customer_id }
