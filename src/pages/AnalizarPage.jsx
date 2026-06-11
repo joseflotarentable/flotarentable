@@ -214,7 +214,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     doc.text(mesLabel,W-M,23,"right");
     y=36;
     // Resumen
-    const cols=[[`${eur(totalIngresos)}`,"Ingresos"],[`${eur(totalVar)}`,"Gastos var."],[`${eur(totalFijos)}`,"Gastos fijos"],[`${eur(beneficio)}`,"Beneficio"]];
+    const cols=[[`${eur(totalIngresos)}`,"Ingresos (IVA incl.)"],[`${eur(totalVar)}`,"Gastos var."],[`${eur(totalFijos)}`,"Gastos fijos"],[`${eur(beneficio)}`,"Beneficio"]];
     const cw=CW/4;
     cols.forEach(([val,lbl],i)=>{
       const x=M+i*cw;const ok=i===3?beneficio>=0:true;
@@ -235,7 +235,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
     doc.setTextColor(232,73,15);doc.setFontSize(10);doc.setFont("helvetica","bold");doc.text("VIAJES",M,y);y+=5;
     doc.setDrawColor(232,73,15);doc.setLineWidth(0.3);doc.line(M,y,M+CW,y);y+=4;
     doc.setTextColor(120,120,140);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
-    ["Fecha","Origen -> Destino","Cliente","Km","Precio","Peaje"].forEach((h,i)=>{
+    ["Fecha","Origen -> Destino","Cliente","Km","Precio (IVA incl.)","Peaje"].forEach((h,i)=>{
       const xs=[0,18,90,118,138,158];doc.text(h,M+xs[i],y);
     });y+=4;
     doc.setDrawColor(40,40,55);doc.setLineWidth(0.2);doc.line(M,y,M+CW,y);y+=3;
@@ -362,7 +362,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
           if(!ingresos&&!gastosVar)return null;
           return(
             <div className="sgrid">
-              <div className="stat"><div className="slbl">Ingresos {MESES_ES[parseInt(mesFiltro.split("-")[1])-1]}</div><div className="sval g">{euros(ingresos)}</div></div>
+              <div className="stat"><div className="slbl">Ingresos {MESES_ES[parseInt(mesFiltro.split("-")[1])-1]} (IVA incl.)</div><div className="sval g">{euros(ingresos)}</div></div>
               <div className="stat"><div className="slbl">Beneficio {MESES_ES[parseInt(mesFiltro.split("-")[1])-1]}</div><div className={`sval ${beneficio>=0?"g":"r"}`}>{euros(beneficio)}</div></div>
             </div>
           );
@@ -584,7 +584,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
           const maxIng=Math.max(...months.map(m=>m.ingresos),1);
           return<>
             <div className="sgrid">
-              <div className="stat"><div className="slbl">Ingresos 6m</div><div className="sval g">{euros(totalIng)}</div></div>
+              <div className="stat"><div className="slbl">Ingresos 6m (IVA incl.)</div><div className="sval g">{euros(totalIng)}</div></div>
               <div className="stat"><div className="slbl">Beneficio 6m</div><div className={`sval ${totalBen>=0?"g":"r"}`}>{euros(totalBen)}</div></div>
             </div>
             <div className="card">
@@ -599,7 +599,7 @@ export function AnalizarPage({userId,tractoras,semis,gastosTodos,viajesTodos,gas
             <div className="card">
               <div className="chd">Detalle mensual</div>
               <table className="mtable">
-                <thead><tr><th>Mes</th><th>Ingresos</th><th>Beneficio</th><th>Viajes</th></tr></thead>
+                <thead><tr><th>Mes</th><th>Ingresos (IVA incl.)</th><th>Beneficio</th><th>Viajes</th></tr></thead>
                 <tbody>{months.map((m,i)=><tr key={i}><td>{m.label}</td><td style={{color:"var(--green)",fontWeight:600}}>{euros(m.ingresos)}</td><td style={{color:m.beneficio>=0?"var(--green)":"var(--red)",fontWeight:600}}>{euros(m.beneficio)}</td><td style={{color:"var(--muted)"}}>{m.numViajes}</td></tr>)}</tbody>
               </table>
             </div>
