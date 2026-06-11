@@ -56,7 +56,7 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
     })()));
 
   const conceptosExtra=(entidadId,base)=>{const custom=gastosFijos.filter(g=>g.entidad_id===entidadId&&!base.includes(g.concepto)).map(g=>g.concepto);return[...base,...custom];};
-  const vehiculos=[{id:"empresa",label:"🏢 Empresa",icon:I.building,conceptos:conceptosExtra("empresa",CONCEPTOS_EMPRESA)},...tractoras.map(t=>({id:t.id,label:`🚛 ${t.matricula||"Sin mat."}${t.apodo?` "${t.apodo}"`:""}`,icon:I.truck,conceptos:conceptosExtra(t.id,CONCEPTOS_VEHICULO)})),...semis.map(s=>({id:s.id,label:`🚛 ${s.matricula||"Sin mat."}`,icon:I.truck,conceptos:conceptosExtra(s.id,["Seguro anual","ITV","Neumáticos","Mantenimiento","Otros"])}))];
+  const vehiculos=[{id:"empresa",label:"🏢 Empresa",icon:I.building,base:CONCEPTOS_EMPRESA,conceptos:conceptosExtra("empresa",CONCEPTOS_EMPRESA)},...tractoras.map(t=>({id:t.id,label:`🚛 ${t.matricula||"Sin mat."}${t.apodo?` "${t.apodo}"`:""}`,icon:I.truck,base:CONCEPTOS_VEHICULO,conceptos:conceptosExtra(t.id,CONCEPTOS_VEHICULO)})),...semis.map(s=>({id:s.id,label:`🚛 ${s.matricula||"Sin mat."}`,icon:I.truck,base:["Seguro anual","ITV","Neumáticos","Mantenimiento","Otros"],conceptos:conceptosExtra(s.id,["Seguro anual","ITV","Neumáticos","Mantenimiento","Otros"])}))];
 
   const getFijo=(entidadId,concepto)=>gastosFijos.find(g=>g.entidad_id===entidadId&&g.concepto===concepto);
 
@@ -68,6 +68,14 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
     }else{
       const{data}=await sb.from("gastos_fijos").insert({user_id:userId,entidad_id:entidadId,concepto,importe,periodo,ano:anoActual}).select().single();
       if(data)setGastosFijos([...gastosFijos,data]);
+    }
+  };
+
+  const deleteFijo=async(entidadId,concepto)=>{
+    const existing=getFijo(entidadId,concepto);
+    if(existing){
+      await sb.from("gastos_fijos").delete().eq("id",existing.id);
+      setGastosFijos(gastosFijos.filter(g=>g.id!==existing.id));
     }
   };
 
@@ -141,7 +149,7 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
           return(
             <div className="trip" key={g.id} onClick={()=>openEdit(g)}>
               <div className="ttop">
-                <div><div className="troute">{g.tipo}{g.pais&&g.pais!=="España"?` · ${g.pais}`:""}{g.foto_factura?" 📄":""}</div><div className="tdate">{fmtDate(g.fecha)}{veh?` · ${veh.matricula}`:""}{g.nota?` · ${g.nota}`:""}{esGerente&&g.user_id&&nombres[g.user_id]?` · añadido por ${nombres[g.user_id]}`:""}</div></div>
+                <div><div className="troute">{g.tipo==="Otros"&&g.titulo?g.titulo:g.tipo}{g.pais&&g.pais!=="España"?` · ${g.pais}`:""}{g.foto_factura?" 📄":""}</div><div className="tdate">{fmtDate(g.fecha)}{veh?` · ${veh.matricula}`:""}{g.nota?` · ${g.nota}`:""}{esGerente&&g.user_id&&nombres[g.user_id]?` · añadido por ${nombres[g.user_id]}`:""}</div></div>
                 <div style={{display:"flex",alignItems:"center",gap:"0.5rem"}}>
                   <span style={{fontFamily:"'Bebas Neue'",fontSize:"1.1rem",color:"var(--red)",letterSpacing:"0.02em"}}>{euros(parseFloat(g.importe))}</span>
                   <button className="btn bd bsm" style={{padding:"0.3rem 0.4rem"}} onClick={e=>{e.stopPropagation();setConfirm({id:g.id,cerrar:false});}}><Icon d={I.trash} size={12}/></button>
@@ -171,12 +179,14 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
                 {v.conceptos.map(concepto=>{
                   const fijo=getFijo(v.id,concepto);
                   const esAnual=fijo?.periodo==="anual"||(concepto.includes("anual")||concepto==="ITV");
+                  const esCustom=!v.base.includes(concepto);
                   return(
                     <div key={concepto} className="gfijo-row">
                       <span className="gfijo-lbl">{concepto}</span>
                       <input className="gfijo-inp" type="number" placeholder="0" defaultValue={fijo?.importe||""} key={fijo?.id||concepto} onBlur={e=>{const val=e.target.value;if(val&&val!==String(fijo?.importe||""))saveFijo(v.id,concepto,parseFloat(val),esAnual?"anual":"mensual");}}/>
                       <span className="gfijo-periodo">{esAnual?"€/año":"€/mes"}</span>
                       {esAnual&&fijo?.importe&&<span className="nota-anual">{euros((parseFloat(fijo.importe)||0)/12)}/m</span>}
+                      {esCustom&&<button className="btn bd bsm" style={{padding:"0.25rem 0.4rem"}} onClick={()=>deleteFijo(v.id,concepto)}><Icon d={I.trash} size={12}/></button>}
                     </div>
                   );
                 })}
@@ -201,6 +211,7 @@ export function GastosPage({userId,tractoras,semis,esGerente,accentIdx,gastosFij
             <div className="fld"><label className="lbl">Fecha</label><input type="date" className="inp" value={modal.fecha} onChange={e=>setModal({...modal,fecha:e.target.value})}/></div>
             <div className="fld"><label className="lbl">Tipo</label><select className="inp sel" value={modal.tipo} onChange={e=>setModal({...modal,tipo:e.target.value,vehicle_id:e.target.value==="Impuesto"?"empresa":modal.vehicle_id,vehicle_tipo:e.target.value==="Impuesto"?"empresa":modal.vehicle_tipo})}>{(esGerente?TIPOS_GASTO_VAR:TIPOS_GASTO_VAR.filter(t=>t!=="Impuesto")).map(t=><option key={t}>{t}</option>)}</select></div>
             {modal.tipo==="Impuesto"&&<div className="fld"><label className="lbl">Título del impuesto</label><input className="inp" placeholder="ej. Liquidación IVA T1, IRPF anual..." value={modal.titulo||""} onChange={e=>setModal({...modal,titulo:e.target.value})}/></div>}
+            {modal.tipo==="Otros"&&<div className="fld"><label className="lbl">Nombre del gasto</label><input className="inp" placeholder="ej. Multa, Lavado interior..." value={modal.titulo||""} onChange={e=>setModal({...modal,titulo:e.target.value})}/></div>}
             {modal.tipo==="Impuesto"&&<div className="fld"><label className="lbl">Año del periodo</label><input className="inp" type="number" placeholder={anoActual} value={modal.imp_ano||anoActual} onChange={e=>setModal({...modal,imp_ano:e.target.value})}/></div>}
             {modal.tipo==="Impuesto"&&<div style={{display:"flex",gap:"0.5rem"}}><div className="fld" style={{flex:1}}><label className="lbl">Mes inicio</label><select className="inp sel" value={modal.imp_mes_ini||"1"} onChange={e=>setModal({...modal,imp_mes_ini:e.target.value})}>{MESES_ES.map((m,i)=><option key={i+1} value={i+1}>{m}</option>)}</select></div><div className="fld" style={{flex:1}}><label className="lbl">Mes fin</label><select className="inp sel" value={modal.imp_mes_fin||"12"} onChange={e=>setModal({...modal,imp_mes_fin:e.target.value})}>{MESES_ES.map((m,i)=><option key={i+1} value={i+1}>{m}</option>)}</select></div></div>}
             {modal.tipo==="ITV"&&<div className="fld"><label className="lbl">¿Cada cuántos meses pasa ITV?</label><select className="inp sel" value={modal.itv_meses||"12"} onChange={e=>setModal({...modal,itv_meses:e.target.value})}><option value="6">Cada 6 meses</option><option value="12">Cada 12 meses (1 año)</option><option value="24">Cada 24 meses (2 años)</option><option value="36">Cada 36 meses (3 años)</option></select><div style={{fontSize:"0.75rem",color:"var(--muted)",marginTop:"0.3rem"}}>El coste se repartirá entre esos meses automáticamente</div></div>}
