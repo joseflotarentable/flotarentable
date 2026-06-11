@@ -24,6 +24,8 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
   const[reseteando,setReseteando]=useState(false);
   const[resetOtpSent,setResetOtpSent]=useState(false);
   const[resetOtp,setResetOtp]=useState("");
+  const[abriendoPortal,setAbriendoPortal]=useState(false);
+  const[portalMsg,setPortalMsg]=useState("");
 
   const cargarEmpleados=async(empresaId)=>{
     const{data}=await sb.from("perfiles").select("id,nombre,rol,truck_id,email").eq("empresa_id",empresaId).neq("id",userId);
@@ -203,6 +205,17 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
             </div>
             <div style={{fontSize:"0.7rem",color:"var(--muted)",marginTop:"0.25rem"}}>Plan {planLimite<=4?"Starter":planLimite<=11?"Flota":"Empresa"} · {planLimite-1} chófer{planLimite-1!==1?"es":""} incluidos</div>
           </div>}
+        </div>}
+        {perfil.rol==="gerente"&&perfil.subscription_status==="active"&&<div className="card">
+          <div className="chd">Suscripcion</div>
+          {portalMsg&&<p style={{fontSize:"0.78rem",color:"var(--red)",marginBottom:"0.5rem"}}>{portalMsg}</p>}
+          <button className="btn bg" onClick={async()=>{
+            setPortalMsg("");setAbriendoPortal(true);
+            const{data,error}=await sb.functions.invoke("create-portal-session",{body:{userId}});
+            setAbriendoPortal(false);
+            if(error||!data?.url){setPortalMsg("No se ha podido abrir el panel de suscripcion. Intentalo de nuevo.");return;}
+            window.location.href=data.url;
+          }} disabled={abriendoPortal}>{abriendoPortal?<span className="spinner"/>:"Gestionar suscripcion"}</button>
         </div>}
         {perfil.rol==="gerente"&&<div className="card">
           <div className="chd">👤 Usuarios (chóferes y tráfico)</div>
