@@ -13,6 +13,7 @@ import { FlotaPage } from "./pages/FlotaPage.jsx";
 import { ViajesPage } from "./pages/ViajesPage.jsx";
 import { GastosPage } from "./pages/GastosPage.jsx";
 import { AnalizarPage } from "./pages/AnalizarPage.jsx";
+import { PaywallPage } from "./pages/PaywallPage.jsx";
 
 export default function App() {
   const[user,setUser]=useState(null);
@@ -27,6 +28,8 @@ export default function App() {
   const[tab,setTab]=useState("inicio");
   const[loading,setLoading]=useState(true);
   const[trialStart,setTrialStart]=useState(null);
+  const[subStatus,setSubStatus]=useState("trial");
+  const[showPaywall,setShowPaywall]=useState(false);
   const[theme,setTheme]=useState(()=>localStorage.getItem("fr-theme")||"dark");
   const[showAuth,setShowAuth]=useState(false);
   const[authMode,setAuthMode]=useState("welcome");
@@ -37,6 +40,22 @@ export default function App() {
   },[theme]);
 
   useEffect(()=>{
+    if(new URLSearchParams(window.location.search).get("checkout")==="success"){
+      window.history.replaceState({},"","/");
+      let intentos=0;
+      const poll=setInterval(async()=>{
+        intentos++;
+        const{data:{session}}=await sb.auth.getSession();
+        if(session?.user){
+          const{data:p}=await sb.from("perfiles").select("subscription_status").eq("id",session.user.id).single();
+          if(p?.subscription_status==="active"){setSubStatus("active");clearInterval(poll);}
+        }
+        if(intentos>=10)clearInterval(poll);
+      },2000);
+    }
+  },[]);
+
+  useEffect(()=>{
     sb.auth.getSession().then(async({data:{session}})=>{
       if(session?.user){
         setUser(session.user);
@@ -44,16 +63,19 @@ export default function App() {
         setPerfil(p||{});
         let tractorUserId=session.user.id;
         let ts=p?.trial_start||null;
+        let ss=p?.subscription_status||"trial";
         if((p?.rol==="chofer"||p?.rol==="trafico")&&p?.empresa_id){
           const{data:emp}=await sb.from("empresas").select("gerente_id").eq("id",p.empresa_id).single();
           if(emp?.gerente_id){
             tractorUserId=emp.gerente_id;
-            const{data:gp}=await sb.from("perfiles").select("trial_start,logo,empresa").eq("id",emp.gerente_id).single();
+            const{data:gp}=await sb.from("perfiles").select("trial_start,subscription_status,logo,empresa").eq("id",emp.gerente_id).single();
             if(gp?.trial_start)ts=gp.trial_start;
+            if(gp?.subscription_status)ss=gp.subscription_status;
             if(gp?.logo)setLogoGerente(gp.logo);
           }
         }
         setTrialStart(ts);
+        setSubStatus(ss);
         let userIds=[session.user.id];
         if(p?.rol!=="chofer"&&p?.empresa_id){
           const{data:emp}=await sb.from("empresas").select("miembros").eq("id",p.empresa_id).single();
@@ -77,16 +99,19 @@ export default function App() {
     setUser(u);setPerfil(p);
     let tractorUserId=u.id;
     let ts=p?.trial_start||null;
+    let ss=p?.subscription_status||"trial";
     if((p.rol==="chofer"||p.rol==="trafico")&&p.empresa_id){
       const{data:emp}=await sb.from("empresas").select("gerente_id").eq("id",p.empresa_id).single();
       if(emp?.gerente_id){
         tractorUserId=emp.gerente_id;
-        const{data:gp}=await sb.from("perfiles").select("trial_start,logo").eq("id",emp.gerente_id).single();
+        const{data:gp}=await sb.from("perfiles").select("trial_start,subscription_status,logo").eq("id",emp.gerente_id).single();
         if(gp?.trial_start)ts=gp.trial_start;
+        if(gp?.subscription_status)ss=gp.subscription_status;
         if(gp?.logo)setLogoGerente(gp.logo);
       }
     }
     setTrialStart(ts);
+    setSubStatus(ss);
     let userIds=[u.id];
     if(p.rol!=="chofer"&&p.empresa_id){
       const{data:emp}=await sb.from("empresas").select("miembros").eq("id",p.empresa_id).single();
@@ -116,6 +141,9 @@ export default function App() {
   if(!user)return(<><style>{makeCSS(accent)}</style><div className="app"><AuthPage onAuth={handleAuth} accent={accent} initialMode={authMode} onBack={()=>setShowAuth(false)}/></div></>);
   if(user&&!perfil.rol)return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#08080F"}}><div className="spinner" style={{width:32,height:32,borderColor:"rgba(255,61,90,0.3)",borderTopColor:"#FF3D5A"}}/></div>);
 
+  const suscrito=subStatus==="active";
+  if((days<=0&&!suscrito)||showPaywall)return(<><style>{makeCSS(accent)}</style><div className="app"><PaywallPage userId={esGerente?user.id:null} esGerente={esGerente} expired={days<=0&&!suscrito} onLogout={handleLogout} onClose={days>0?()=>setShowPaywall(false):null}/></div></>);
+
   const tabs=[{id:"inicio",lbl:"Inicio",icon:I.dash},...(esGerente?[{id:"flota",lbl:"Vehículos",icon:I.truck}]:[]),{id:"viajes",lbl:"Viajes",icon:I.trend},{id:"gastos",lbl:"Gastos",icon:I.coin},...(esGerente?[{id:"analizar",lbl:"Analizar",icon:I.analyze}]:[])];
   // El chofer solo ve su tractora asignada (perfil.truck_id); gerente y trafico ven toda la flota.
   const esChofer=perfil.rol==="chofer";
@@ -136,6 +164,7 @@ export default function App() {
           <div><div className="hdr-brand">{perfil.empresa||"FlotaRentable"}</div><div className="hdr-sub">{rolLabel} · {tractorasActivas.length} tractora{tractorasActivas.length!==1?"s":""}</div></div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:"0.5rem"}}>
+          {esGerente&&!suscrito&&days<=2&&<button className="btn bp bsm" style={{padding:"0.3rem 0.6rem",width:"auto",fontSize:"0.72rem"}} onClick={()=>setShowPaywall(true)}>Activar plan</button>}
           <div className="trial-chip"><Icon d={I.clock} size={10} color="var(--muted)"/><span className="chip-d">{days}d</span></div>
           <button className="btn bg bsm" style={{padding:"0.35rem 0.5rem",width:"auto"}} onClick={()=>setShowAjustes(true)}><Icon d={I.settings} size={15}/></button>
         </div>

@@ -46,7 +46,10 @@
       "PowerShell(irm get.scoop.sh | iex)",
       "Bash(find supabase *)",
       "Bash(ls supabase *)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(supabase secrets *)",
+      "PowerShell(supabase secrets set STRIPE_SECRET_KEY=\"sk_test_51TK6CvHutHYU16Kf2z7bCg6woAYbLAZgum49Kxy0GjJz7IIFFVBJuFeseaMDREmReApXCQc2Enj6XQpiLcFA37KN00Y4Zg55zI\")",
+      "PowerShell(scoop which supabase 2>&1; & \"$env:USERPROFILE\\\\scoop\\\\shims\\\\supabase.exe\" --version 2>&1)"
     ]
   }
 }
