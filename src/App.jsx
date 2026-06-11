@@ -139,6 +139,14 @@ export default function App() {
   const handleLogout=async()=>{await sb.auth.signOut();setUser(null);setPerfil({});setTractoras([]);setSemis([]);setViajesTodos([]);setGastosTodos([]);setGastosFijos([]);};
   const updatePerfil=patch=>setPerfil(p=>({...p,...patch}));
   const[showAjustes,setShowAjustes]=useState(false);
+  const[loadingPortal,setLoadingPortal]=useState(false);
+  const abrirPortalCliente=async()=>{
+    setLoadingPortal(true);
+    const{data,error}=await sb.functions.invoke("create-portal-session",{body:{userId:user.id}});
+    setLoadingPortal(false);
+    if(error||!data?.url)return;
+    window.location.href=data.url;
+  };
 
   const accent=ACCENTS[perfil.accent_idx||0];
   const esGerente=perfil.rol==="gerente";
@@ -182,6 +190,7 @@ export default function App() {
             {esGerente&&<button className="btn bp bsm" style={{padding:"0.3rem 0.6rem",width:"auto",fontSize:"0.72rem"}} onClick={()=>setShowPaywall(true)}>Activar plan</button>}
             <div className="trial-chip"><Icon d={I.clock} size={10} color="var(--muted)"/><span className="chip-d">{days}d</span></div>
           </>}
+          {suscrito&&esGerente&&subStatus==="active"&&<button className="btn bg bsm" style={{padding:"0.3rem 0.6rem",width:"auto",fontSize:"0.72rem"}} onClick={abrirPortalCliente} disabled={loadingPortal}>{loadingPortal?<span className="spinner"/>:"Gestionar cuenta"}</button>}
           <button className="btn bg bsm" style={{padding:"0.35rem 0.5rem",width:"auto"}} onClick={()=>setShowAjustes(true)}><Icon d={I.settings} size={15}/></button>
         </div>
       </div>
