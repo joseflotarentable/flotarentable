@@ -10,7 +10,8 @@ export function PaywallPage({ userId, perfil, updatePerfil, esGerente, onLogout,
   const [promoMsg, setPromoMsg] = useState("");
   const [aplicandoPromo, setAplicandoPromo] = useState(false);
 
-  const plan = PLANES.find(p => p.id === perfil?.plan) || PLANES[0];
+  const [planId, setPlanId] = useState(perfil?.plan || PLANES[0].id);
+  const plan = PLANES.find(p => p.id === planId) || PLANES[0];
 
   const suscribirse = async () => {
     setError(""); setLoading(true);
@@ -44,9 +45,28 @@ export function PaywallPage({ userId, perfil, updatePerfil, esGerente, onLogout,
               : "Te quedan pocos dias de prueba. Activa tu plan para no perder acceso a tus datos."}
           </p>
           {error && <p style={{fontSize:"0.78rem",color:"var(--red)",marginBottom:"0.5rem"}}>{error}</p>}
-          <div style={{background:"var(--s2)",border:"1px solid var(--border2)",borderRadius:"var(--r2)",padding:"1rem",marginBottom:"0.75rem"}}>
-            <div style={{fontWeight:700,fontSize:"0.95rem"}}>Plan {plan.nombre} — {plan.rango}</div>
-            <div style={{fontSize:"1.4rem",fontWeight:700,marginTop:"0.25rem"}}>{plan.precio}</div>
+          <div style={{display:"flex",flexDirection:"column",gap:"0.5rem",marginBottom:"0.75rem"}}>
+            {PLANES.map(p => (
+              <div
+                key={p.id}
+                onClick={() => setPlanId(p.id)}
+                style={{
+                  background:"var(--s2)",
+                  border: p.id===planId ? "2px solid var(--accent)" : "1px solid var(--border2)",
+                  borderRadius:"var(--r2)",
+                  padding:"1rem",
+                  cursor:"pointer",
+                  display:"flex",
+                  justifyContent:"space-between",
+                  alignItems:"center"
+                }}
+              >
+                <div>
+                  <div style={{fontWeight:700,fontSize:"0.95rem"}}>{p.nombre} — {p.rango}</div>
+                  <div style={{fontSize:"1.2rem",fontWeight:700,marginTop:"0.25rem"}}>{p.precio}</div>
+                </div>
+              </div>
+            ))}
           </div>
           <button className="btn bp" onClick={suscribirse} disabled={loading}>
             {loading?<span className="spinner"/>:"Suscribirme"}

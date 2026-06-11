@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
       mode: "subscription",
       line_items: lineItems,
       client_reference_id: userId,
+      allow_promotion_codes: true,
       ...(perfil.stripe_customer_id
         ? { customer: perfil.stripe_customer_id }
         : { customer_email: perfil.email || undefined }),
