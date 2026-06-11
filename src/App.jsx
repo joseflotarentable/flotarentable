@@ -164,8 +164,10 @@ export default function App() {
           <div><div className="hdr-brand">{perfil.empresa||"FlotaRentable"}</div><div className="hdr-sub">{rolLabel} · {tractorasActivas.length} tractora{tractorasActivas.length!==1?"s":""}</div></div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:"0.5rem"}}>
-          {esGerente&&!suscrito&&<button className="btn bp bsm" style={{padding:"0.3rem 0.6rem",width:"auto",fontSize:"0.72rem"}} onClick={()=>setShowPaywall(true)}>Activar plan</button>}
-          <div className="trial-chip"><Icon d={I.clock} size={10} color="var(--muted)"/><span className="chip-d">{days}d</span></div>
+          {!suscrito&&<>
+            {esGerente&&<button className="btn bp bsm" style={{padding:"0.3rem 0.6rem",width:"auto",fontSize:"0.72rem"}} onClick={()=>setShowPaywall(true)}>Activar plan</button>}
+            <div className="trial-chip"><Icon d={I.clock} size={10} color="var(--muted)"/><span className="chip-d">{days}d</span></div>
+          </>}
           <button className="btn bg bsm" style={{padding:"0.35rem 0.5rem",width:"auto"}} onClick={()=>setShowAjustes(true)}><Icon d={I.settings} size={15}/></button>
         </div>
       </div>
