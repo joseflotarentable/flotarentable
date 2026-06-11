@@ -37,6 +37,7 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
       try{
         const{data,error}=await sb.auth.signUp({email:form.email,password:form.password,options:{data:{nombre:form.nombre,empresa:form.empresa,rol:form.rol}}});
         if(error){setErr(error.message);setLoading(false);return;}
+        if(data.user&&data.user.identities&&data.user.identities.length===0){setErr("Ese email ya está registrado. Inicia sesión.");setLoading(false);return;}
         let empresaId=null;
         if(form.rol==="gerente"){
           const{data:emp}=await sb.from("empresas").insert({nombre:form.empresa||form.nombre,codigo:genCode(),gerente_id:data.user.id,miembros:[data.user.id]}).select().single();
