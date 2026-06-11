@@ -39,7 +39,7 @@ body{margin:0}
 .blog-post-date{font-size:0.78rem;color:#8A8AA2;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem}
 .blog-body{font-size:0.95rem;line-height:1.85;color:#C7C7DA;white-space:pre-line}
 .blog-body h2{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.02em;color:#EEEDF5;margin:2rem 0 0.75rem;white-space:normal}
-.lp-foot{text-align:center;padding:2.5rem 1.5rem;color:#5A5A72;font-size:0.8rem;border-top:1px solid #ffffff0D;margin-top:1rem}
+.lp-foot{text-align:center;padding:2.5rem 1.5rem;color:#9595AC;font-size:0.8rem;border-top:1px solid #ffffff0D;margin-top:1rem}
 `;
 
 function renderBody(content) {

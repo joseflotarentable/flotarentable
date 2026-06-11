@@ -152,7 +152,7 @@ export function LandingPage({accent,onLogin,onRegister,onBlog,onOpenPost}) {
   .lp-rev-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fff;flex-shrink:0}
   .lp-rev-name{font-size:0.85rem;font-weight:700}
   .lp-rev-role{font-size:0.72rem;color:#8A8AA2}
-  .lp-foot{text-align:center;padding:2.5rem 1.5rem;color:#5A5A72;font-size:0.8rem;border-top:1px solid #ffffff0D;margin-top:1rem}
+  .lp-foot{text-align:center;padding:2.5rem 1.5rem;color:#9595AC;font-size:0.8rem;border-top:1px solid #ffffff0D;margin-top:1rem}
   .lp-foot-links{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;margin-bottom:1rem}
   .lp-foot-links span{cursor:pointer;color:#8A8AA2;transition:color .15s}
   .lp-foot-links span:hover{color:#EEEDF5}
@@ -195,7 +195,7 @@ export function LandingPage({accent,onLogin,onRegister,onBlog,onOpenPost}) {
           <div><div className="lp-stat-num">7 días</div><div className="lp-stat-lbl">de prueba gratis</div></div>
           <div><div className="lp-stat-num">100%</div><div className="lp-stat-lbl">listo para tu gestoría</div></div>
         </div>
-        <p style={{fontSize:"0.8rem",color:"#5A5A72",marginTop:"1.5rem"}}>🔒 Sin tarjeta de crédito · Cancela cuando quieras</p>
+        <p style={{fontSize:"0.8rem",color:"#9595AC",marginTop:"1.5rem"}}>🔒 Sin tarjeta de crédito · Cancela cuando quieras</p>
       </header>
 
       <div className="lp-mock">
