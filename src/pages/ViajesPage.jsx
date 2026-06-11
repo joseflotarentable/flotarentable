@@ -11,6 +11,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
   const[vuelta,setVuelta]=useState(false);
   const[toast,setToast]=useState("");
   const[confirm,setConfirm]=useState(null);
+  const[busqueda,setBusqueda]=useState("");
   const[oCoords,setOCoords]=useState(null);
   const[dCoords,setDCoords]=useState(null);
   const[lCoords,setLCoords]=useState(null);
@@ -145,9 +146,11 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
         <button className="btn bp bsm" onClick={openNew}><Icon d={I.plus} size={14}/> Añadir</button>
       </div>
       {tractoras.length===0&&<div className="alert ay"><Icon d={I.alert} size={14} color="var(--yellow)"/><span>Añade una tractora en <strong>Flota</strong> para registrar viajes.</span></div>}
-      {viajes.length===0?<div className="empty"><div className="ei"><Icon d={I.truck} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin viajes</strong><span style={{fontSize:"0.8rem"}}>Registra tu primera ruta para empezar a ver tu rentabilidad</span></div><button className="btn bp bsm" style={{marginTop:"0.75rem"}} onClick={openNew}><Icon d={I.plus} size={13}/> Añadir mi primer viaje</button></div>
+      {viajes.length>0&&<div className="fld" style={{marginBottom:"0.6rem"}}><input className="inp" placeholder="Buscar por cliente, origen o destino..." value={busqueda} onChange={e=>setBusqueda(e.target.value)}/></div>}
+      {(()=>{const q=busqueda.trim().toLowerCase();const viajesF=q?viajes.filter(v=>(v.cliente||"").toLowerCase().includes(q)||(v.origen||"").toLowerCase().includes(q)||(v.destino||"").toLowerCase().includes(q)||(v.destino2||"").toLowerCase().includes(q)):viajes;
+      return viajesF.length===0?(viajes.length===0?<div className="empty"><div className="ei"><Icon d={I.truck} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin viajes</strong><span style={{fontSize:"0.8rem"}}>Registra tu primera ruta para empezar a ver tu rentabilidad</span></div><button className="btn bp bsm" style={{marginTop:"0.75rem"}} onClick={openNew}><Icon d={I.plus} size={13}/> Añadir mi primer viaje</button></div>:<div className="empty"><div><strong style={{display:"block",marginBottom:3}}>Sin resultados</strong><span style={{fontSize:"0.8rem"}}>No hay viajes que coincidan con "{busqueda}"</span></div></div>)
       :<div className="trip-list" style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
-        {(()=>{const costeFijoKm=esGerente?calcCosteFijoKm(tractoras,gastosFijos||[],gastosTodos,viajesTodos):0;return viajes.map(v=>{
+        {(()=>{const costeFijoKm=esGerente?calcCosteFijoKm(tractoras,gastosFijos||[],gastosTodos,viajesTodos):0;return viajesF.map(v=>{
           const{coste,ben,margen}=calcV(v);
           const kmTotalV=(parseFloat(v.km)||0)+(parseFloat(v.km_vuelta)||0)+(parseFloat(v.km_vacio)||0);
           const costeFijo=costeFijoKm*kmTotalV;
@@ -181,7 +184,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
             </div>
           );
         });})()}
-      </div>}
+      </div>;})()}
 
     </div>
     {modal&&<div className="ov">

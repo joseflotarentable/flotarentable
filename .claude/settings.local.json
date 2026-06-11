@@ -45,7 +45,8 @@
       "Bash(grep -n \"Origen\\\\|destino}\\\\`\" src/pages/AnalizarPage.jsx)",
       "PowerShell(irm get.scoop.sh | iex)",
       "Bash(find supabase *)",
-      "Bash(ls supabase *)"
+      "Bash(ls supabase *)",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }
