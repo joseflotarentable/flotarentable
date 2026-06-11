@@ -5,13 +5,13 @@ const LEGAL_TEXT={
   aviso:{title:"Aviso legal",body:`En cumplimiento de la Ley 34/2002, de Servicios de la Sociedad de la Información y Comercio Electrónico (LSSI-CE), se informa de los datos identificativos del titular de este sitio web.
 
 Titular: FlotaRentable
-Email de contacto: soporte@kmrentable.com
+Email de contacto: soporte@flotarentable.com
 Sitio web: kmrentable.vercel.app
 
 El acceso y uso de este sitio web atribuye la condición de usuario y supone la aceptación de las condiciones aquí recogidas. FlotaRentable se reserva el derecho de modificar cualquier tipo de información que pudiera aparecer en el sitio web, sin que exista obligación de preavisar o poner en conocimiento de los usuarios dichas obligaciones.`},
   privacidad:{title:"Política de privacidad",body:`De acuerdo con el Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD), te informamos sobre el tratamiento de tus datos personales.
 
-Responsable del tratamiento: FlotaRentable (soporte@kmrentable.com)
+Responsable del tratamiento: FlotaRentable (soporte@flotarentable.com)
 
 Datos que tratamos: nombre, email, teléfono, empresa, datos de la flota, viajes y gastos que introduces voluntariamente en la aplicación.
 
@@ -23,7 +23,7 @@ Conservación: tus datos se conservan mientras mantengas tu cuenta activa y, pos
 
 Destinatarios: tus datos se almacenan en infraestructura de terceros proveedores (hosting y base de datos) que actúan como encargados del tratamiento bajo contrato, sin cederse a terceros para fines comerciales. Los pagos de la suscripción son gestionados por Stripe, que recibe los datos necesarios para procesar el cobro (Stripe Payments Europe, Ltd.) bajo sus propias condiciones y política de privacidad.
 
-Derechos: puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a soporte@kmrentable.com.`},
+Derechos: puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a soporte@flotarentable.com.`},
   terminos:{title:"Términos y condiciones",body:`El uso de FlotaRentable implica la aceptación de estos términos.
 
 1. Objeto: FlotaRentable es una aplicación de gestión de flotas de transporte que permite registrar viajes, gastos y calcular la rentabilidad del negocio.
@@ -40,7 +40,7 @@ Derechos: puedes ejercer tus derechos de acceso, rectificación, supresión, opo
 
 7. Modificaciones: estos términos pueden actualizarse; se notificará a los usuarios de cambios relevantes.
 
-Para cualquier duda: soporte@kmrentable.com`},
+Para cualquier duda: soporte@flotarentable.com`},
 };
 
 function LegalPage({page,onBack}) {
@@ -174,7 +174,7 @@ export function LandingPage({accent,onLogin,onRegister}) {
       <header className="lp-hero">
         <div className="lp-glow"/>
         <div className="lp-glow2"/>
-        <h1 className="lp-h1">Descubre exactamente<br/><span>cuánto ganas</span> en cada kilómetro</h1>
+        <h1 className="lp-h1">Si no sabes tu coste por kilómetro,<br/><span>estás conduciendo a ciegas</span></h1>
         <p className="lp-sub">FlotaRentable calcula la rentabilidad real de tu flota: combustible, peajes, gastos fijos e IVA, viaje a viaje y mes a mes. Todo desde el móvil.</p>
         <div className="lp-ctas">
           <button className="lp-btn lp-btn-pri" onClick={onRegister}>Empezar gratis 7 días <Icon d={I.arrow} size={15} color="#fff"/></button>
@@ -185,6 +185,7 @@ export function LandingPage({accent,onLogin,onRegister}) {
           <div><div className="lp-stat-num">7 días</div><div className="lp-stat-lbl">de prueba gratis</div></div>
           <div><div className="lp-stat-num">100%</div><div className="lp-stat-lbl">listo para tu gestoría</div></div>
         </div>
+        <p style={{fontSize:"0.8rem",color:"#5A5A72",marginTop:"1.5rem"}}>🔒 Sin tarjeta de crédito · Cancela cuando quieras</p>
       </header>
 
       <div className="lp-mock">
@@ -297,7 +298,7 @@ export function LandingPage({accent,onLogin,onRegister}) {
           <p>¿Tienes dudas o quieres que te ayudemos a empezar? Escríbenos.</p>
         </div>
         <div className="lp-pricing">
-          <div style={{fontSize:"0.95rem",fontWeight:700,marginBottom:"0.5rem"}}>📧 soporte@kmrentable.com</div>
+          <div style={{fontSize:"0.95rem",fontWeight:700,marginBottom:"0.5rem"}}>📧 soporte@flotarentable.com</div>
           <div style={{fontSize:"0.85rem",color:"#8A8AA2",marginBottom:"1.5rem"}}>Te respondemos en menos de 24h laborables.</div>
           <button className="lp-btn lp-btn-pri" style={{width:"100%"}} onClick={onRegister}>Empezar 7 días gratis</button>
         </div>
