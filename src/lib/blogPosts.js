@@ -284,4 +284,59 @@ Más allá del ahorro directo en sanciones, controlar estas fechas de forma cent
 En FlotaRentable, cada vehículo guarda sus fechas de ITV y seguro, y el sistema avisa con antelación cuando se acercan los vencimientos, para que renovar documentación deje de ser una carrera de última hora.
 `,
   },
+  {
+    slug: "preguntas-antes-de-hacerte-autonomo-transportista",
+    title: "Hacerte autónomo del transporte: las preguntas que todo el mundo se hace antes de dar el paso",
+    description: "Antes de hacerte autónomo en el transporte surgen muchas dudas: cuánto se gana de verdad, qué gastos hay, si comprar o financiar el camión... Repasamos las preguntas más habituales.",
+    date: "2026-06-12",
+    content: `
+Dar el salto a ser autónomo del transporte es una decisión importante, y es normal llegar a ella con muchas más preguntas que respuestas. Muchas de estas dudas se repiten una y otra vez entre quienes están valorando dar el paso, así que hemos reunido las más habituales.
+
+## ¿Cuánto se gana realmente como transportista autónomo?
+
+Es la primera pregunta y, a la vez, la más difícil de responder con una cifra única. La facturación de un autónomo del transporte puede variar mucho según el tipo de mercancía, las rutas, si se trabaja para una sola empresa o varios clientes, y la antigüedad en el sector.
+
+Lo importante no es la facturación bruta, sino lo que queda después de restar combustible, peajes, seguros, cuota de autónomo, mantenimiento y, si procede, la cuota del camión. Muchos autónomos facturan cifras que parecen altas pero, sin un control de gastos detallado, no saben cuánto ganan realmente al mes.
+
+## ¿Comprar el camión, financiarlo o trabajar con renting?
+
+Cada opción tiene implicaciones distintas:
+
+- Comprar al contado: requiere una inversión inicial fuerte, pero no hay cuota mensual de financiación.
+- Financiación o leasing: permite empezar sin todo el capital, pero añade una cuota fija mensual que hay que cubrir sí o sí, haya o no viajes ese mes.
+- Renting: incluye normalmente mantenimiento, pero suele ser la opción con cuota mensual más alta.
+
+La decisión correcta depende de la liquidez disponible y de cuánta seguridad de carga se tenga al empezar (por ejemplo, si ya hay un acuerdo con una empresa para trabajar de forma estable).
+
+## ¿Qué gastos tiene un autónomo del transporte que no son tan evidentes?
+
+Además de los gastos obvios (combustible, peajes, ITV, seguro), hay otros que sorprenden a quien empieza:
+
+- Cuota de autónomo a la Seguridad Social, que se paga todos los meses, haya o no actividad.
+- Gestoría, para llevar la contabilidad, IVA y declaraciones.
+- Mantenimiento y reparaciones imprevistas, que conviene provisionar aunque no ocurran todos los meses.
+- Neumáticos, una de las partidas que más sorprende por su coste cuando toca cambiarlos.
+- Días sin facturación: vacaciones, averías o bajas no remuneradas si no se ha contratado una cobertura específica.
+
+## ¿Es mejor trabajar para una sola empresa o buscar varios clientes?
+
+Trabajar para una sola empresa (a menudo en exclusiva o casi) da estabilidad y simplifica la gestión, pero deja al autónomo dependiente de las condiciones que marque esa empresa. Tener varios clientes da más margen de negociación y reduce el riesgo si uno de ellos deja de dar carga, pero exige más esfuerzo comercial y de organización.
+
+Muchos autónomos empiezan con un cliente principal mientras se asientan, y poco a poco van diversificando.
+
+## ¿Cómo se sabe si un viaje o una ruta es rentable?
+
+Esta es, quizás, la pregunta más importante a largo plazo, y la que menos se suele responder con datos al principio. Sin un cálculo claro del coste por kilómetro (combustible, peajes, mantenimiento y gastos fijos prorrateados), es muy fácil aceptar portes que, descontados todos los gastos, dejan muy poco margen o incluso pérdidas.
+
+## ¿Qué pasa si no llevo bien el control de gastos desde el principio?
+
+Es uno de los errores más comunes al empezar: centrarse en conseguir viajes y dejar la parte administrativa "para cuando haya tiempo". El problema es que, sin ese control, es imposible responder a la primera pregunta de esta lista (cuánto se gana realmente), y las decisiones (aceptar o no un porte, cambiar de cliente, invertir en otro vehículo) se acaban tomando a ciegas.
+
+## Empezar con buen pie
+
+Ninguna de estas preguntas tiene una respuesta universal: dependen de cada situación personal, de la zona, del tipo de transporte y de las condiciones que se consigan. Pero hay algo que sí ayuda en todos los casos: llevar desde el primer día un control claro de ingresos, gastos y rentabilidad por viaje, en lugar de esperar a que la facturación crezca para "ya organizarlo".
+
+En FlotaRentable puedes registrar tus viajes y gastos desde el primer día, y ver automáticamente tu rentabilidad real por kilómetro y por viaje, para tomar decisiones con datos desde el principio, no después de varios meses a ciegas.
+`,
+  },
 ];
