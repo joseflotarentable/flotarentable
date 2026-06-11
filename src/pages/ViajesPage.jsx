@@ -12,6 +12,7 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
   const[toast,setToast]=useState("");
   const[confirm,setConfirm]=useState(null);
   const[busqueda,setBusqueda]=useState("");
+  const[filtroCobro,setFiltroCobro]=useState("todos");
   const[oCoords,setOCoords]=useState(null);
   const[dCoords,setDCoords]=useState(null);
   const[lCoords,setLCoords]=useState(null);
@@ -147,7 +148,13 @@ export function ViajesPage({userId,tractoras,semis,esGerente,esTrafico,gastosTod
       </div>
       {tractoras.length===0&&<div className="alert ay"><Icon d={I.alert} size={14} color="var(--yellow)"/><span>Añade una tractora en <strong>Flota</strong> para registrar viajes.</span></div>}
       {viajes.length>0&&<div className="fld" style={{marginBottom:"0.6rem"}}><input className="inp" placeholder="Buscar por cliente, origen o destino..." value={busqueda} onChange={e=>setBusqueda(e.target.value)}/></div>}
-      {(()=>{const q=busqueda.trim().toLowerCase();const viajesF=q?viajes.filter(v=>(v.cliente||"").toLowerCase().includes(q)||(v.origen||"").toLowerCase().includes(q)||(v.destino||"").toLowerCase().includes(q)||(v.destino2||"").toLowerCase().includes(q)):viajes;
+      {esGerente&&viajes.length>0&&<div className="fld" style={{marginBottom:"0.6rem",display:"flex",gap:"0.4rem"}}>
+        {[["todos","Todos"],["pagados","✅ Pagados"],["impagados","🟡 Impagados"]].map(([val,lbl])=>
+          <button key={val} className={`btn bsm ${filtroCobro===val?"bp":"bg"}`} style={{flex:1}} onClick={()=>setFiltroCobro(val)}>{lbl}</button>
+        )}
+      </div>}
+      {(()=>{const q=busqueda.trim().toLowerCase();let viajesF=q?viajes.filter(v=>(v.cliente||"").toLowerCase().includes(q)||(v.origen||"").toLowerCase().includes(q)||(v.destino||"").toLowerCase().includes(q)||(v.destino2||"").toLowerCase().includes(q)):viajes;
+      if(esGerente&&filtroCobro!=="todos")viajesF=viajesF.filter(v=>filtroCobro==="pagados"?!!v.cobrado:!v.cobrado);
       return viajesF.length===0?(viajes.length===0?<div className="empty"><div className="ei"><Icon d={I.truck} size={20} color="var(--muted)"/></div><div><strong style={{display:"block",marginBottom:3}}>Sin viajes</strong><span style={{fontSize:"0.8rem"}}>Registra tu primera ruta para empezar a ver tu rentabilidad</span></div><button className="btn bp bsm" style={{marginTop:"0.75rem"}} onClick={openNew}><Icon d={I.plus} size={13}/> Añadir mi primer viaje</button></div>:<div className="empty"><div><strong style={{display:"block",marginBottom:3}}>Sin resultados</strong><span style={{fontSize:"0.8rem"}}>No hay viajes que coincidan con "{busqueda}"</span></div></div>)
       :<div className="trip-list" style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
         {(()=>{const costeFijoKm=esGerente?calcCosteFijoKm(tractoras,gastosFijos||[],gastosTodos,viajesTodos):0;return viajesF.map(v=>{
