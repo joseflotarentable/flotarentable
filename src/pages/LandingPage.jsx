@@ -164,7 +164,7 @@ export function LandingPage({accent,onLogin,onRegister,onBlog,onOpenPost}) {
       <style>{css}</style>
       <nav className="lp-nav">
         <div className="lp-logo">
-          <div className="lp-logo-ph"><svg width="18" height="18" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M 18 80 Q 18 48 48 48 Q 78 48 78 16" stroke="white" strokeWidth="7" strokeLinecap="round"/><circle cx="78" cy="16" r="13" fill="#F5C842"/><circle cx="78" cy="16" r="5" fill="#E8490F"/><circle cx="18" cy="80" r="13" fill="#1A1A1A" stroke="white" strokeWidth="2"/><path d="M 22 74.5 A 6.5 6.5 0 1 0 22 85.5" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none"/><line x1="11" y1="78" x2="20" y2="78" stroke="white" strokeWidth="2.2" strokeLinecap="round"/><line x1="11" y1="82" x2="20" y2="82" stroke="white" strokeWidth="2.2" strokeLinecap="round"/></svg></div>
+          <div className="lp-logo-ph"><svg width="18" height="18" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#FF3D5A"/><stop offset="100%" stopColor="#FFB347"/></linearGradient></defs><path d="M 70 28 A 32 32 0 1 0 35 78" stroke="url(#lg)" strokeWidth="9" strokeLinecap="round"/><path d="M 30 78 Q 56 66 80 30" stroke="url(#lg)" strokeWidth="9" strokeLinecap="round"/><path d="M 22 70 Q 50 60 76 28" stroke="url(#lg)" strokeWidth="5" strokeLinecap="round"/><path d="M 64 18 L 86 22 L 80 44 Z" fill="url(#lg)"/></svg></div>
           FlotaRentable
         </div>
         <div className="lp-navlinks">

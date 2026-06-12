@@ -57,7 +57,9 @@
       "Bash(curl -sI https://flotarentable.com/sitemap.xml)",
       "Bash(npx -y @resvg/resvg-cli public/og-image.svg public/og-image.png --width 1200)",
       "Bash(npx -y resvg-cli public/og-image.svg public/og-image.png --width 1200)",
-      "Bash(npx -y resvg-cli public/og-image.svg public/og-image.png)"
+      "Bash(npx -y resvg-cli public/og-image.svg public/og-image.png)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -)"
     ]
   }
 }
