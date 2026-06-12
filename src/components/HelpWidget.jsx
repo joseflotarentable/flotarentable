@@ -74,10 +74,10 @@ export function HelpWidget() {
   return (
     <>
       <button
-        className="btn bp"
+        className="btn bp help-fab"
         onClick={() => setOpen(true)}
         style={{
-          position: "fixed", right: "1.25rem", bottom: "1.25rem", zIndex: 60,
+          position: "fixed", right: "1.25rem", zIndex: 60,
           width: 48, height: 48, borderRadius: "50%", padding: 0,
           display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "0 8px 24px -8px rgba(0,0,0,0.5)",

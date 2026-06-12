@@ -114,7 +114,9 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fu{animation:fu 0.25s ease both}
+.help-fab{bottom:5.5rem}
 @media (min-width:900px){
+  .help-fab{bottom:1.25rem}
   body{background:radial-gradient(circle at 50% 0%,#15151f 0%,#08080F 60%);}
   [data-theme="light"] body{background:radial-gradient(circle at 50% 0%,#ffffff 0%,#dde1ec 60%);}
   .app{max-width:1300px;width:100%;margin:0 auto;flex-direction:row;min-height:100vh;align-items:stretch}
