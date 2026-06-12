@@ -67,8 +67,8 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .ei{width:46px;height:46px;border-radius:14px;background:var(--s2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
 .hdr{padding:0.75rem 1.125rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(15,15,26,0.92);backdrop-filter:blur(16px);position:sticky;top:0;z-index:20}
 .hdr-left{display:flex;align-items:center;gap:0.75rem}
-.hdr-logo{width:34px;height:34px;border-radius:10px;object-fit:cover}
-.hdr-logo-ph{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,${accent.a1},${accent.a2});display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fff}
+.hdr-logo{width:42px;height:42px;border-radius:12px;object-fit:cover}
+.hdr-logo-ph{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,${accent.a1},${accent.a2});display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fff}
 .hdr-brand{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:0.07em;background:linear-gradient(135deg,${accent.a1},${accent.a2});-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
 .hdr-sub{font-size:0.62rem;color:var(--muted);margin-top:1px}
 .trial-chip{display:flex;align-items:center;gap:0.375rem;background:var(--s3);border:1px solid var(--border2);border-radius:999px;padding:0.275rem 0.7rem;font-size:0.7rem;color:var(--muted)}
