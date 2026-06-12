@@ -85,7 +85,7 @@ export function AuthPage({onAuth,accent,initialMode,onBack}) {
       if(error){setErr("No se pudo avisar a tu gerente. Pidele que te restablezca la contraseña desde Ajustes.");return;}
       setErr("");setMode("forgotSentGerente");return;
     }
-    const{error}=await sb.auth.resetPasswordForEmail(form.email,{redirectTo:"https://kmrentable.vercel.app"});
+    const{error}=await sb.auth.resetPasswordForEmail(form.email,{redirectTo:"https://flotarentable.com"});
     setLoading(false);
     if(error){setErr("Error al enviar el email. Verifica la dirección.");return;}
     setErr("");setMode("login");setShowSentModal(true);

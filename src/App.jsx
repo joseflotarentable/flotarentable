@@ -36,6 +36,26 @@ export default function App() {
   const[showAuth,setShowAuth]=useState(false);
   const[authMode,setAuthMode]=useState("welcome");
   const[path,setPath]=useState(()=>window.location.pathname);
+  const[recovery,setRecovery]=useState(false);
+  const[newPass,setNewPass]=useState("");
+  const[recoveryMsg,setRecoveryMsg]=useState("");
+  const[recoveryDone,setRecoveryDone]=useState(false);
+
+  useEffect(()=>{
+    if(window.location.hash.includes("type=recovery"))setRecovery(true);
+    const{data:sub}=sb.auth.onAuthStateChange((event)=>{
+      if(event==="PASSWORD_RECOVERY")setRecovery(true);
+    });
+    return()=>sub.subscription.unsubscribe();
+  },[]);
+
+  const handleResetPassword=async()=>{
+    if(!newPass||newPass.length<6){setRecoveryMsg("La contraseña debe tener al menos 6 caracteres");return;}
+    const{error}=await sb.auth.updateUser({password:newPass});
+    if(error){setRecoveryMsg("Error: "+error.message);return;}
+    setRecoveryMsg("");setRecoveryDone(true);
+    setTimeout(()=>{window.location.href="/";},2000);
+  };
 
   useEffect(()=>{
     const onPop=()=>setPath(window.location.pathname);
@@ -158,6 +178,14 @@ export default function App() {
   if(path.startsWith("/blog/"))return(<BlogPostPage slug={path.slice(6)} accent={accent} onHome={()=>navigate("/")} onLogin={()=>{setAuthMode("login");setShowAuth(true);navigate("/");}} onRegister={()=>{setAuthMode("register");setShowAuth(true);navigate("/");}} onBack={()=>navigate("/blog")} onOpenPost={slug=>navigate(`/blog/${slug}`)}/>);
 
   if(loading)return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#08080F"}}><div className="spinner" style={{width:32,height:32,borderColor:"rgba(255,61,90,0.3)",borderTopColor:"#FF3D5A"}}/></div>);
+  if(recovery)return(<><style>{makeCSS(accent)}</style><div className="app"><div className="auth-wrap fu">
+    <div className="mtitle">Restablecer contraseña</div>
+    {recoveryDone?<p style={{fontSize:"0.85rem",color:"var(--muted)"}}>✅ Contraseña actualizada. Redirigiendo...</p>:<>
+      <div className="fld"><label className="lbl">Nueva contraseña</label><input className="inp" type="password" placeholder="Mínimo 6 caracteres" value={newPass} onChange={e=>setNewPass(e.target.value)}/></div>
+      {recoveryMsg&&<p style={{fontSize:"0.8rem",color:"var(--red)"}}>{recoveryMsg}</p>}
+      <button className="btn bp" style={{width:"100%",marginTop:"0.5rem"}} onClick={handleResetPassword}>Guardar contraseña</button>
+    </>}
+  </div></div></>);
   if(!user&&!showAuth)return(<LandingPage accent={accent} onLogin={()=>{setAuthMode("login");setShowAuth(true);}} onRegister={()=>{setAuthMode("register");setShowAuth(true);}} onBlog={()=>navigate("/blog")} onOpenPost={slug=>navigate(`/blog/${slug}`)}/>);
   if(!user)return(<><style>{makeCSS(accent)}</style><div className="app"><AuthPage onAuth={handleAuth} accent={accent} initialMode={authMode} onBack={()=>setShowAuth(false)}/></div></>);
   if(user&&!perfil.rol)return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#08080F"}}><div className="spinner" style={{width:32,height:32,borderColor:"rgba(255,61,90,0.3)",borderTopColor:"#FF3D5A"}}/></div>);

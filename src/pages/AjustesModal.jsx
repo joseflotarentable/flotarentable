@@ -54,7 +54,7 @@ export function AjustesModal({userId,perfil,updatePerfil,onClose,onLogout,tracto
     setPassMsg("");
     if(!perfil.email){setPassMsg("Tu cuenta no tiene un email asociado");return;}
     setEnviandoOtp(true);
-    const{error}=await sb.auth.resetPasswordForEmail(perfil.email);
+    const{error}=await sb.auth.resetPasswordForEmail(perfil.email,{redirectTo:"https://flotarentable.com"});
     setEnviandoOtp(false);
     if(error){setPassMsg("Error al enviar el correo: "+error.message);return;}
     setPassMsg(`✅ Te hemos enviado un correo a ${perfil.email} con un enlace para cambiar tu contraseña.`);
